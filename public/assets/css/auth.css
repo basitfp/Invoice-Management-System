@@ -1,0 +1,263 @@
+/*
+|--------------------------------------------------------------------------
+| Premium SaaS Auth UI
+| Inspired by Rentle, Attio, Stripe & Linear
+|--------------------------------------------------------------------------
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+
+    --bg-color: #f5f7fb;
+    --card-bg: rgba(255,255,255,.95);
+
+    --primary-color: #5b8def;
+    --primary-hover: #4a7ae0;
+
+    --success-color: #34c38f;
+    --error-color: #ef4444;
+
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+
+    --border-color: #edf2f7;
+
+    --focus-ring: rgba(91,141,239,.15);
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg-color);
+    color:var(--text-primary);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+}
+
+/* Background Glow Effects */
+
+body::before{
+    content:'';
+    position:fixed;
+
+    width:550px;
+    height:550px;
+
+    border-radius:50%;
+
+    background:#dbeafe;
+
+    top:-200px;
+    right:-150px;
+
+    filter:blur(90px);
+
+    z-index:0;
+}
+
+body::after{
+    content:'';
+    position:fixed;
+
+    width:450px;
+    height:450px;
+
+    border-radius:50%;
+
+    background:#dcfce7;
+
+    bottom:-150px;
+    left:-150px;
+
+    filter:blur(90px);
+
+    z-index:0;
+}
+
+.auth-container{
+    width:100%;
+    max-width:520px;
+    padding:24px;
+    position:relative;
+    z-index:1;
+}
+
+.auth-card{
+    background:var(--card-bg);
+
+    backdrop-filter:blur(24px);
+
+    border:1px solid rgba(255,255,255,.7);
+
+    border-radius:24px;
+
+    padding:48px;
+
+    box-shadow:
+        0 10px 40px rgba(15,23,42,.08),
+        0 2px 10px rgba(15,23,42,.04);
+}
+
+.auth-logo-placeholder{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:30px;
+}
+
+.auth-logo-placeholder svg{
+    color:var(--primary-color);
+}
+
+.auth-logo-placeholder span{
+    font-weight:700;
+}
+
+.auth-card h2{
+    font-size:32px;
+    font-weight:800;
+    letter-spacing:-1px;
+    margin-bottom:8px;
+}
+
+.subtitle{
+    color:var(--text-secondary);
+    font-size:15px;
+    margin-bottom:32px;
+}
+
+.form-label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--text-secondary);
+    margin-bottom:8px;
+}
+
+.form-control{
+    height:56px;
+
+    border-radius:14px;
+
+    border:1px solid var(--border-color);
+
+    background:#fff;
+
+    font-size:15px;
+
+    padding:0 16px;
+
+    transition:.25s ease;
+}
+
+.form-control:focus{
+
+    border-color:var(--primary-color);
+
+    box-shadow:
+        0 0 0 4px var(--focus-ring);
+
+    outline:none;
+}
+
+.form-control.is-invalid{
+    background-image: none !important;
+    border-color:var(--error-color) !important;
+}
+
+.form-control.is-invalid:focus{
+    box-shadow:0 0 0 4px rgba(239,68,68,.12) !important;
+}
+
+
+.password-input-wrapper{
+    position:relative;
+}
+
+.password-input-wrapper .form-control{
+    padding-right:50px;
+}
+
+.password-toggle-btn{
+    position:absolute;
+    top:50%;
+    right:16px;
+
+    transform:translateY(-50%);
+
+    background:none;
+    border:none;
+
+    color:var(--text-secondary);
+
+    cursor:pointer;
+
+    font-size:18px;
+
+    transition:.2s ease;
+}
+
+.password-toggle-btn:hover{
+    color:var(--primary-color);
+}
+
+.btn-auth-primary{
+
+    width:100%;
+
+    height:56px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:var(--primary-color);
+
+    color:#fff;
+
+    font-size:15px;
+    font-weight:600;
+
+    transition:.25s ease;
+}
+
+.btn-auth-primary:hover{
+    background:var(--primary-hover);
+    transform:translateY(-1px);
+}
+
+.btn-auth-primary:disabled{
+    background:#cbd5e1;
+    cursor:not-allowed;
+    transform:none;
+}
+
+.alert{
+    border:none !important;
+    border-radius:14px !important;
+}
+
+.invalid-feedback{
+    font-size:12px;
+    margin-top:6px;
+}
+
+@media(max-width:576px){
+
+    .auth-card{
+        padding:32px 24px;
+    }
+
+    .auth-card h2{
+        font-size:26px;
+    }
+}

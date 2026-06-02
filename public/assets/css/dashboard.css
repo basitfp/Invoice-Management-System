@@ -1,0 +1,220 @@
+/*
+ * Custom Dashboard CSS
+ * Minimalist, Modern SaaS Layout
+ * Inter Font, slate-toned dark sidebar and light panels
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --sidebar-width: 260px;
+    --navbar-height: 64px;
+    --bg-color: #f5f7fb;
+    --card-bg: rgba(255,255,255,.95);
+
+    --primary-color: #5b8def;
+    --primary-hover: #4a7ae0;
+
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #6b7280;
+    --sidebar-active-bg: rgba(91,141,239,0.08);
+    --sidebar-active-text: #0f172a;
+
+    --border-color: #edf2f7;
+    --text-primary: #0f172a;
+    --text-secondary: #6b7280;
+    --focus-ring: rgba(91,141,239,.12);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    overflow-x: hidden;
+}
+
+/* Wrapper Layout */
+#wrapper {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Sidebar Styles */
+#sidebar-wrapper {
+    min-width: var(--sidebar-width);
+    max-width: var(--sidebar-width);
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all 0.3s ease;
+    border-right: 1px solid var(--border-color);
+}
+
+#sidebar-wrapper .sidebar-brand {
+    height: var(--navbar-height);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+#sidebar-wrapper .list-group {
+    flex-grow: 1;
+    padding: 20px 12px;
+}
+
+#sidebar-wrapper .list-group-item {
+    background: transparent;
+    border: none;
+    color: var(--sidebar-text);
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.15s ease-in-out;
+    text-decoration: none;
+}
+
+#sidebar-wrapper .list-group-item i {
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
+}
+
+#sidebar-wrapper .list-group-item:hover {
+    background-color: rgba(15, 23, 42, 0.03);
+    color: var(--text-primary);
+}
+
+#sidebar-wrapper .list-group-item.active {
+    background-color: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+}
+
+/* Sidebar Future/Placeholder Items */
+#sidebar-wrapper .list-group-item.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+#sidebar-wrapper .list-group-item.disabled:hover {
+    background-color: transparent;
+    color: var(--sidebar-text);
+}
+
+/* Page Content Wrapper */
+#page-content-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* Navbar Styles */
+.dashboard-navbar {
+    height: var(--navbar-height);
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.navbar-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.navbar-user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.role-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.role-badge.admin {
+    background-color: rgba(15, 23, 42, 0.04);
+    color: var(--text-primary);
+}
+
+.role-badge.agent {
+    background-color: rgba(91,141,239,0.08);
+    color: var(--primary-color);
+}
+
+/* Main Dashboard Panel */
+.main-container {
+    padding: 32px;
+    flex-grow: 1;
+    background-color: var(--bg-color);
+}
+
+.dashboard-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 40px rgba(15,23,42,.06), 0 2px 8px rgba(15,23,42,.03);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+}
+
+.dashboard-card .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+/* Details Table Styling */
+.user-info-table th {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.user-info-table td {
+    font-size: 14px;
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+/* Action button overrides */
+.btn-logout {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    color: var(--text-secondary);
+    transition: all 0.15s ease;
+}
+
+.btn-logout:hover {
+    background-color: rgba(91,141,239,0.06);
+    color: var(--primary-color);
+    border-color: rgba(91,141,239,0.12);
+}
