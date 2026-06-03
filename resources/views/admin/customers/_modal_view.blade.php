@@ -48,7 +48,7 @@
 
                 <div class="mb-3">
                     <strong>Status:</strong>
-                    <p id="v-status" class="mb-0"></p>
+                    <p class="mb-0"><span id="v-status"></span></p>
                 </div>
 
             </div>

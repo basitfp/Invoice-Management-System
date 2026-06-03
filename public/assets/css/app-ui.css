@@ -23,3 +23,29 @@
 .table-hover tbody tr:hover {
     background-color: rgba(15, 23, 42, 0.02);
 }
+
+/* =========================================
+   GLOBAL AJAX LOADER OVERLAY
+   ========================================= */
+.global-loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.global-loader-overlay .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.25em;
+}
+
+img[src=""] {
+    display: none;
+}

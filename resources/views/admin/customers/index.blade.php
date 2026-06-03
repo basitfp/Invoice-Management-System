@@ -1,10 +1,11 @@
 @extends('layouts.admin')
 
 @section('content')
+
 <div class="row">
     <div class="col-12">
         <div class="customer-card">
-            
+
             <div class="customer-header">
                 <div>
                     <h4 class="customer-title">Customer Management</h4>
@@ -25,41 +26,39 @@
                 <table class="table table-hover table-customer">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th style="width: 50px;">#</th>
                             <th>Customer Name</th>
                             <th>Email</th>
                             <th>Phone</th>
-                            <th>Type</th>
-                            <th>VAT Registered</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th class="text-center">Type</th>
+                            <th class="text-center">VAT Registered</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($customers as $customer)
-
-                        <!-- dd($customer); -->
-                        <tr>
+                        <tr id="row-{{ $customer->id }}">
                             <td>{{ $customer->id }}</td>
-                            <td>{{ $customer->name }}</td>
+                            <td id="name-{{ $customer->id }}">{{ $customer->name }}</td>
                             <td>{{ $customer->email }}</td>
                             <td>{{ $customer->phone ?? '-' }}</td>
-                            <td>
+                            <td class="text-center">
                                 <span class="badge bg-{{ $customer->customer_type === 'business' ? 'info' : 'secondary' }}">
                                     {{ ucfirst($customer->customer_type) }}
                                 </span>
                             </td>
-                         <td>
-                            @if($customer->vat_registered)
-                                <span class="badge bg-success">Yes</span>
+                            <td class="text-center">
+                                @if($customer->vat_registered)
+                                    <span class="badge bg-success">Yes</span>
                                     @if($customer->vat_number)
-                                        <small class="text-muted ms-1">({{ $customer->vat_number }})</small>
+                                        <br><small class="text-muted" style="font-size: 11px; letter-spacing: 0.02em;">{{ $customer->vat_number }}</small>
                                     @endif
                                 @else
                                     <span class="badge bg-secondary">No</span>
                                 @endif
                             </td>
-                            <td>
+                            <td class="text-center" id="status-container-{{ $customer->id }}">
                                 @if($customer->status)
                                     <span class="badge-status-enabled">Active</span>
                                 @else
@@ -69,28 +68,46 @@
                             <td>
                                 <div class="d-flex gap-2 justify-content-end">
 
+                                    {{-- View Button --}}
                                     <button class="btn btn-customer-action btn-customer-view"
                                         data-id="{{ $customer->id }}"
                                         data-name="{{ $customer->name }}"
                                         data-email="{{ $customer->email }}"
-                                        data-phone="{{ $customer->phone }}"
+                                        data-phone="{{ $customer->phone ?? '' }}"
                                         data-type="{{ $customer->customer_type }}"
-                                        data-address="{{ $customer->address }}"
+                                        data-address="{{ $customer->address ?? '' }}"
                                         data-vat-registered="{{ $customer->vat_registered }}"
-                                        data-vat-number="{{ $customer->vat_number }}"
+                                        data-vat-number="{{ $customer->vat_number ?? '' }}"
                                         data-status="{{ $customer->status }}">
                                         <i class="bi bi-eye"></i>
                                     </button>
 
+                                    {{-- Edit Button --}}
                                     <button class="btn btn-customer-action btn-customer-edit"
-                                        data-id="{{ $customer->id }}">
+                                        data-id="{{ $customer->id }}"
+                                        data-name="{{ $customer->name }}"
+                                        data-email="{{ $customer->email }}"
+                                        data-phone="{{ $customer->phone ?? '' }}"
+                                        data-type="{{ $customer->customer_type }}"
+                                        data-address="{{ $customer->address ?? '' }}"
+                                        data-vat-registered="{{ $customer->vat_registered }}"
+                                        data-vat-number="{{ $customer->vat_number ?? '' }}">
                                         <i class="bi bi-pencil"></i>
                                     </button>
 
+                                    {{-- Toggle Status Button --}}
                                     <button class="btn btn-customer-action btn-customer-toggle"
                                         data-id="{{ $customer->id }}"
+                                        data-name="{{ $customer->name }}"
                                         data-status="{{ $customer->status }}">
                                         <i class="bi bi-slash-circle"></i>
+                                    </button>
+
+                                    {{-- Delete Button --}}
+                                    <button class="btn btn-customer-action btn-customer-delete"
+                                        data-id="{{ $customer->id }}"
+                                        data-name="{{ $customer->name }}">
+                                        <i class="bi bi-trash"></i>
                                     </button>
 
                                 </div>
@@ -99,6 +116,12 @@
                         @endforeach
                     </tbody>
                 </table>
+
+                {{-- Pagination --}}
+                <div class="mt-3">
+                    {{ $customers->links() }}
+                </div>
+
             </div>
         </div>
     </div>
@@ -108,6 +131,7 @@
 @include('admin.customers._modal_edit')
 @include('admin.customers._modal_view')
 @include('admin.customers._modal_confirm')
+
 @endsection
 
 @push('styles')

@@ -1,6 +1,8 @@
 @extends('layouts.admin')
 
 @section('content')
+
+
 <div class="row">
     <div class="col-12">
         <div class="category-card">
@@ -25,79 +27,76 @@
                         <tr>
                             <th style="width: 80px;">#</th>
                             <th>Category Name</th>
-                            <th style="width: 150px;">Status</th>
-                            <th style="width: 200px;">Created Date</th>
+                            <th class="text-center" style="width: 150px;">Status</th>
+                            <th class="text-center" style="width: 200px;">Created Date</th>
                             <th style="width: 280px; text-align: right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($categories as $category)
-                            <tr id="category-row-{{ $category->id }}">
-                                <td>{{ $category->id }}</td>
-                                <td class="category-name-cell">{{ $category->name }}</td>
-                                <td class="category-status-cell">
-                                    @if($category->status)
-                                        <span class="badge-status-enabled">Enabled</span>
-                                    @else
-                                        <span class="badge-status-disabled">Disabled</span>
-                                    @endif
-                                </td>
-                                <td>{{ $category->created_at ? $category->created_at->format('Y-m-d H:i:s') : '-' }}</td>
-                                <td>
-                                    <div class="d-flex gap-2 justify-content-end">
+                        <tr id="row-{{ $category->id }}">
+                            <td>{{ $category->id }}</td>
+                            <td id="name-{{ $category->id }}">{{ $category->name }}</td>
+                            <td class="text-center" id="status-container-{{ $category->id }}">
+                                @if($category->status)
+                                    <span class="badge-status-enabled">Enabled</span>
+                                @else
+                                    <span class="badge-status-disabled">Disabled</span>
+                                @endif
+                            </td>
+                            <td class="text-center">{{ $category->created_at ? $category->created_at->format('Y-m-d') : '-' }}</td>
+                           <td>
+                                <div class="d-flex gap-2 justify-content-end">
 
-                                        {{-- View Button --}}
-                                        <button class="btn btn-category-action btn-category-view"
-                                            data-id="{{ $category->id }}"
-                                            data-name="{{ $category->name }}"
-                                            data-status="{{ $category->status }}"
-                                            data-created-at="{{ $category->created_at ? $category->created_at->format('Y-m-d H:i:s') : '-' }}"
-                                            data-updated-at="{{ $category->updated_at ? $category->updated_at->format('Y-m-d H:i:s') : '-' }}">
-                                            <i class="bi bi-eye"></i> View
-                                        </button>
+                                    {{-- View Button --}}
+                                    <button class="btn btn-category-action btn-category-view"
+                                        data-id="{{ $category->id }}"
+                                        data-name="{{ $category->name }}"
+                                        data-status="{{ $category->status }}"
+                                        data-created-at="{{ $category->created_at ? $category->created_at->format('Y-m-d H:i:s') : '-' }}"
+                                        data-updated-at="{{ $category->updated_at ? $category->updated_at->format('Y-m-d H:i:s') : '-' }}">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
 
-                                        {{-- Edit Button --}}
-                                        <button class="btn btn-category-action btn-category-edit"
-                                            data-id="{{ $category->id }}"
-                                            data-name="{{ $category->name }}"
-                                            data-action="{{ route('admin.categories.update', $category) }}">
-                                            <i class="bi bi-pencil"></i> Edit
-                                        </button>
+                                    {{-- Edit Button --}}
+                                    <button class="btn btn-category-action btn-category-edit"
+                                        data-id="{{ $category->id }}"
+                                        data-name="{{ $category->name }}"
+                                        data-action="{{ route('admin.categories.update', $category) }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
 
-                                        {{-- Toggle Status Button --}}
-                                        <button class="btn btn-category-action btn-toggle-status"
-                                            data-id="{{ $category->id }}"
-                                            data-name="{{ $category->name }}"
-                                            data-action="{{ route('admin.categories.toggle-status', $category) }}"
-                                            data-status="{{ $category->status }}">
-                                            @if ($category->status == 1)
-                                                <i class="bi bi-slash-circle"></i> Disable
-                                            @else
-                                                <i class="bi bi-check-circle"></i> Enable
-                                            @endif
-                                        </button>
+                                    {{-- Toggle Status Button --}}
+                                    <button class="btn btn-category-action btn-category-toggle"
+                                        data-id="{{ $category->id }}"
+                                        data-name="{{ $category->name }}"
+                                        data-action="{{ route('admin.categories.toggle-status', $category) }}"
+                                        data-status="{{ $category->status }}">
+                                        <i class="bi bi-slash-circle"></i>
+                                    </button>
 
-                                    </div>
-                                </td>
-                            </tr>
+                                    {{-- Delete Button --}}
+                                    <button class="btn btn-category-action btn-category-delete"
+                                        data-id="{{ $category->id }}"
+                                        data-name="{{ $category->name }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+
+                                </div>
+                            </td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
+
         </div>
     </div>
 </div>
 
-<!-- Create Modal -->
 @include('admin.categories._modal_create')
-
-<!-- Edit Modal -->
 @include('admin.categories._modal_edit')
-
-<!-- View Modal -->
 @include('admin.categories._modal_view')
-
-<!-- Status Confirm Modal -->
 @include('admin.categories._modal_confirm')
 
 @endsection

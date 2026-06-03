@@ -1,40 +1,199 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="row">
-    <div class="col-12 col-md-8 col-lg-6">
-        <div class="dashboard-card">
-            <h4 class="card-title mb-3">Welcome to the Administrator Workspace</h4>
-            <p class="text-muted mb-4" style="font-size: 14px; line-height: 1.5;">You have successfully authenticated as an Administrator. From here, you will be able to configure system parameters, generate reports, and manage all billing records.</p>
-            
-            <hr class="my-4" style="border-top: 1px solid var(--border-color); opacity: 1;">
-            
-            <div class="mb-4">
-                <h6 class="text-uppercase text-secondary mb-3" style="font-size: 11px; font-weight: 600; letter-spacing: 0.05em;">Logged In User Information</h6>
-                <div class="d-flex flex-column gap-2">
-                    <div class="d-flex justify-content-between py-2 border-bottom" style="font-size: 14px;">
-                        <span class="text-secondary">Name:</span>
-                        <span class="fw-semibold text-dark">{{ Auth::user()->name }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between py-2 border-bottom" style="font-size: 14px;">
-                        <span class="text-secondary">Email:</span>
-                        <span class="fw-semibold text-dark">{{ Auth::user()->email }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between py-2" style="font-size: 14px;">
-                        <span class="text-secondary">User Role:</span>
-                        <span class="fw-bold text-dark text-capitalize">{{ Auth::user()->role }}</span>
+
+{{-- Welcome Header --}}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1" style="color: var(--text-primary);">Dashboard Overview</h4>
+        <p class="text-muted mb-0" style="font-size: 14px;">Welcome back, {{ Auth::user()->name }}. Here is what's happening today.</p>
+    </div>
+    <div>
+        <a href="{{ route('admin.invoices.create') }}" class="btn btn-primary d-flex align-items-center gap-2" style="border-radius: 10px; font-weight: 600;">
+            <i class="bi bi-plus-lg"></i> New Invoice
+        </a>
+    </div>
+</div>
+
+{{-- Top KPI Cards --}}
+<div class="row g-4 mb-5">
+    
+    {{-- Card 1: Revenue --}}
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff; overflow: hidden;">
+            <div class="card-body p-4 position-relative">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-uppercase text-muted fw-bold mb-0" style="font-size: 11px; letter-spacing: 0.05em;">Total Revenue</h6>
+                    <div class="bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 10px;">
+                        <i class="bi bi-currency-pound fs-5"></i>
                     </div>
                 </div>
+                <h3 class="fw-bolder mb-1" style="color: var(--text-primary); font-size: 28px;">£{{ number_format($totalRevenue, 2) }}</h3>
+                <p class="text-muted mb-0" style="font-size: 13px;">
+                    <span class="text-danger fw-semibold"><i class="bi bi-arrow-up-right"></i> £{{ number_format($pendingRevenue, 2) }}</span> Pending
+                </p>
             </div>
+            <div class="bg-success" style="height: 4px; width: 100%; position: absolute; bottom: 0;"></div>
+        </div>
+    </div>
 
-            <!-- Logout Button inside card -->
-            <form action="{{ route('logout') }}" method="POST" class="mt-4">
-                @csrf
-                <button type="submit" class="btn btn-danger w-100 py-2 d-flex align-items-center justify-content-center gap-2" style="font-size: 14px; font-weight: 500; border-radius: 6px;">
-                    <i class="bi bi-box-arrow-right"></i> Sign Out of Account
-                </button>
-            </form>
+    {{-- Card 2: Invoices --}}
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff; overflow: hidden;">
+            <div class="card-body p-4 position-relative">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-uppercase text-muted fw-bold mb-0" style="font-size: 11px; letter-spacing: 0.05em;">Total Invoices</h6>
+                    <div class="bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 10px;">
+                        <i class="bi bi-receipt fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bolder mb-1" style="color: var(--text-primary); font-size: 28px;">{{ number_format($totalInvoices) }}</h3>
+                <p class="text-muted mb-0" style="font-size: 13px;">Invoices generated</p>
+            </div>
+            <div class="bg-primary" style="height: 4px; width: 100%; position: absolute; bottom: 0;"></div>
+        </div>
+    </div>
+
+    {{-- Card 3: Customers --}}
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff; overflow: hidden;">
+            <div class="card-body p-4 position-relative">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-uppercase text-muted fw-bold mb-0" style="font-size: 11px; letter-spacing: 0.05em;">Total Customers</h6>
+                    <div class="bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 10px;">
+                        <i class="bi bi-people fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bolder mb-1" style="color: var(--text-primary); font-size: 28px;">{{ number_format($totalCustomers) }}</h3>
+                <p class="text-muted mb-0" style="font-size: 13px;">Active clients</p>
+            </div>
+            <div class="bg-info" style="height: 4px; width: 100%; position: absolute; bottom: 0;"></div>
+        </div>
+    </div>
+
+    {{-- Card 4: Products --}}
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff; overflow: hidden;">
+            <div class="card-body p-4 position-relative">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-uppercase text-muted fw-bold mb-0" style="font-size: 11px; letter-spacing: 0.05em;">Total Products</h6>
+                    <div class="bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 10px;">
+                        <i class="bi bi-box-seam fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bolder mb-1" style="color: var(--text-primary); font-size: 28px;">{{ number_format($totalProducts) }}</h3>
+                <p class="text-muted mb-0" style="font-size: 13px;">In inventory</p>
+            </div>
+            <div class="bg-warning" style="height: 4px; width: 100%; position: absolute; bottom: 0;"></div>
+        </div>
+    </div>
+
+</div>
+
+{{-- Main Content Row --}}
+<div class="row g-4">
+    
+    {{-- Recent Invoices --}}
+    <div class="col-12 col-xl-8">
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff;">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0" style="color: var(--text-primary);">Recent Invoices</h6>
+                <a href="{{ route('admin.invoices.index') }}" class="text-decoration-none" style="font-size: 13px; font-weight: 600;">View All</a>
+            </div>
+            <div class="card-body p-0 mt-3">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" style="font-size: 14px;">
+                        <thead style="background: #fafbfc;">
+                            <tr>
+                                <th class="px-4 py-3 text-muted" style="font-weight: 600; font-size: 12px; text-transform: uppercase;">Invoice #</th>
+                                <th class="py-3 text-muted" style="font-weight: 600; font-size: 12px; text-transform: uppercase;">Customer</th>
+                                <th class="py-3 text-muted text-end" style="font-weight: 600; font-size: 12px; text-transform: uppercase;">Amount</th>
+                                <th class="px-4 py-3 text-muted text-center" style="font-weight: 600; font-size: 12px; text-transform: uppercase;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($recentInvoices as $invoice)
+                            <tr>
+                                <td class="px-4 py-3 align-middle">
+                                    <a href="{{ route('admin.invoices.show', $invoice) }}" class="fw-semibold text-decoration-none">
+                                        {{ $invoice->invoice_number }}
+                                    </a>
+                                </td>
+                                <td class="py-3 align-middle">{{ $invoice->customer->name ?? '-' }}</td>
+                                <td class="py-3 align-middle text-end fw-semibold">£{{ number_format($invoice->total_amount + $invoice->total_vat, 2) }}</td>
+                                <td class="px-4 py-3 align-middle text-center">
+                                    @php
+                                        $statusClasses = [
+                                            'draft'     => 'bg-secondary bg-opacity-10 text-secondary',
+                                            'unpaid'    => 'bg-primary bg-opacity-10 text-primary',
+                                            'paid'      => 'bg-success bg-opacity-10 text-success',
+                                            'due'       => 'bg-danger bg-opacity-10 text-danger',
+                                        ];
+                                        $cls = $statusClasses[$invoice->status] ?? 'bg-secondary bg-opacity-10 text-secondary';
+                                    @endphp
+                                    <span class="badge rounded-pill {{ $cls }}" style="font-weight: 600; padding: 6px 12px;">{{ ucfirst($invoice->status) }}</span>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No recent invoices found.</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Quick Actions & User Info --}}
+    <div class="col-12 col-xl-4">
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px; background: #fff;">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                <h6 class="fw-bold mb-0" style="color: var(--text-primary);">Quick Actions</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex flex-column gap-3">
+                    <a href="{{ route('admin.customers.index') }}" class="btn btn-light d-flex align-items-center justify-content-start gap-3 py-3 px-4" style="border-radius: 12px; font-weight: 600; border: 1px solid var(--border-color); color: var(--text-primary);">
+                        <div class="bg-info bg-opacity-10 text-info rounded d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;"><i class="bi bi-person-plus fs-5"></i></div>
+                        Add New Customer
+                    </a>
+                    <a href="{{ route('admin.products.index') }}" class="btn btn-light d-flex align-items-center justify-content-start gap-3 py-3 px-4" style="border-radius: 12px; font-weight: 600; border: 1px solid var(--border-color); color: var(--text-primary);">
+                        <div class="bg-warning bg-opacity-10 text-warning rounded d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;"><i class="bi bi-box-seam fs-5"></i></div>
+                        Add New Product
+                    </a>
+                    <a href="{{ route('admin.settings.index') }}" class="btn btn-light d-flex align-items-center justify-content-start gap-3 py-3 px-4" style="border-radius: 12px; font-weight: 600; border: 1px solid var(--border-color); color: var(--text-primary);">
+                        <div class="bg-secondary bg-opacity-10 text-secondary rounded d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;"><i class="bi bi-gear fs-5"></i></div>
+                        System Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px; font-size: 20px;">
+                        {{ substr(Auth::user()->name, 0, 1) }}
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1" style="color: var(--text-primary);">{{ Auth::user()->name }}</h6>
+                        <p class="text-muted mb-0" style="font-size: 13px;">{{ Auth::user()->email }}</p>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-2 border-top border-bottom mb-4" style="font-size: 14px;">
+                    <span class="text-secondary">Role</span>
+                    <span class="fw-semibold text-dark text-capitalize px-2 py-1 bg-light rounded">{{ Auth::user()->role }}</span>
+                </div>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-danger w-100 py-2 d-flex align-items-center justify-content-center gap-2" style="font-size: 14px; font-weight: 600; border-radius: 10px;">
+                        <i class="bi bi-box-arrow-right"></i> Sign Out
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
+
 @endsection

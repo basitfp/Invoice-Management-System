@@ -1,11 +1,14 @@
 @extends('layouts.admin')
 
 @section('content')
+
+
+
 <div class="row">
     <div class="col-12">
-        <div class="product-card">  <!-- Changed from category-card -->
-            
-            <div class="product-header">  <!-- Changed from category-header -->
+        <div class="product-card">
+
+            <div class="product-header">
                 <div>
                     <h4 class="product-title">Product Management</h4>
                     <p class="product-subtitle">Manage all products from here.</p>
@@ -22,29 +25,29 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table table-hover table-product">  <!-- Changed from table-category -->
+                <table class="table table-hover table-product">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th style="width: 50px;">#</th>
                             <th>Product Name</th>
                             <th>Category</th>
-                            <th>Qty</th>
-                            <th>Selling Price</th>
-                            <th>VAT</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-end">Selling Price</th>
+                            <th class="text-center">VAT</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($products as $product)
-                        <tr>
+                        <tr id="row-{{ $product->id }}">
                             <td>{{ $product->id }}</td>
-                            <td>{{ $product->name }}</td>
+                            <td id="name-{{ $product->id }}">{{ $product->name }}</td>
                             <td>{{ $product->category->name ?? '-' }}</td>
-                            <td>{{ $product->qty }}</td>
-                            <td>{{ $product->selling_price }}</td>
-                            <td>{{ $product->vat }}%</td>
-                            <td>
+                            <td class="text-center">{{ $product->qty }}</td>
+                            <td class="text-end">£{{ number_format($product->selling_price, 2) }}</td>
+                            <td class="text-center">{{ $product->vat }}%</td>
+                            <td class="text-center" id="status-container-{{ $product->id }}">
                                 @if($product->status)
                                     <span class="badge-status-enabled">Enabled</span>
                                 @else
@@ -54,6 +57,7 @@
                             <td>
                                 <div class="d-flex gap-2 justify-content-end">
 
+                                    {{-- View Button --}}
                                     <button class="btn btn-product-action btn-product-view"
                                         data-id="{{ $product->id }}"
                                         data-name="{{ $product->name }}"
@@ -68,15 +72,34 @@
                                         <i class="bi bi-eye"></i>
                                     </button>
 
+                                    {{-- Edit Button --}}
                                     <button class="btn btn-product-action btn-product-edit"
-                                        data-id="{{ $product->id }}">
+                                        data-id="{{ $product->id }}"
+                                        data-name="{{ $product->name }}"
+                                        data-desc="{{ $product->description ?? '' }}"
+                                        data-category="{{ $product->category_id }}"
+                                        data-qty="{{ $product->qty }}"
+                                        data-purchase="{{ $product->purchase_price }}"
+                                        data-selling="{{ $product->selling_price }}"
+                                        data-vat="{{ $product->vat }}"
+                                        data-moq="{{ $product->moq }}"
+                                        data-status="{{ $product->status }}">
                                         <i class="bi bi-pencil"></i>
                                     </button>
 
+                                    {{-- Toggle Status Button --}}
                                     <button class="btn btn-product-action btn-product-toggle"
                                         data-id="{{ $product->id }}"
-                                        data-status="{{ $product->status }}">
+                                        data-status="{{ $product->status }}"
+                                        data-name="{{ $product->name }}">
                                         <i class="bi bi-slash-circle"></i>
+                                    </button>
+
+                                    {{-- Delete Button --}}
+                                    <button class="btn btn-product-action btn-product-delete"
+                                        data-id="{{ $product->id }}"
+                                        data-name="{{ $product->name }}">
+                                        <i class="bi bi-trash"></i>
                                     </button>
 
                                 </div>
@@ -86,6 +109,7 @@
                     </tbody>
                 </table>
             </div>
+
         </div>
     </div>
 </div>
@@ -94,6 +118,7 @@
 @include('admin.products._modal_edit')
 @include('admin.products._modal_view')
 @include('admin.products._modal_confirm')
+
 @endsection
 
 @push('styles')
