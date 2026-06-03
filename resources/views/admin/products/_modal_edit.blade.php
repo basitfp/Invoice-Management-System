@@ -16,7 +16,7 @@
 
                     <div class="mb-3">
                         <label>Name</label>
-                        <input type="text" name="name" id="e-name" class="form-control">
+                        <input type="text" name="name" id="e-name" class="form-control validate-name" data-label="Name">
                         <span class="field-error text-danger small" id="e-name-error"></span>
                     </div>
 
@@ -27,7 +27,7 @@
 
                     <div class="mb-3">
                         <label>Category</label>
-                        <select name="category_id" id="e-category" class="form-control">
+                        <select name="category_id" id="e-category" class="form-control" data-label="Category">
                             <option value="">-- Select Category --</option>
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}">{{ $cat->name }}</option>
@@ -39,12 +39,12 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label>Qty</label>
-                            <input type="number" name="qty" id="e-qty" class="form-control">
+                            <input type="number" name="qty" id="e-qty" class="form-control validate-qty-int validate-non-negative" data-label="Quantity" min="0" step="1">
                             <span class="field-error text-danger small" id="e-qty-error"></span>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>MOQ</label>
-                            <input type="number" name="moq" id="e-moq" class="form-control">
+                            <input type="number" name="moq" id="e-moq" class="form-control validate-qty-int validate-non-negative" data-label="MOQ" min="0" step="1">
                             <span class="field-error text-danger small" id="e-moq-error"></span>
                         </div>
                     </div>
@@ -52,12 +52,12 @@
                     <div class="row mt-2">
                         <div class="col-md-6 mb-3">
                             <label>Purchase Price</label>
-                            <input type="number" name="purchase_price" id="e-purchase" class="form-control">
+                            <input type="number" name="purchase_price" id="e-purchase" class="form-control validate-non-negative" data-label="Purchase price" min="0" step="0.01">
                             <span class="field-error text-danger small" id="e-purchase-error"></span>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>Selling Price</label>
-                            <input type="number" name="selling_price" id="e-selling" class="form-control">
+                            <input type="number" name="selling_price" id="e-selling" class="form-control validate-non-negative" data-label="Selling price" min="0" step="0.01">
                             <span class="field-error text-danger small" id="e-selling-error"></span>
                         </div>
                     </div>

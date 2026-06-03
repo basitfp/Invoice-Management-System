@@ -35,6 +35,7 @@ class InvoiceController extends Controller
             'id' => $p->id,
             'name' => $p->name,
             'selling_price' => $p->selling_price,
+            'purchase_price' => $p->purchase_price,
             'vat' => $p->vat,
         ];
     });

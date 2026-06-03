@@ -49,8 +49,10 @@
                                 </label>
                                 <input type="text" name="app_name" id="app_name"
                                     class="form-control settings-input @error('app_name') is-invalid @enderror"
+                                    data-label="App name"
                                     value="{{ old('app_name', $settings->app_name ?? '') }}"
                                     placeholder="e.g. Acme Ltd.">
+                                <span class="field-error text-danger small" id="app_name-error"></span>
                                 @error('app_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -61,11 +63,13 @@
                                     <label class="settings-label">Email Address</label>
                                     <div class="settings-input-icon-wrap">
                                         <i class="bi bi-envelope settings-input-icon"></i>
-                                        <input type="email" name="email"
-                                            class="form-control settings-input settings-input-with-icon @error('email') is-invalid @enderror"
+                                        <input type="email" name="email" id="settings_email"
+                                            class="form-control settings-input settings-input-with-icon validate-email @error('email') is-invalid @enderror"
+                                            data-label="Email"
                                             value="{{ old('email', $settings->email ?? '') }}"
                                             placeholder="hello@company.com">
                                     </div>
+                                    <span class="field-error text-danger small" id="settings_email-error"></span>
                                     @error('email')
                                         <div class="text-danger small mt-1">{{ $message }}</div>
                                     @enderror
@@ -74,11 +78,13 @@
                                     <label class="settings-label">Phone Number</label>
                                     <div class="settings-input-icon-wrap">
                                         <i class="bi bi-telephone settings-input-icon"></i>
-                                        <input type="text" name="phone"
-                                            class="form-control settings-input settings-input-with-icon @error('phone') is-invalid @enderror"
+                                        <input type="text" name="phone" id="settings_phone"
+                                            class="form-control settings-input settings-input-with-icon pak-phone validate-phone @error('phone') is-invalid @enderror"
+                                            data-label="Phone number"
                                             value="{{ old('phone', $settings->phone ?? '') }}"
-                                            placeholder="+44 7700 000000">
+                                            placeholder="03XX XXXXXXX or +923XX XXXXXXX">
                                     </div>
+                                    <span class="field-error text-danger small" id="settings_phone-error"></span>
                                     @error('phone')
                                         <div class="text-danger small mt-1">{{ $message }}</div>
                                     @enderror
@@ -87,9 +93,11 @@
 
                             <div class="mb-0">
                                 <label class="settings-label">Business Address</label>
-                                <textarea name="address" rows="3"
+                                <textarea name="address" id="settings_address" rows="3"
                                     class="form-control settings-input settings-textarea @error('address') is-invalid @enderror"
+                                    data-label="Address"
                                     placeholder="123 Business Lane, London, EC1A 1BB">{{ old('address', $settings->address ?? '') }}</textarea>
+                                <span class="field-error text-danger small" id="settings_address-error"></span>
                                 @error('address')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -113,10 +121,12 @@
 
                             <div class="mb-4">
                                 <label class="settings-label">Bank Name</label>
-                                <input type="text" name="bank_name"
+                                <input type="text" name="bank_name" id="settings_bank_name"
                                     class="form-control settings-input @error('bank_name') is-invalid @enderror"
+                                    data-label="Bank name"
                                     value="{{ old('bank_name', $settings->bank_name ?? '') }}"
                                     placeholder="e.g. Barclays Bank">
+                                <span class="field-error text-danger small" id="settings_bank_name-error"></span>
                                 @error('bank_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -124,11 +134,13 @@
 
                             <div class="mb-4">
                                 <label class="settings-label">IBAN</label>
-                                <input type="text" name="iban"
+                                <input type="text" name="iban" id="settings_iban"
                                     class="form-control settings-input settings-input-mono @error('iban') is-invalid @enderror"
+                                    data-label="IBAN"
                                     value="{{ old('iban', $settings->iban ?? '') }}"
                                     placeholder="GB29 NWBK 6016 1331 9268 19"
                                     oninput="this.value = this.value.toUpperCase()">
+                                <span class="field-error text-danger small" id="settings_iban-error"></span>
                                 @error('iban')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -136,11 +148,13 @@
 
                             <div class="mb-0">
                                 <label class="settings-label">SWIFT / BIC Code</label>
-                                <input type="text" name="swift_code"
+                                <input type="text" name="swift_code" id="settings_swift_code"
                                     class="form-control settings-input settings-input-mono @error('swift_code') is-invalid @enderror"
+                                    data-label="SWIFT code"
                                     value="{{ old('swift_code', $settings->swift_code ?? '') }}"
                                     placeholder="NWBKGB2L"
                                     oninput="this.value = this.value.toUpperCase()">
+                                <span class="field-error text-danger small" id="settings_swift_code-error"></span>
                                 @error('swift_code')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -241,7 +255,7 @@
                     <i class="bi bi-info-circle me-1"></i>
                     Changes apply site-wide — invoices, headers, and all printed documents.
                 </div>
-                <button type="submit" class="btn btn-primary settings-save-btn">
+                <button type="submit" id="settingsSaveBtn" class="btn btn-primary settings-save-btn" disabled>
                     <i class="bi bi-floppy me-2"></i> Save Settings
                 </button>
             </div>

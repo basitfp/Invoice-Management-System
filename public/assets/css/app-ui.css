@@ -49,3 +49,27 @@
 img[src=""] {
     display: none;
 }
+
+/* Validation: red border only — no Bootstrap background icon */
+.form-control.is-invalid,
+.form-select.is-invalid,
+.settings-input.is-invalid,
+.invoice-input.is-invalid {
+    border-color: #dc3545 !important;
+    background-image: none !important;
+    padding-right: 0.75rem;
+    box-shadow: none;
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus,
+.settings-input.is-invalid:focus,
+.invoice-input.is-invalid:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+}
+
+.field-error {
+    display: block;
+    min-height: 1.25rem;
+}

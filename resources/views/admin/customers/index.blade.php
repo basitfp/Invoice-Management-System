@@ -41,14 +41,14 @@
                         <tr id="row-{{ $customer->id }}">
                             <td>{{ $customer->id }}</td>
                             <td id="name-{{ $customer->id }}">{{ $customer->name }}</td>
-                            <td>{{ $customer->email }}</td>
-                            <td>{{ $customer->phone ?? '-' }}</td>
-                            <td class="text-center">
+                            <td id="email-{{ $customer->id }}">{{ $customer->email }}</td>
+                            <td id="phone-{{ $customer->id }}">{{ $customer->phone ?? '-' }}</td>
+                            <td class="text-center" id="type-{{ $customer->id }}">
                                 <span class="badge bg-{{ $customer->customer_type === 'business' ? 'info' : 'secondary' }}">
                                     {{ ucfirst($customer->customer_type) }}
                                 </span>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center" id="vat-{{ $customer->id }}">
                                 @if($customer->vat_registered)
                                     <span class="badge bg-success">Yes</span>
                                     @if($customer->vat_number)
@@ -91,7 +91,8 @@
                                         data-type="{{ $customer->customer_type }}"
                                         data-address="{{ $customer->address ?? '' }}"
                                         data-vat-registered="{{ $customer->vat_registered }}"
-                                        data-vat-number="{{ $customer->vat_number ?? '' }}">
+                                        data-vat-number="{{ $customer->vat_number ?? '' }}"
+                                        data-status="{{ $customer->status }}">
                                         <i class="bi bi-pencil"></i>
                                     </button>
 

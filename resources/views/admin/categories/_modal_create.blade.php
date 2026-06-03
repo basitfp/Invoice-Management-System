@@ -14,7 +14,8 @@
                     <div class="mb-3">
                         <label class="form-label" for="create-name">Category Name</label>
                         <input type="text" name="name" id="create-name"
-                            class="form-control"
+                            class="form-control validate-name"
+                            data-label="Category name"
                             placeholder="e.g. Electronics">
                         <span class="field-error text-danger small" id="create-name-error"></span>
                     </div>

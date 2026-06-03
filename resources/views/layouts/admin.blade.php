@@ -142,6 +142,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <script src="{{ asset('assets/js/dashboard.js') }}"></script>
+    <script src="{{ asset('assets/js/form-validation.js') }}"></script>
+    <script src="{{ asset('assets/js/entity-sync.js') }}"></script>
     <script src="{{ asset('assets/js/app-ui.js') }}"></script>
 <script>
     toastr.options = {

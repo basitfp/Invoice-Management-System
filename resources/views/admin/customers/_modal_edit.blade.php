@@ -16,32 +16,35 @@
 
                     <div class="mb-3">
                         <label>Customer Name</label>
-                        <input type="text" name="name" id="e-name" class="form-control">
+                        <input type="text" name="name" id="e-name" class="form-control validate-name" data-label="Name">
                         <span class="field-error text-danger small" id="e-name-error"></span>
                     </div>
 
                     <div class="mb-3">
                         <label>Email Address</label>
-                        <input type="email" name="email" id="e-email" class="form-control">
+                        <input type="email" name="email" id="e-email" class="form-control validate-email" data-label="Email">
                         <span class="field-error text-danger small" id="e-email-error"></span>
                     </div>
 
                     <div class="mb-3">
                         <label>Phone Number</label>
-                        <input type="text" name="phone" id="e-phone" class="form-control">
+                        <input type="text" name="phone" id="e-phone" class="form-control pak-phone validate-phone" data-label="Phone number" placeholder="03XX XXXXXXX or +923XX XXXXXXX">
+                        <span class="field-error text-danger small" id="e-phone-error"></span>
                     </div>
 
                     <div class="mb-3">
                         <label>Customer Type</label>
-                        <select name="customer_type" id="e-type" class="form-control">
+                        <select name="customer_type" id="e-type" class="form-control" data-label="Customer type">
                             <option value="regular">Regular</option>
                             <option value="business">Business</option>
                         </select>
+                        <span class="field-error text-danger small" id="e-type-error"></span>
                     </div>
 
                     <div class="mb-3">
                         <label>Address</label>
-                        <textarea name="address" id="e-address" class="form-control" rows="3"></textarea>
+                        <textarea name="address" id="e-address" class="form-control" rows="3" data-label="Address"></textarea>
+                        <span class="field-error text-danger small" id="e-address-error"></span>
                     </div>
 
                     <div class="mb-3">

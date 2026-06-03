@@ -1,5 +1,74 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+    var FV = window.FormValidation;
+
+    function getSettingsRules() {
+        return [
+            {
+                field: $('#app_name'),
+                label: 'App name',
+                required: true,
+                requiredMessage: 'App name is required.'
+            },
+            {
+                field: $('#settings_address'),
+                label: 'Address',
+                required: true,
+                requiredMessage: 'Address is required.'
+            },
+            FV.rules.phone($('#settings_phone'), 'Phone number'),
+            FV.rules.email($('#settings_email'), 'Email'),
+            {
+                field: $('#settings_bank_name'),
+                label: 'Bank name',
+                required: true,
+                requiredMessage: 'Bank name is required.'
+            },
+            {
+                field: $('#settings_iban'),
+                label: 'IBAN',
+                required: true,
+                requiredMessage: 'IBAN is required.'
+            },
+            {
+                field: $('#settings_swift_code'),
+                label: 'SWIFT code',
+                required: true,
+                requiredMessage: 'SWIFT code is required.'
+            }
+        ];
+    }
+
+    function isSettingsFormValid() {
+        if (!FV) {
+            return true;
+        }
+        return FV.checkRules(getSettingsRules());
+    }
+
+    function updateSettingsSaveButton() {
+        var btn = document.getElementById('settingsSaveBtn');
+        if (!btn) {
+            return;
+        }
+        btn.disabled = !isSettingsFormValid();
+    }
+
+    function validateSettingsForm() {
+        if (!FV) {
+            return true;
+        }
+
+        var valid = FV.runRules(getSettingsRules(), true);
+
+        if (!valid && typeof window.showGlobalValidationError === 'function') {
+            window.showGlobalValidationError();
+        }
+
+        updateSettingsSaveButton();
+        return valid;
+    }
+
     // =============================================
     // LIVE PREVIEW - Update as user types
     // =============================================
@@ -129,14 +198,24 @@ document.addEventListener('DOMContentLoaded', function () {
     // =============================================
     var settingsForm = document.getElementById('settingsForm');
     if (settingsForm) {
-        settingsForm.addEventListener('submit', function (e) {
-            e.preventDefault(); // Stop normal reload
+        var settingsFields = settingsForm.querySelectorAll(
+            '#app_name, #settings_address, #settings_email, #settings_phone, #settings_bank_name, #settings_iban, #settings_swift_code'
+        );
 
-            // Remove old invalid classes
-            var invalidInputs = settingsForm.querySelectorAll('.is-invalid');
-            invalidInputs.forEach(function(input) { input.classList.remove('is-invalid'); });
-            var oldFeedbacks = settingsForm.querySelectorAll('.invalid-feedback.ajax-feedback, .text-danger.small.mt-1.ajax-feedback');
-            oldFeedbacks.forEach(function(el) { el.remove(); });
+        settingsFields.forEach(function (field) {
+            field.addEventListener('input', updateSettingsSaveButton);
+            field.addEventListener('blur', updateSettingsSaveButton);
+            field.addEventListener('change', updateSettingsSaveButton);
+        });
+
+        updateSettingsSaveButton();
+
+        settingsForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (!validateSettingsForm()) {
+                return;
+            }
 
             var formData = new FormData(this);
             var formAction = this.action;
@@ -163,17 +242,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 },
                 error: function (xhr) {
-                    if (xhr.status === 422) {
+                    if (xhr.status === 422 && xhr.responseJSON.errors) {
                         var errors = xhr.responseJSON.errors;
-                        for (var field in errors) {
-                            var input = settingsForm.querySelector('[name="' + field + '"]');
-                            if (input) {
-                                input.classList.add('is-invalid');
-                                var errorMsg = '<div class="invalid-feedback ajax-feedback d-block">' + errors[field][0] + '</div>';
-                                input.insertAdjacentHTML('afterend', errorMsg);
+                        var idMap = {
+                            app_name: '#app_name',
+                            email: '#settings_email',
+                            phone: '#settings_phone',
+                            address: '#settings_address',
+                            bank_name: '#settings_bank_name',
+                            iban: '#settings_iban',
+                            swift_code: '#settings_swift_code'
+                        };
+                        Object.keys(errors).forEach(function (key) {
+                            if (idMap[key]) {
+                                FV.setFieldError($(idMap[key]), errors[key][0]);
                             }
+                        });
+                        if (typeof window.showGlobalValidationError === 'function') {
+                            window.showGlobalValidationError();
                         }
-                        if (typeof toastr !== 'undefined') toastr.error('Please fix the validation errors.');
                     } else {
                         if (typeof toastr !== 'undefined') toastr.error('Something went wrong while saving settings.');
                     }

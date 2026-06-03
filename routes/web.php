@@ -53,6 +53,7 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::patch('/products/{product}/toggle-status', [ProductController::class,'toggleStatus'])->name('admin.products.toggle-status');
 
     // Customers
+    Route::get('/customers/lookup-by-email',          [CustomerController::class, 'lookupByEmail'])->name('admin.customers.lookup-by-email');
     Route::get('/customers',                          [CustomerController::class, 'index'])  ->name('admin.customers.index');
     Route::get('/customers/create',                   [CustomerController::class, 'create']) ->name('admin.customers.create');
     Route::post('/customers',                         [CustomerController::class, 'store'])  ->name('admin.customers.store');

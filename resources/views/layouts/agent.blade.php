@@ -77,6 +77,8 @@
     <!-- Bootstrap 5 JS Bundle CDN -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script src="{{ asset('assets/js/dashboard.js') }}"></script>
+    <script src="{{ asset('assets/js/form-validation.js') }}"></script>
+    <script src="{{ asset('assets/js/entity-sync.js') }}"></script>
     <script src="{{ asset('assets/js/app-ui.js') }}"></script>
     @stack('scripts')
 </body>

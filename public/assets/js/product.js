@@ -1,25 +1,58 @@
 $(document).ready(function () {
 
-    // =============================================
-    // HELPER - Show field-level error message
-    // =============================================
-    function showFieldError(errorSpanId, message) {
-        let span = $('#' + errorSpanId);
-        if (span.length) {
-            span.text(message);
+    var FV = window.FormValidation;
+    var ES = window.EntitySync;
+
+    function validateProductForm(prefix) {
+        var $purchase = $('#' + prefix + '-purchase');
+        var $selling = $('#' + prefix + '-selling');
+
+        var rules = [
+            FV.rules.name($('#' + prefix + '-name'), 'Name'),
+            FV.rules.select($('#' + prefix + '-category'), 'Category'),
+            FV.rules.nonNegativeInteger($('#' + prefix + '-qty'), 'Quantity'),
+            FV.rules.nonNegativeInteger($('#' + prefix + '-moq'), 'MOQ'),
+            {
+                field: $purchase,
+                label: 'Purchase price',
+                required: true,
+                requiredMessage: 'Purchase price is required.',
+                check: function (value) {
+                    if (!FV.isNonNegativeNumber(value)) {
+                        return 'Purchase price must be zero or greater.';
+                    }
+                    return true;
+                }
+            },
+            {
+                field: $selling,
+                label: 'Selling price',
+                required: true,
+                requiredMessage: 'Selling price is required.',
+                check: function (value) {
+                    if (!FV.isNonNegativeNumber(value)) {
+                        return 'Selling price must be zero or greater.';
+                    }
+                    return true;
+                }
+            },
+            FV.rules.sellingGreaterThanPurchase($selling, $purchase)
+        ];
+
+        var valid = FV.runRules(rules, true);
+
+        if (!valid && typeof window.showGlobalValidationError === 'function') {
+            window.showGlobalValidationError();
         }
+
+        return valid;
     }
 
-    // =============================================
-    // HELPER - Clear all field errors inside a form
-    // =============================================
-    function clearAllErrors(formId) {
-        let form = $('#' + formId);
-        if (!form.length) return;
-
-        form.find('.field-error').text('');
-        form.find('.is-invalid').removeClass('is-invalid');
-    }
+    $(document).on('blur change input', '#c-purchase, #c-selling, #e-purchase, #e-selling', function () {
+        var id = $(this).attr('id');
+        var prefix = id.charAt(0);
+        FV.runRules([FV.rules.sellingGreaterThanPurchase($('#' + prefix + '-selling'), $('#' + prefix + '-purchase'))], true);
+    });
 
     // =============================================
     // VIEW MODAL - Populate and open
@@ -45,7 +78,7 @@ $(document).ready(function () {
     // CREATE MODAL - Clear errors when modal opens
     // =============================================
     $('#productCreateModal').on('show.bs.modal', function () {
-        clearAllErrors('productCreateForm');
+        FV.clearFormById('productCreateForm');
         $('#productCreateForm')[0].reset();
     });
 
@@ -53,63 +86,7 @@ $(document).ready(function () {
     // CREATE - JS Validation before submit
     // =============================================
     $(document).on('click', '#createProductBtn', function () {
-        clearAllErrors('productCreateForm');
-
-        let name     = $('#c-name').val().trim();
-        let category = $('#c-category').val();
-        let qty      = $('#c-qty').val().trim();
-        let moq      = $('#c-moq').val().trim();
-        let purchase = $('#c-purchase').val().trim();
-        let selling  = $('#c-selling').val().trim();
-
-        let hasError = false;
-
-        if (name === '') {
-            showFieldError('c-name-error', 'Product name is required.');
-            $('#c-name').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (category === '' || category === null) {
-            showFieldError('c-category-error', 'Please select a category.');
-            $('#c-category').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (qty === '') {
-            showFieldError('c-qty-error', 'Quantity is required.');
-            $('#c-qty').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (moq === '') {
-            showFieldError('c-moq-error', 'MOQ is required.');
-            $('#c-moq').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (purchase === '') {
-            showFieldError('c-purchase-error', 'Purchase price is required.');
-            $('#c-purchase').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (selling === '') {
-            showFieldError('c-selling-error', 'Selling price is required.');
-            $('#c-selling').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (selling !== '' && purchase !== '' && parseFloat(selling) < parseFloat(purchase)) {
-            showFieldError('c-selling-error', 'Selling price must be greater than or equal to purchase price.');
-            $('#c-selling').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (hasError) {
-            if (typeof window.showGlobalValidationError === 'function') {
-                window.showGlobalValidationError();
-            }
+        if (!validateProductForm('c')) {
             return;
         }
 
@@ -138,10 +115,10 @@ $(document).ready(function () {
                     <tr id="row-${response.data.id}">
                         <td>${response.data.id}</td>
                         <td id="name-${response.data.id}">${response.data.name}</td>
-                        <td>${response.data.category ? response.data.category.name : '-'}</td>
-                        <td class="text-center">${response.data.qty}</td>
-                        <td class="text-end">£${parseFloat(response.data.selling_price).toFixed(2)}</td>
-                        <td class="text-center">${response.data.vat}%</td>
+                        <td id="category-${response.data.id}">${response.data.category ? response.data.category.name : '-'}</td>
+                        <td class="text-center" id="qty-${response.data.id}">${response.data.qty}</td>
+                        <td class="text-end" id="selling-${response.data.id}">£${parseFloat(response.data.selling_price).toFixed(2)}</td>
+                        <td class="text-center" id="vat-${response.data.id}">${response.data.vat}%</td>
                         <td class="text-center" id="status-container-${response.data.id}">
                             ${response.data.status == 1 ? '<span class="badge-status-enabled">Enabled</span>' : '<span class="badge-status-disabled">Disabled</span>'}
                         </td>
@@ -202,9 +179,21 @@ $(document).ready(function () {
             error: function (xhr) {
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
-                    if (errors.name) {
-                        showFieldError('c-name-error', errors.name[0]);
-                        $('#c-name').addClass('is-invalid');
+                    var fieldMap = {
+                        name: '#c-name',
+                        category_id: '#c-category',
+                        qty: '#c-qty',
+                        moq: '#c-moq',
+                        purchase_price: '#c-purchase',
+                        selling_price: '#c-selling'
+                    };
+                    Object.keys(errors).forEach(function (key) {
+                        if (fieldMap[key]) {
+                            FV.setFieldError($(fieldMap[key]), errors[key][0]);
+                        }
+                    });
+                    if (typeof window.showGlobalValidationError === 'function') {
+                        window.showGlobalValidationError();
                     }
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
@@ -217,7 +206,7 @@ $(document).ready(function () {
     // EDIT MODAL - Populate fields when edit button clicked
     // =============================================
     $(document).on('click', '.btn-product-edit', function () {
-        clearAllErrors('productEditForm');
+        FV.clearFormById('productEditForm');
 
         let productId = $(this).attr('data-id');
 
@@ -245,63 +234,7 @@ $(document).ready(function () {
     // EDIT - JS Validation before submit
     // =============================================
     $(document).on('click', '#updateProductBtn', function () {
-        clearAllErrors('productEditForm');
-
-        let name     = $('#e-name').val().trim();
-        let category = $('#e-category').val();
-        let qty      = $('#e-qty').val().trim();
-        let moq      = $('#e-moq').val().trim();
-        let purchase = $('#e-purchase').val().trim();
-        let selling  = $('#e-selling').val().trim();
-
-        let hasError = false;
-
-        if (name === '') {
-            showFieldError('e-name-error', 'Product name is required.');
-            $('#e-name').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (category === '' || category === null) {
-            showFieldError('e-category-error', 'Please select a category.');
-            $('#e-category').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (qty === '') {
-            showFieldError('e-qty-error', 'Quantity is required.');
-            $('#e-qty').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (moq === '') {
-            showFieldError('e-moq-error', 'MOQ is required.');
-            $('#e-moq').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (purchase === '') {
-            showFieldError('e-purchase-error', 'Purchase price is required.');
-            $('#e-purchase').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (selling === '') {
-            showFieldError('e-selling-error', 'Selling price is required.');
-            $('#e-selling').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (selling !== '' && purchase !== '' && parseFloat(selling) < parseFloat(purchase)) {
-            showFieldError('e-selling-error', 'Selling price must be greater than or equal to purchase price.');
-            $('#e-selling').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (hasError) {
-            if (typeof window.showGlobalValidationError === 'function') {
-                window.showGlobalValidationError();
-            }
+        if (!validateProductForm('e')) {
             return;
         }
 
@@ -325,37 +258,29 @@ $(document).ready(function () {
 
                     if (typeof toastr !== 'undefined') toastr.success(response.message);
 
-                    var id = $('#edit-id').val();
-                    var nameCell = $('#name-' + id);
-                    if (nameCell.length) nameCell.text(response.data.name);
-
-                    // Update data attributes
-                    var toggleBtn = $('.btn-product-toggle[data-id="'+id+'"]');
-                    var editBtn = $('.btn-product-edit[data-id="'+id+'"]');
-                    var viewBtn = $('.btn-product-view[data-id="'+id+'"]');
-                    var delBtn = $('.btn-product-delete[data-id="'+id+'"]');
-
-                    [toggleBtn, editBtn, viewBtn, delBtn].forEach(function(btn) {
-                        if (btn.length) btn.attr('data-name', response.data.name);
-                    });
-
-                    if (editBtn.length) {
-                        editBtn.attr('data-category', response.data.category_id);
-                        editBtn.attr('data-qty', response.data.qty);
-                        editBtn.attr('data-purchase', response.data.purchase_price);
-                        editBtn.attr('data-selling', response.data.selling_price);
-                        editBtn.attr('data-vat', response.data.vat);
-                        editBtn.attr('data-moq', response.data.moq);
-                        editBtn.attr('data-desc', response.data.description || '');
+                    if (ES && response.data) {
+                        ES.syncProductRow(response.data);
                     }
                 }
             },
             error: function (xhr) {
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
-                    if (errors.name) {
-                        showFieldError('e-name-error', errors.name[0]);
-                        $('#e-name').addClass('is-invalid');
+                    var fieldMap = {
+                        name: '#e-name',
+                        category_id: '#e-category',
+                        qty: '#e-qty',
+                        moq: '#e-moq',
+                        purchase_price: '#e-purchase',
+                        selling_price: '#e-selling'
+                    };
+                    Object.keys(errors).forEach(function (key) {
+                        if (fieldMap[key]) {
+                            FV.setFieldError($(fieldMap[key]), errors[key][0]);
+                        }
+                    });
+                    if (typeof window.showGlobalValidationError === 'function') {
+                        window.showGlobalValidationError();
                     }
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
@@ -450,20 +375,9 @@ $(document).ready(function () {
                         if (row.length) row.remove();
                         else window.location.reload();
                     } else if (method === 'PATCH') {
-                        var statusContainer = $('#status-container-' + id);
-                        if (statusContainer.length) {
-                            if (response.new_status === 1) {
-                                statusContainer.html('<span class="badge-status-enabled">Enabled</span>');
-                            } else {
-                                statusContainer.html('<span class="badge-status-disabled">Disabled</span>');
-                            }
+                        if (ES) {
+                            ES.syncProductStatus(id, response.new_status);
                         }
-                        var toggleBtn = $('.btn-product-toggle[data-id="'+id+'"]');
-                        if (toggleBtn.length) toggleBtn.attr('data-status', response.new_status);
-                        var viewBtn = $('.btn-product-view[data-id="'+id+'"]');
-                        if (viewBtn.length) viewBtn.attr('data-status', response.new_status);
-                        var editBtn = $('.btn-product-edit[data-id="'+id+'"]');
-                        if (editBtn.length) editBtn.attr('data-status', response.new_status);
                     }
                 }
             },

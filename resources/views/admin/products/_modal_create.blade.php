@@ -14,7 +14,7 @@
 
                     <div class="mb-3">
                         <label>Product Name</label>
-                        <input type="text" name="name" id="c-name" class="form-control">
+                        <input type="text" name="name" id="c-name" class="form-control validate-name" data-label="Name">
                         <span class="field-error text-danger small" id="c-name-error"></span>
                     </div>
 
@@ -25,7 +25,7 @@
 
                     <div class="mb-3">
                         <label>Category</label>
-                        <select name="category_id" id="c-category" class="form-control">
+                        <select name="category_id" id="c-category" class="form-control" data-label="Category">
                             <option value="">-- Select Category --</option>
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}">{{ $cat->name }}</option>
@@ -37,12 +37,12 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label>Qty</label>
-                            <input type="number" name="qty" id="c-qty" class="form-control">
+                            <input type="number" name="qty" id="c-qty" class="form-control validate-qty-int validate-non-negative" data-label="Quantity" min="0" step="1">
                             <span class="field-error text-danger small" id="c-qty-error"></span>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>MOQ</label>
-                            <input type="number" name="moq" id="c-moq" class="form-control">
+                            <input type="number" name="moq" id="c-moq" class="form-control validate-qty-int validate-non-negative" data-label="MOQ" min="0" step="1">
                             <span class="field-error text-danger small" id="c-moq-error"></span>
                         </div>
                     </div>
@@ -50,19 +50,19 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label>Purchase Price</label>
-                            <input type="number" name="purchase_price" id="c-purchase" class="form-control">
+                            <input type="number" name="purchase_price" id="c-purchase" class="form-control validate-non-negative" data-label="Purchase price" min="0" step="0.01">
                             <span class="field-error text-danger small" id="c-purchase-error"></span>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>Selling Price</label>
-                            <input type="number" name="selling_price" id="c-selling" class="form-control">
+                            <input type="number" name="selling_price" id="c-selling" class="form-control validate-non-negative" data-label="Selling price" min="0" step="0.01">
                             <span class="field-error text-danger small" id="c-selling-error"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label>VAT (%)</label>
-                        <select name="vat" id="c-vat" class="form-control">
+                        <select name="vat" id="c-vat" class="form-control" data-label="VAT">
                             <option value="0">0%</option>
                             <option value="20">20%</option>
                         </select>

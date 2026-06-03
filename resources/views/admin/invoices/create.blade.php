@@ -75,7 +75,7 @@
                                 <i class="bi bi-plus-lg"></i> New Customer
                             </button>
                         </div>
-                        <select name="customer_id" id="customer_id" class="form-control invoice-input">
+                        <select name="customer_id" id="customer_id" class="form-control invoice-input select2">
                             <option value="">-- Select a customer --</option>
                             @foreach($customers as $customer)
                                 <option value="{{ $customer->id }}"
@@ -200,13 +200,14 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="invoice-label">Full Name <span class="text-danger">*</span></label>
-                        <input type="text" id="nc-name" class="form-control invoice-input" placeholder="John Smith">
+                        <input type="text" id="nc-name" class="form-control invoice-input validate-name" data-label="Name" placeholder="John Smith">
                         <span class="field-error text-danger small" id="nc-name-error"></span>
                     </div>
                     <div class="col-md-6">
                         <label class="invoice-label">Email Address <span class="text-danger">*</span></label>
-                        <input type="email" id="nc-email" class="form-control invoice-input" placeholder="john@example.com">
+                        <input type="email" id="nc-email" class="form-control invoice-input validate-email" data-label="Email" placeholder="john@example.com" autocomplete="off">
                         <span class="field-error text-danger small" id="nc-email-error"></span>
+                        <div id="nc-email-hint" class="small text-primary mt-1 d-none" role="status"></div>
                     </div>
                     <div class="col-md-6">
                         <label class="invoice-label">Phone</label>
@@ -264,6 +265,7 @@
 <script>
     window.availableProducts = @json($productsData);
     window.storeCustomerUrl  = "{{ route('admin.customers.store') }}";
+    window.lookupCustomerUrl = "{{ route('admin.customers.lookup-by-email') }}";
     window.csrfToken         = "{{ csrf_token() }}";
 </script>
 

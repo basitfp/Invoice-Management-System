@@ -20,10 +20,39 @@ class CustomerController extends Controller
     }
 
     // ----------------------------
+    // LOOKUP - Find customer by email (invoice quick-add)
+    // ----------------------------
+    public function lookupByEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $customer = Customer::where('email', $request->email)->first();
+
+        return response()->json([
+            'found' => (bool) $customer,
+            'data'  => $customer,
+        ]);
+    }
+
+    // ----------------------------
     // STORE - Save new customer
     // ----------------------------
     public function store(Request $request)
     {
+        if ($request->boolean('from_invoice')) {
+            $existing = Customer::where('email', $request->email)->first();
+            if ($existing) {
+                return response()->json([
+                    'success' => true,
+                    'exists'  => true,
+                    'message' => 'Customer already exists.',
+                    'data'    => $existing,
+                ]);
+            }
+        }
+
         $request->validate([
             'name'           => 'required|string|max:255',
             'email'          => 'required|email|unique:customers,email',

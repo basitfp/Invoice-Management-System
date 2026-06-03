@@ -1,23 +1,18 @@
 $(document).ready(function () {
 
-    // =============================================
-    // HELPER - Show error under a specific field
-    // =============================================
-    function showFieldError(errorSpanId, message) {
-        var span = $('#' + errorSpanId);
-        if (span.length) {
-            span.text(message);
-        }
-    }
+    var FV = window.FormValidation;
+    var ES = window.EntitySync;
 
-    // =============================================
-    // HELPER - Clear all field errors in a form
-    // =============================================
-    function clearAllErrors(formId) {
-        var form = $('#' + formId);
-        if (!form.length) return;
-        form.find('.field-error').text('');
-        form.find('.is-invalid').removeClass('is-invalid');
+    function validateCategoryName($field) {
+        var valid = FV.runRules([
+            FV.rules.name($field, 'Category name')
+        ], true);
+        var name = $field.val().trim();
+        if (valid && name.length < 2) {
+            FV.setFieldError($field, 'Category name must be at least 2 characters.');
+            valid = false;
+        }
+        return valid;
     }
 
     // =============================================
@@ -47,7 +42,7 @@ $(document).ready(function () {
     // CREATE MODAL - Clear form when modal opens
     // =============================================
     $('#categoryCreateModal').on('show.bs.modal', function () {
-        clearAllErrors('categoryCreateForm');
+        FV.clearFormById('categoryCreateForm');
         $('#categoryCreateForm')[0].reset();
     });
 
@@ -55,26 +50,15 @@ $(document).ready(function () {
     // CREATE - AJAX Validation & Submit
     // =============================================
     $(document).on('click', '#createCategoryBtn', function () {
-        clearAllErrors('categoryCreateForm');
+        var $name = $('#create-name');
+        var valid = validateCategoryName($name);
 
-        var name = $('#create-name').val().trim();
-        var hasError = false;
-
-        if (name === '') {
-            showFieldError('create-name-error', 'Category name is required.');
-            $('#create-name').addClass('is-invalid');
-            hasError = true;
-        } else if (name.length < 2) {
-            showFieldError('create-name-error', 'Category name must be at least 2 characters.');
-            $('#create-name').addClass('is-invalid');
-            hasError = true;
-        } else if (name.length > 100) {
-            showFieldError('create-name-error', 'Category name must not exceed 100 characters.');
-            $('#create-name').addClass('is-invalid');
-            hasError = true;
+        if (valid && $name.val().trim().length > 100) {
+            FV.setFieldError($name, 'Category name must not exceed 100 characters.');
+            valid = false;
         }
 
-        if (hasError) {
+        if (!valid) {
             if (typeof window.showGlobalValidationError === 'function') {
                 window.showGlobalValidationError();
             }
@@ -126,6 +110,7 @@ $(document).ready(function () {
                                 <button type="button" class="btn btn-category-action btn-category-edit"
                                     data-id="${response.data.id}"
                                     data-name="${response.data.name}"
+                                    data-status="${response.data.status}"
                                     data-action="/admin/categories/${response.data.id}"
                                     title="Edit">
                                     <i class="bi bi-pencil"></i>
@@ -162,8 +147,10 @@ $(document).ready(function () {
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
                     if (errors.name) {
-                        showFieldError('create-name-error', errors.name[0]);
-                        $('#create-name').addClass('is-invalid');
+                        FV.setFieldError($('#create-name'), errors.name[0]);
+                        if (typeof window.showGlobalValidationError === 'function') {
+                            window.showGlobalValidationError();
+                        }
                     }
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
@@ -176,7 +163,7 @@ $(document).ready(function () {
     // EDIT MODAL - Populate fields when edit clicked
     // =============================================
     $(document).on('click', '.btn-category-edit', function () {
-        clearAllErrors('categoryEditForm');
+        FV.clearFormById('categoryEditForm');
 
         var form = document.getElementById('categoryEditForm');
         form.action = $(this).attr('data-action');
@@ -192,22 +179,7 @@ $(document).ready(function () {
     // EDIT - AJAX Validation & Submit
     // =============================================
     $(document).on('click', '#updateCategoryBtn', function () {
-        clearAllErrors('categoryEditForm');
-
-        var name = $('#edit-name').val().trim();
-        var hasError = false;
-
-        if (name === '') {
-            showFieldError('edit-name-error', 'Category name is required.');
-            $('#edit-name').addClass('is-invalid');
-            hasError = true;
-        } else if (name.length < 2) {
-            showFieldError('edit-name-error', 'Category name must be at least 2 characters.');
-            $('#edit-name').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (hasError) {
+        if (!validateCategoryName($('#edit-name'))) {
             if (typeof window.showGlobalValidationError === 'function') {
                 window.showGlobalValidationError();
             }
@@ -234,25 +206,19 @@ $(document).ready(function () {
 
                     if (typeof toastr !== 'undefined') toastr.success(response.message);
 
-                    var id = $('#edit-id').val();
-                    var nameCell = $('#name-' + id);
-                    if (nameCell.length) {
-                        nameCell.text(response.data.name);
+                    if (ES && response.data) {
+                        ES.syncCategoryRow(response.data);
                     }
-                    
-                    // Update the edit button data-name
-                    $('.btn-category-edit[data-id="'+id+'"]').attr('data-name', response.data.name);
-                    $('.btn-category-view[data-id="'+id+'"]').attr('data-name', response.data.name);
-                    $('.btn-category-toggle[data-id="'+id+'"]').attr('data-name', response.data.name);
-                    $('.btn-category-delete[data-id="'+id+'"]').attr('data-name', response.data.name);
                 }
             },
             error: function (xhr) {
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
                     if (errors.name) {
-                        showFieldError('edit-name-error', errors.name[0]);
-                        $('#edit-name').addClass('is-invalid');
+                        FV.setFieldError($('#edit-name'), errors.name[0]);
+                        if (typeof window.showGlobalValidationError === 'function') {
+                            window.showGlobalValidationError();
+                        }
                     }
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
@@ -355,22 +321,8 @@ $(document).ready(function () {
                             window.location.reload();
                         }
                     } else if (method === 'PATCH') {
-                        var statusContainer = $('#status-container-' + id);
-                        if (statusContainer.length) {
-                            if (response.new_status === 1) {
-                                statusContainer.html('<span class="badge-status-enabled">Enabled</span>');
-                            } else {
-                                statusContainer.html('<span class="badge-status-disabled">Disabled</span>');
-                            }
-                        }
-                        
-                        var toggleBtn = $('.btn-category-toggle[data-id="'+id+'"]');
-                        if (toggleBtn.length) {
-                            toggleBtn.attr('data-status', response.new_status);
-                        }
-                        var viewBtn = $('.btn-category-view[data-id="'+id+'"]');
-                        if (viewBtn.length) {
-                            viewBtn.attr('data-status', response.new_status);
+                        if (ES) {
+                            ES.syncCategoryStatus(id, response.new_status);
                         }
                     }
                 }

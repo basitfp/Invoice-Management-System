@@ -1,31 +1,37 @@
 $(document).ready(function () {
 
-    // =============================================
-    // HELPER - Show error under a specific field
-    // =============================================
-    function showFieldError(errorSpanId, message) {
-        var span = $('#' + errorSpanId);
-        if (span.length) {
-            span.text(message);
+    var FV = window.FormValidation;
+    var ES = window.EntitySync;
+
+    function validateCustomerForm(prefix) {
+        var rules = [
+            FV.rules.name($('#' + prefix + '-name'), 'Name'),
+            FV.rules.email($('#' + prefix + '-email'), 'Email'),
+            FV.rules.phone($('#' + prefix + '-phone'), 'Phone number'),
+            FV.rules.select($('#' + prefix + '-type'), 'Customer type'),
+            {
+                field: $('#' + prefix + '-address'),
+                label: 'Address',
+                required: true,
+                requiredMessage: 'Address is required.'
+            }
+        ];
+
+        var valid = FV.runRules(rules, true);
+
+        if ($('#' + prefix + '-vat-registered').is(':checked')) {
+            var $vat = $('#' + prefix + '-vat-number');
+            if (FV.isEmpty($vat.val())) {
+                FV.setFieldError($vat, 'VAT number is required.');
+                valid = false;
+            }
         }
-    }
 
-    // =============================================
-    // HELPER - Clear all field errors in a form
-    // =============================================
-    function clearAllErrors(formId) {
-        var form = $('#' + formId);
-        if (!form.length) return;
+        if (!valid && typeof window.showGlobalValidationError === 'function') {
+            window.showGlobalValidationError();
+        }
 
-        form.find('.field-error').text('');
-        form.find('.is-invalid').removeClass('is-invalid');
-    }
-
-    // =============================================
-    // HELPER - Basic email format check
-    // =============================================
-    function isValidEmail(email) {
-        return email.indexOf('@') !== -1 && email.indexOf('.') !== -1;
+        return valid;
     }
 
     // =============================================
@@ -38,7 +44,7 @@ $(document).ready(function () {
         } else {
             vatGroup.hide();
             $('#c-vat-number').val('');
-            showFieldError('c-vat-number-error', '');
+            FV.clearFieldError($('#c-vat-number'));
         }
     });
 
@@ -52,7 +58,7 @@ $(document).ready(function () {
         } else {
             vatGroup.hide();
             $('#e-vat-number').val('');
-            showFieldError('e-vat-number-error', '');
+            FV.clearFieldError($('#e-vat-number'));
         }
     });
 
@@ -60,7 +66,7 @@ $(document).ready(function () {
     // CREATE MODAL - Clear form when modal opens
     // =============================================
     $('#customerCreateModal').on('show.bs.modal', function () {
-        clearAllErrors('customerCreateForm');
+        FV.clearFormById('customerCreateForm');
         $('#customerCreateForm')[0].reset();
         $('#c-vat-number-group').hide();
     });
@@ -69,41 +75,7 @@ $(document).ready(function () {
     // CREATE - JS Validation before submit
     // =============================================
     $(document).on('click', '#createCustomerBtn', function () {
-        clearAllErrors('customerCreateForm');
-
-        var name         = $('#c-name').val().trim();
-        var email        = $('#c-email').val().trim();
-        var vatChecked   = $('#c-vat-registered').is(':checked');
-        var vatNumber    = $('#c-vat-number').val().trim();
-
-        var hasError = false;
-
-        if (name === '') {
-            showFieldError('c-name-error', 'Customer name is required.');
-            $('#c-name').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (email === '') {
-            showFieldError('c-email-error', 'Email address is required.');
-            $('#c-email').addClass('is-invalid');
-            hasError = true;
-        } else if (!isValidEmail(email)) {
-            showFieldError('c-email-error', 'Please enter a valid email address.');
-            $('#c-email').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (vatChecked && vatNumber === '') {
-            showFieldError('c-vat-number-error', 'VAT number is required when VAT Registered is checked.');
-            $('#c-vat-number').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (hasError) {
-            if (typeof window.showGlobalValidationError === 'function') {
-                window.showGlobalValidationError();
-            }
+        if (!validateCustomerForm('c')) {
             return;
         }
 
@@ -146,11 +118,11 @@ $(document).ready(function () {
                         <td>${c.id}</td>
                         <td id="name-${c.id}">${c.name}</td>
                         <td id="email-${c.id}">${c.email}</td>
-                        <td>${c.phone ? c.phone : '-'}</td>
+                        <td id="phone-${c.id}">${c.phone ? c.phone : '-'}</td>
                         <td class="text-center" id="type-${c.id}">
                             <span class="badge bg-${typeBadge}">${typeLabel}</span>
                         </td>
-                        <td class="text-center">${vatCol}</td>
+                        <td class="text-center" id="vat-${c.id}">${vatCol}</td>
                         <td class="text-center" id="status-container-${c.id}">
                             <span class="badge-status-enabled">Active</span>
                         </td>
@@ -178,6 +150,7 @@ $(document).ready(function () {
                                     data-address="${c.address || ''}"
                                     data-vat-registered="${c.vat_registered}"
                                     data-vat-number="${c.vat_number || ''}"
+                                    data-status="${c.status}"
                                     title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -209,13 +182,21 @@ $(document).ready(function () {
             error: function (xhr) {
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
-                    if (errors.name) {
-                        showFieldError('c-name-error', errors.name[0]);
-                        $('#c-name').addClass('is-invalid');
-                    }
-                    if (errors.email) {
-                        showFieldError('c-email-error', errors.email[0]);
-                        $('#c-email').addClass('is-invalid');
+                    var fieldMap = {
+                        name: '#c-name',
+                        email: '#c-email',
+                        phone: '#c-phone',
+                        customer_type: '#c-type',
+                        address: '#c-address',
+                        vat_number: '#c-vat-number'
+                    };
+                    Object.keys(errors).forEach(function (key) {
+                        if (fieldMap[key]) {
+                            FV.setFieldError($(fieldMap[key]), errors[key][0]);
+                        }
+                    });
+                    if (typeof window.showGlobalValidationError === 'function') {
+                        window.showGlobalValidationError();
                     }
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
@@ -228,7 +209,7 @@ $(document).ready(function () {
     // EDIT MODAL - Populate fields when edit clicked
     // =============================================
     $(document).on('click', '.btn-customer-edit', function () {
-        clearAllErrors('customerEditForm');
+        FV.clearFormById('customerEditForm');
 
         var customerId   = $(this).attr('data-id');
         var vatRegistered = $(this).attr('data-vat-registered');
@@ -265,41 +246,7 @@ $(document).ready(function () {
     // EDIT - JS Validation before submit
     // =============================================
     $(document).on('click', '#updateCustomerBtn', function () {
-        clearAllErrors('customerEditForm');
-
-        var name       = $('#e-name').val().trim();
-        var email      = $('#e-email').val().trim();
-        var vatChecked = $('#e-vat-registered').is(':checked');
-        var vatNumber  = $('#e-vat-number').val().trim();
-
-        var hasError = false;
-
-        if (name === '') {
-            showFieldError('e-name-error', 'Customer name is required.');
-            $('#e-name').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (email === '') {
-            showFieldError('e-email-error', 'Email address is required.');
-            $('#e-email').addClass('is-invalid');
-            hasError = true;
-        } else if (!isValidEmail(email)) {
-            showFieldError('e-email-error', 'Please enter a valid email address.');
-            $('#e-email').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (vatChecked && vatNumber === '') {
-            showFieldError('e-vat-number-error', 'VAT number is required when VAT Registered is checked.');
-            $('#e-vat-number').addClass('is-invalid');
-            hasError = true;
-        }
-
-        if (hasError) {
-            if (typeof window.showGlobalValidationError === 'function') {
-                window.showGlobalValidationError();
-            }
+        if (!validateCustomerForm('e')) {
             return;
         }
 
@@ -323,44 +270,29 @@ $(document).ready(function () {
 
                     if (typeof toastr !== 'undefined') toastr.success(response.message);
 
-                    var id = $('#edit-id').val();
-                    var nameCell = $('#name-' + id);
-                    if (nameCell.length) nameCell.text(response.data.name);
-                    var emailCell = $('#email-' + id);
-                    if (emailCell.length) emailCell.text(response.data.email);
-                    var typeCell = $('#type-' + id);
-                    if (typeCell.length) typeCell.text(response.data.customer_type);
-
-                    // Update data attributes
-                    var toggleBtn = $('.btn-customer-toggle[data-id="'+id+'"]');
-                    var editBtn = $('.btn-customer-edit[data-id="'+id+'"]');
-                    var viewBtn = $('.btn-customer-view[data-id="'+id+'"]');
-                    var delBtn = $('.btn-customer-delete[data-id="'+id+'"]');
-
-                    [toggleBtn, editBtn, viewBtn, delBtn].forEach(function(btn) {
-                        if (btn.length) btn.attr('data-name', response.data.name);
-                    });
-
-                    if (editBtn.length) {
-                        editBtn.attr('data-email', response.data.email);
-                        editBtn.attr('data-phone', response.data.phone || '');
-                        editBtn.attr('data-type', response.data.customer_type);
-                        editBtn.attr('data-address', response.data.address || '');
-                        editBtn.attr('data-vat-registered', response.data.vat_registered);
-                        editBtn.attr('data-vat-number', response.data.vat_number || '');
+                    if (ES && response.data) {
+                        ES.syncCustomerRow(response.data);
                     }
                 }
             },
             error: function (xhr) {
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
-                    if (errors.name) {
-                        showFieldError('e-name-error', errors.name[0]);
-                        $('#e-name').addClass('is-invalid');
-                    }
-                    if (errors.email) {
-                        showFieldError('e-email-error', errors.email[0]);
-                        $('#e-email').addClass('is-invalid');
+                    var fieldMap = {
+                        name: '#e-name',
+                        email: '#e-email',
+                        phone: '#e-phone',
+                        customer_type: '#e-type',
+                        address: '#e-address',
+                        vat_number: '#e-vat-number'
+                    };
+                    Object.keys(errors).forEach(function (key) {
+                        if (fieldMap[key]) {
+                            FV.setFieldError($(fieldMap[key]), errors[key][0]);
+                        }
+                    });
+                    if (typeof window.showGlobalValidationError === 'function') {
+                        window.showGlobalValidationError();
                     }
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
@@ -479,18 +411,9 @@ $(document).ready(function () {
                         if (row.length) row.remove();
                         else window.location.reload();
                     } else if (method === 'PATCH') {
-                        var statusContainer = $('#status-container-' + id);
-                        if (statusContainer.length) {
-                            if (response.new_status === 1) {
-                                statusContainer.html('<span class="badge-status-enabled">Active</span>');
-                            } else {
-                                statusContainer.html('<span class="badge-status-disabled">Inactive</span>');
-                            }
+                        if (ES) {
+                            ES.syncCustomerStatus(id, response.new_status);
                         }
-                        var toggleBtn = $('.btn-customer-toggle[data-id="'+id+'"]');
-                        if (toggleBtn.length) toggleBtn.attr('data-status', response.new_status);
-                        var viewBtn = $('.btn-customer-view[data-id="'+id+'"]');
-                        if (viewBtn.length) viewBtn.attr('data-status', response.new_status);
                     }
                 }
             },

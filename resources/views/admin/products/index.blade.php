@@ -43,10 +43,10 @@
                         <tr id="row-{{ $product->id }}">
                             <td>{{ $product->id }}</td>
                             <td id="name-{{ $product->id }}">{{ $product->name }}</td>
-                            <td>{{ $product->category->name ?? '-' }}</td>
-                            <td class="text-center">{{ $product->qty }}</td>
-                            <td class="text-end">£{{ number_format($product->selling_price, 2) }}</td>
-                            <td class="text-center">{{ $product->vat }}%</td>
+                            <td id="category-{{ $product->id }}">{{ $product->category->name ?? '-' }}</td>
+                            <td class="text-center" id="qty-{{ $product->id }}">{{ $product->qty }}</td>
+                            <td class="text-end" id="selling-{{ $product->id }}">£{{ number_format($product->selling_price, 2) }}</td>
+                            <td class="text-center" id="vat-{{ $product->id }}">{{ $product->vat }}%</td>
                             <td class="text-center" id="status-container-{{ $product->id }}">
                                 @if($product->status)
                                     <span class="badge-status-enabled">Enabled</span>

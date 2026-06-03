@@ -15,7 +15,7 @@
                     <input type="hidden" id="edit-id" name="id">
                     <div class="mb-3">
                         <label class="form-label" for="edit-name">Category Name</label>
-                        <input type="text" name="name" id="edit-name" class="form-control">
+                        <input type="text" name="name" id="edit-name" class="form-control validate-name" data-label="Category name">
                         <span class="field-error text-danger small" id="edit-name-error"></span>
                     </div>
                 </div>

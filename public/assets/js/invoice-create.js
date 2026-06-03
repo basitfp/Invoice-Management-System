@@ -2,18 +2,37 @@ $(document).ready(function () {
 
     var availableProducts = window.availableProducts || [];
     var rowIndex = 0;
+    var FV = window.FormValidation;
+    var ES = window.EntitySync;
+    var ncLookupTimer = null;
+    var ncFoundCustomer = null;
 
-    // =============================================
-    // HELPERS
-    // =============================================
-    function showFieldError(id, message) {
-        var el = $('#' + id);
-        if (el.length) el.text(message);
+    function getProductById(id) {
+        for (var i = 0; i < availableProducts.length; i++) {
+            if (String(availableProducts[i].id) === String(id)) {
+                return availableProducts[i];
+            }
+        }
+        return null;
     }
 
-    function clearFieldError(id) {
-        var el = $('#' + id);
-        if (el.length) el.text('');
+    function setErrorBySpanId(spanId, $field, message) {
+        if ($field && $field.length) {
+            FV.setFieldError($field, message);
+        } else {
+            var el = $('#' + spanId);
+            if (el.length) {
+                el.text(message);
+            }
+        }
+    }
+
+    function clearSpanError(spanId, $field) {
+        if ($field && $field.length) {
+            FV.clearFieldError($field);
+        } else {
+            $('#' + spanId).text('');
+        }
     }
 
     function formatCurrency(amount) {
@@ -33,24 +52,92 @@ $(document).ready(function () {
         $('#ci-phone').text(opt.attr('data-phone') || '-');
         $('#ci-vat').text(opt.attr('data-vat') || '-');
         $('#customer-info-box').show();
-        clearFieldError('customer_id-error');
+        FV.clearFieldError($('#customer_id'));
+    });
+
+    $(document).on('blur change', '#invoice_date', function () {
+        FV.validateField($(this), {
+            label: 'Invoice date',
+            required: true,
+            requiredMessage: 'Invoice date is required.'
+        });
+    });
+
+    $(document).on('blur change', '#due_date', function () {
+        var $el = $(this);
+        var val = $el.val();
+        if (!val) {
+            FV.setFieldError($el, 'Due date is required.');
+            return;
+        }
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+        var selectedDate = new Date(val);
+        selectedDate.setHours(0, 0, 0, 0);
+        if (selectedDate < today) {
+            FV.setFieldError($el, 'Due date cannot be in the past.');
+        } else {
+            FV.clearFieldError($el);
+        }
+    });
+
+    $(document).on('blur change', '#customer_id', function () {
+        if ($(this).val()) {
+            FV.clearFieldError($(this));
+        }
     });
 
     // =============================================
     // QUICK CREATE CUSTOMER MODAL
     // =============================================
-    $(document).on('click', '#openCreateCustomerBtn', function () {
-        // Clear modal fields
-        ['nc-name','nc-email','nc-phone','nc-address','nc-vat-number'].forEach(function(id){
+    function resetInvoiceCustomerModal() {
+        ['nc-name', 'nc-email', 'nc-phone', 'nc-address', 'nc-vat-number'].forEach(function (id) {
             $('#' + id).val('');
         });
         $('#nc-type').val('regular');
         $('#nc-vat-registered').prop('checked', false);
         $('#nc-vat-number-wrap').hide();
         $('#customer-modal-error').addClass('d-none');
-        clearFieldError('nc-name-error');
-        clearFieldError('nc-email-error');
+        $('#nc-email-hint').addClass('d-none').empty();
+        ncFoundCustomer = null;
+        FV.clearFieldError($('#nc-name'));
+        FV.clearFieldError($('#nc-email'));
+    }
 
+    function setInvoiceCustomerModalLoading(loading) {
+        var btn = $('#saveNewCustomerBtn');
+        if (loading) {
+            $('#saveNewCustomerSpinner').removeClass('d-none');
+            $('#saveNewCustomerIcon').addClass('d-none');
+            btn.prop('disabled', true);
+        } else {
+            $('#saveNewCustomerSpinner').addClass('d-none');
+            $('#saveNewCustomerIcon').removeClass('d-none');
+            btn.prop('disabled', false);
+        }
+    }
+
+    function handleInvoiceCustomerResult(response) {
+        var customer = response.data;
+        if (!customer || !customer.id) {
+            return;
+        }
+
+        if (response.exists) {
+            if (typeof toastr !== 'undefined') {
+                toastr.info(response.message || 'Customer already exists.');
+            }
+        } else if (typeof toastr !== 'undefined') {
+            toastr.success(response.message || 'Customer added successfully!');
+        }
+
+        if (ES) {
+            ES.selectInvoiceCustomer(customer);
+        }
+    }
+
+    $(document).on('click', '#openCreateCustomerBtn', function () {
+        resetInvoiceCustomerModal();
         var modal = new bootstrap.Modal(document.getElementById('createCustomerModal'));
         modal.show();
     });
@@ -64,77 +151,111 @@ $(document).ready(function () {
         }
     });
 
+    // Email lookup — existing customer preview
+    $(document).on('input blur', '#nc-email', function () {
+        var email = $(this).val().trim();
+        clearTimeout(ncLookupTimer);
+
+        if (!email || !FV.isValidEmail(email) || !window.lookupCustomerUrl) {
+            ncFoundCustomer = null;
+            $('#nc-email-hint').addClass('d-none').empty();
+            return;
+        }
+
+        ncLookupTimer = setTimeout(function () {
+            $.ajax({
+                url: window.lookupCustomerUrl,
+                type: 'GET',
+                data: { email: email },
+                headers: { 'Accept': 'application/json' },
+                success: function (res) {
+                    if (res.found && res.data) {
+                        ncFoundCustomer = res.data;
+                        $('#nc-email-hint')
+                            .removeClass('d-none')
+                            .html('<i class="bi bi-person-check me-1"></i> Found <strong>' + (ES ? ES.escapeHtml(res.data.name) : res.data.name) + '</strong>. Click Save to use this customer.');
+                    } else {
+                        ncFoundCustomer = null;
+                        $('#nc-email-hint').addClass('d-none').empty();
+                    }
+                }
+            });
+        }, 350);
+    });
+
     // Save new customer via AJAX
     $(document).on('click', '#saveNewCustomerBtn', function () {
-        var btn = $(this);
-        var name     = $('#nc-name').val().trim();
-        var email    = $('#nc-email').val().trim();
-        var phone    = $('#nc-phone').val().trim();
-        var type     = $('#nc-type').val();
-        var address  = $('#nc-address').val().trim();
-        var vatReg   = $('#nc-vat-registered').is(':checked');
-        var vatNum   = $('#nc-vat-number').val().trim();
+        var name    = $('#nc-name').val().trim();
+        var email   = $('#nc-email').val().trim();
+        var phone   = $('#nc-phone').val().trim();
+        var type    = $('#nc-type').val();
+        var address = $('#nc-address').val().trim();
+        var vatReg  = $('#nc-vat-registered').is(':checked');
+        var vatNum  = $('#nc-vat-number').val().trim();
 
-        clearFieldError('nc-name-error');
-        clearFieldError('nc-email-error');
         $('#customer-modal-error').addClass('d-none');
 
-        var hasError = false;
-        if (!name)  { showFieldError('nc-name-error',  'Name is required.');  hasError = true; }
-        if (!email) { showFieldError('nc-email-error', 'Email is required.'); hasError = true; }
-        if (hasError) return;
+        var valid = FV.runRules([
+            FV.rules.name($('#nc-name'), 'Name'),
+            FV.rules.email($('#nc-email'), 'Email')
+        ], true);
 
-        // Show spinner
-        $('#saveNewCustomerSpinner').removeClass('d-none');
-        $('#saveNewCustomerIcon').addClass('d-none');
-        btn.prop('disabled', true);
+        if (!valid) {
+            if (typeof window.showGlobalValidationError === 'function') {
+                window.showGlobalValidationError();
+            }
+            return;
+        }
+
+        if (ncFoundCustomer && ncFoundCustomer.email && ncFoundCustomer.email.toLowerCase() === email.toLowerCase()) {
+            handleInvoiceCustomerResult({
+                exists: true,
+                message: 'Customer already exists.',
+                data: ncFoundCustomer
+            });
+            return;
+        }
+
+        setInvoiceCustomerModalLoading(true);
+
+        var formData = new FormData();
+        formData.append('_token', window.csrfToken);
+        formData.append('from_invoice', '1');
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('phone', phone);
+        formData.append('customer_type', type || 'regular');
+        formData.append('address', address);
+        if (vatReg) {
+            formData.append('vat_registered', '1');
+            formData.append('vat_number', vatNum);
+        }
 
         $.ajax({
             url: window.storeCustomerUrl,
             type: 'POST',
-            contentType: 'application/json',
+            data: formData,
+            processData: false,
+            contentType: false,
             headers: {
                 'X-CSRF-TOKEN': window.csrfToken,
-                'Accept': 'application/json',
+                'Accept': 'application/json'
             },
-            data: JSON.stringify({
-                name:          name,
-                email:         email,
-                phone:         phone,
-                customer_type: type,
-                address:       address,
-                vat_registered: vatReg ? 1 : 0,
-                vat_number:    vatNum,
-                status:        1,
-            }),
-            success: function (data) {
-                $('#saveNewCustomerSpinner').addClass('d-none');
-                $('#saveNewCustomerIcon').removeClass('d-none');
-                btn.prop('disabled', false);
+            success: function (response) {
+                setInvoiceCustomerModalLoading(false);
 
-                if (data.id) {
-                    var optionText = data.name + (data.customer_type === 'business' ? ' (Business)' : '');
-                    var newOption = $('<option>', {
-                        value: data.id,
-                        text: optionText,
-                        'data-email': data.email || '',
-                        'data-phone': data.phone || '',
-                        'data-vat': data.vat_number || ''
-                    });
-                    
-                    $('#customer_id').append(newOption).val(data.id).trigger('change');
-
-                    var modal = bootstrap.Modal.getInstance(document.getElementById('createCustomerModal'));
-                    if (modal) modal.hide();
-                    
-                    if (typeof toastr !== 'undefined') toastr.success('Customer added successfully!');
+                if (response.success && response.data) {
+                    handleInvoiceCustomerResult(response);
                 }
             },
             error: function (xhr) {
-                $('#saveNewCustomerSpinner').addClass('d-none');
-                $('#saveNewCustomerIcon').removeClass('d-none');
-                btn.prop('disabled', false);
-                
+                setInvoiceCustomerModalLoading(false);
+
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.exists && xhr.responseJSON.data) {
+                    handleInvoiceCustomerResult(xhr.responseJSON);
+                    return;
+                }
+
                 var errBox = $('#customer-modal-error');
                 if (xhr.status === 422 && xhr.responseJSON.errors) {
                     var firstError = Object.values(xhr.responseJSON.errors)[0][0];
@@ -147,6 +268,14 @@ $(document).ready(function () {
         });
     });
 
+    if ($.fn.select2 && $('#customer_id').length) {
+        $('#customer_id').select2({
+            width: '100%',
+            placeholder: 'Search or select a customer',
+            allowClear: true
+        });
+    }
+
     // =============================================
     // PRODUCT ROWS
     // =============================================
@@ -156,6 +285,7 @@ $(document).ready(function () {
             var sel = (p.id == selectedId) ? 'selected' : '';
             opts += '<option value="' + p.id + '" ' +
                     'data-price="' + p.selling_price + '" ' +
+                    'data-purchase="' + p.purchase_price + '" ' +
                     'data-vat="'   + p.vat           + '" ' +
                     sel + '>' + p.name + '</option>';
         });
@@ -182,10 +312,11 @@ $(document).ready(function () {
                 '<div class="input-group-sm" style="position:relative;">' +
                     '<span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:13px;z-index:1;">£</span>' +
                     '<input type="number" name="products[' + idx + '][selling_price]" ' +
-                        'class="form-control invoice-input-sm row-price" ' +
-                        'value="' + price + '" min="0" step="0.01" data-row="' + idx + '" ' +
+                        'class="form-control invoice-input-sm row-price validate-non-negative" ' +
+                        'value="' + price + '" min="0.01" step="0.01" data-row="' + idx + '" data-label="Selling price" ' +
                         'style="padding-left:22px;">' +
                 '</div>' +
+                '<span class="field-error text-danger small" id="row-price-error-' + idx + '"></span>' +
             '</td>' +
             '<td>' +
                 '<select name="products[' + idx + '][vat]" class="form-control invoice-input-sm row-vat" data-row="' + idx + '">' +
@@ -195,8 +326,9 @@ $(document).ready(function () {
             '</td>' +
             '<td>' +
                 '<input type="number" name="products[' + idx + '][qty]" ' +
-                    'class="form-control invoice-input-sm row-qty" ' +
-                    'value="' + qty + '" min="1" data-row="' + idx + '">' +
+                    'class="form-control invoice-input-sm row-qty validate-qty-int" ' +
+                    'value="' + qty + '" min="1" step="1" data-row="' + idx + '" data-label="Quantity">' +
+                '<span class="field-error text-danger small" id="row-qty-error-' + idx + '"></span>' +
             '</td>' +
             '<td>' +
                 '<span class="row-line-total" id="row-total-' + idx + '">£0.00</span>' +
@@ -231,18 +363,143 @@ $(document).ready(function () {
             var row = $('tr[data-row="' + idx + '"]');
             row.find('.row-price').val(opt.attr('data-price') || 0);
             row.find('.row-vat').val(opt.attr('data-vat') || '0');
-            clearFieldError('row-product-error-' + idx);
+            FV.clearFieldError($(this));
+            clearSpanError('row-product-error-' + idx);
         }
         
         recalculateRow(idx);
         recalculateSummary();
     });
 
-    $(document).on('input', '.row-price, .row-qty, .row-vat', function () {
+    $(document).on('input blur change', '.row-price, .row-qty, .row-vat', function () {
         var idx = $(this).attr('data-row');
+        var $row = $('tr[data-row="' + idx + '"]');
+        validateInvoiceRow($row, idx, false);
         recalculateRow(idx);
         recalculateSummary();
     });
+
+    function validateInvoiceRow($row, idx, showEmpty) {
+        if (!$row || !$row.length) {
+            return true;
+        }
+
+        var valid = true;
+        var $product = $row.find('.row-product');
+        var $price = $row.find('.row-price');
+        var $qty = $row.find('.row-qty');
+        var $vat = $row.find('.row-vat');
+        var productId = $product.val();
+
+        if (!productId) {
+            if (showEmpty !== false) {
+                setErrorBySpanId('row-product-error-' + idx, $product, 'Product is required.');
+                valid = false;
+            }
+        } else {
+            clearSpanError('row-product-error-' + idx, $product);
+        }
+
+        var priceVal = $price.val();
+        if (productId) {
+            if (FV.isEmpty(priceVal) || !FV.isPositiveNumber(priceVal)) {
+                setErrorBySpanId('row-price-error-' + idx, $price, 'Selling price must be greater than zero.');
+                valid = false;
+            } else {
+                clearSpanError('row-price-error-' + idx, $price);
+                var catalogProduct = getProductById(productId);
+                if (catalogProduct) {
+                    var purchase = parseFloat(catalogProduct.purchase_price);
+                    var selling = parseFloat(priceVal);
+                    if (!isNaN(purchase) && !isNaN(selling) && selling <= purchase) {
+                        setErrorBySpanId('row-price-error-' + idx, $price, 'Selling price must be greater than purchase price.');
+                        valid = false;
+                    }
+                }
+            }
+
+            if (!FV.isPositiveInteger($qty.val())) {
+                setErrorBySpanId('row-qty-error-' + idx, $qty, 'Quantity must be greater than zero.');
+                valid = false;
+            } else {
+                clearSpanError('row-qty-error-' + idx, $qty);
+            }
+
+            if (!FV.isVatRate($vat.val())) {
+                FV.setFieldError($vat, 'VAT must be 0% or 20%.');
+                valid = false;
+            } else {
+                FV.clearFieldError($vat);
+            }
+        }
+
+        return valid;
+    }
+
+    function validateInvoiceForm() {
+        var valid = true;
+
+        if (!FV.runRules([
+            {
+                field: $('#invoice_date'),
+                label: 'Invoice date',
+                required: true,
+                requiredMessage: 'Invoice date is required.'
+            }
+        ], true)) {
+            valid = false;
+        }
+
+        var $due = $('#due_date');
+        var dueVal = $due.val();
+        if (!dueVal) {
+            FV.setFieldError($due, 'Due date is required.');
+            valid = false;
+        } else {
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            var selectedDate = new Date(dueVal);
+            selectedDate.setHours(0, 0, 0, 0);
+            if (selectedDate < today) {
+                FV.setFieldError($due, 'Due date cannot be in the past.');
+                valid = false;
+            } else {
+                FV.clearFieldError($due);
+            }
+        }
+
+        if (!FV.runRules([
+            FV.rules.select($('#customer_id'), 'Customer')
+        ], true)) {
+            valid = false;
+        }
+
+        var rowCount = 0;
+        var rowsValid = true;
+
+        $('#invoice-items-body tr').each(function () {
+            var idx = $(this).attr('data-row');
+            if (!validateInvoiceRow($(this), idx, true)) {
+                rowsValid = false;
+            }
+            if ($(this).find('.row-product').val()) {
+                rowCount++;
+            }
+        });
+
+        if (rowCount === 0) {
+            $('#products-error').text('Please add at least one product line.');
+            valid = false;
+        } else {
+            $('#products-error').text('');
+        }
+
+        if (!rowsValid) {
+            valid = false;
+        }
+
+        return valid;
+    }
 
     // =============================================
     // REMOVE ROW
@@ -293,65 +550,12 @@ $(document).ready(function () {
     // SAVE - Validate then submit
     // =============================================
     $(document).on('click', '#saveInvoiceBtn', function () {
-        var hasError = false;
-
-        // Date
-        if (!$('#invoice_date').val()) {
-            showFieldError('invoice_date-error', 'Invoice date is required.');
-            hasError = true;
-        } else {
-            clearFieldError('invoice_date-error');
-        }
-
-        // Due Date & Validation
-        var dueDateVal = $('#due_date').val();
-        if (!dueDateVal) {
-            showFieldError('due_date-error', 'Due date is required.');
-            hasError = true;
-        } else {
-            var today = new Date();
-            today.setHours(0,0,0,0);
-            var selectedDate = new Date(dueDateVal);
-            selectedDate.setHours(0,0,0,0);
-            
-            if (selectedDate < today) {
-                showFieldError('due_date-error', 'Due date cannot be in the past.');
-                hasError = true;
-            } else {
-                clearFieldError('due_date-error');
+        if (!validateInvoiceForm()) {
+            if (typeof window.showGlobalValidationError === 'function') {
+                window.showGlobalValidationError();
             }
+            return;
         }
-
-        // Customer
-        if (!$('#customer_id').val()) {
-            showFieldError('customer_id-error', 'Please select a customer.');
-            hasError = true;
-        } else {
-            clearFieldError('customer_id-error');
-        }
-
-        // Products
-        var hasValidProduct = false;
-        $('#invoice-items-body tr').each(function () {
-            var idx       = $(this).attr('data-row');
-            var productId = $(this).find('.row-product').val();
-            if (productId !== '') {
-                hasValidProduct = true;
-                clearFieldError('row-product-error-' + idx);
-            } else {
-                showFieldError('row-product-error-' + idx, 'Select a product.');
-                hasError = true;
-            }
-        });
-
-        if (!hasValidProduct) {
-            showFieldError('products-error', 'Please add at least one product.');
-            hasError = true;
-        } else {
-            clearFieldError('products-error');
-        }
-
-        if (hasError) return;
 
         var form = document.getElementById('invoiceCreateForm');
         var formData = new FormData(form);
@@ -375,10 +579,18 @@ $(document).ready(function () {
             error: function (xhr) {
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
-                    if (errors.due_date) showFieldError('due_date-error', errors.due_date[0]);
-                    if (errors.status) showFieldError('status-error', errors.status[0]);
-                    if (errors.invoice_date) showFieldError('invoice_date-error', errors.invoice_date[0]);
-                    if (typeof toastr !== 'undefined') toastr.error('Please fix the form errors.');
+                    if (errors.due_date) {
+                        FV.setFieldError($('#due_date'), errors.due_date[0]);
+                    }
+                    if (errors.status) {
+                        FV.setFieldError($('#status'), errors.status[0]);
+                    }
+                    if (errors.invoice_date) {
+                        FV.setFieldError($('#invoice_date'), errors.invoice_date[0]);
+                    }
+                    if (typeof window.showGlobalValidationError === 'function') {
+                        window.showGlobalValidationError();
+                    }
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
                 }
