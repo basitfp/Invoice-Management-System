@@ -7,24 +7,24 @@ $(document).ready(function () {
         });
     }
 
-    // GLOBAL AJAX LOADER
-    $(document).ajaxStart(function () {
-        if ($('.global-loader-overlay').length === 0) {
-            $('body').append('<div class="global-loader-overlay"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>');
-        }
-    });
+    // // GLOBAL AJAX LOADER
+    // $(document).ajaxStart(function () {
+    //     if ($('.global-loader-overlay').length === 0) {
+    //         $('body').append('<div class="global-loader-overlay"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+    //     }
+    // });
 
-    $(document).ajaxStop(function () {
-        $('.global-loader-overlay').remove();
-    });
+    // $(document).ajaxStop(function () {
+    //     $('.global-loader-overlay').remove();
+    // });
 
-    $(document).on('click', 'a.btn:not([data-bs-toggle])', function () {
-        if ($(this).attr('href') && $(this).attr('href') !== '#' && !$(this).attr('target')) {
-            if ($('.global-loader-overlay').length === 0) {
-                $('body').append('<div class="global-loader-overlay"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>');
-            }
-        }
-    });
+    // $(document).on('click', 'a.btn:not([data-bs-toggle])', function () {
+    //     if ($(this).attr('href') && $(this).attr('href') !== '#' && !$(this).attr('target')) {
+    //         if ($('.global-loader-overlay').length === 0) {
+    //             $('body').append('<div class="global-loader-overlay"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+    //         }
+    //     }
+    // });
 
     var FV = window.FormValidation;
     if (!FV) {

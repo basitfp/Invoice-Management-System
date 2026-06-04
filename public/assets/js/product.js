@@ -58,7 +58,7 @@ $(document).ready(function () {
     // VIEW MODAL - Populate and open
     // =============================================
     $(document).on('click', '.btn-product-view', function () {
-        let status = $(this).attr('data-status');
+        var status = $(this).attr('data-status');
 
         $('#v-name').text($(this).attr('data-name'));
         $('#v-desc').text($(this).attr('data-desc') || '-');
@@ -68,9 +68,9 @@ $(document).ready(function () {
         $('#v-selling').text($(this).attr('data-selling'));
         $('#v-vat').text($(this).attr('data-vat') + '%');
         $('#v-moq').text($(this).attr('data-moq'));
-        $('#v-status').html(status === '1' ? '<span class="badge-status-enabled">Enabled</span>' : '<span class="badge-status-disabled">Disabled</span>');
+        $('#v-status').html((ES ? ES.normalizeStatus(status) : status) === '1' ? '<span class="badge-status-enabled">Enabled</span>' : '<span class="badge-status-disabled">Disabled</span>');
 
-        let modal = new bootstrap.Modal(document.getElementById('productViewModal'));
+        var modal = new bootstrap.Modal(document.getElementById('productViewModal'));
         modal.show();
     });
 
@@ -92,6 +92,7 @@ $(document).ready(function () {
 
         var form = document.getElementById('productCreateForm');
         var formData = new FormData(form);
+        var $btn = $(this);
 
         $.ajax({
             url: form.action,
@@ -103,12 +104,17 @@ $(document).ready(function () {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
             },
+            beforeSend: function () {
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
+            },
             success: function (response) {
                 if (response.success) {
                     var modal = bootstrap.Modal.getInstance(document.getElementById('productCreateModal'));
                     if (modal) modal.hide();
 
                     if (typeof toastr !== 'undefined') toastr.success(response.message);
+
+                    var s = ES ? ES.normalizeStatus(response.data.status) : '1';
 
                     // Add new row to table
                     var newRow = `
@@ -120,7 +126,7 @@ $(document).ready(function () {
                         <td class="text-end" id="selling-${response.data.id}">£${parseFloat(response.data.selling_price).toFixed(2)}</td>
                         <td class="text-center" id="vat-${response.data.id}">${response.data.vat}%</td>
                         <td class="text-center" id="status-container-${response.data.id}">
-                            ${response.data.status == 1 ? '<span class="badge-status-enabled">Enabled</span>' : '<span class="badge-status-disabled">Disabled</span>'}
+                            ${s === '1' ? '<span class="badge-status-enabled">Enabled</span>' : '<span class="badge-status-disabled">Disabled</span>'}
                         </td>
                         <td>
                             <div class="d-flex gap-2 justify-content-end">
@@ -134,7 +140,7 @@ $(document).ready(function () {
                                     data-selling="${response.data.selling_price}"
                                     data-vat="${response.data.vat}"
                                     data-moq="${response.data.moq}"
-                                    data-status="${response.data.status}"
+                                    data-status="${s}"
                                     title="View">
                                     <i class="bi bi-eye"></i>
                                 </button>
@@ -148,14 +154,14 @@ $(document).ready(function () {
                                     data-selling="${response.data.selling_price}"
                                     data-vat="${response.data.vat}"
                                     data-moq="${response.data.moq}"
-                                    data-status="${response.data.status}"
+                                    data-status="${s}"
                                     title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <button type="button" class="btn btn-product-action btn-product-toggle"
                                     data-id="${response.data.id}"
                                     data-name="${response.data.name}"
-                                    data-status="${response.data.status}"
+                                    data-status="${s}"
                                     title="Toggle Status">
                                     <i class="bi bi-slash-circle"></i>
                                 </button>
@@ -171,8 +177,6 @@ $(document).ready(function () {
                     var tbody = $('table tbody');
                     if(tbody.length) {
                         tbody.prepend(newRow);
-                    } else {
-                        window.location.reload();
                     }
                 }
             },
@@ -198,6 +202,9 @@ $(document).ready(function () {
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
                 }
+            },
+            complete: function () {
+                $btn.prop('disabled', false).find('.btn-spinner').remove();
             }
         });
     });
@@ -208,9 +215,9 @@ $(document).ready(function () {
     $(document).on('click', '.btn-product-edit', function () {
         FV.clearFormById('productEditForm');
 
-        let productId = $(this).attr('data-id');
+        var productId = $(this).attr('data-id');
 
-        let form = document.getElementById('productEditForm');
+        var form = document.getElementById('productEditForm');
         form.action = '/admin/products/' + productId;
         
         $('#edit-id').val(productId);
@@ -226,7 +233,7 @@ $(document).ready(function () {
         $('#e-vat').val($(this).attr('data-vat'));
         $('#e-status').val($(this).attr('data-status'));
 
-        let modal = new bootstrap.Modal(document.getElementById('productEditModal'));
+        var modal = new bootstrap.Modal(document.getElementById('productEditModal'));
         modal.show();
     });
 
@@ -240,6 +247,7 @@ $(document).ready(function () {
 
         var form = document.getElementById('productEditForm');
         var formData = new FormData(form);
+        var $btn = $(this);
 
         $.ajax({
             url: form.action,
@@ -250,6 +258,9 @@ $(document).ready(function () {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
+            },
+            beforeSend: function () {
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
             },
             success: function (response) {
                 if (response.success) {
@@ -285,6 +296,9 @@ $(document).ready(function () {
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
                 }
+            },
+            complete: function () {
+                $btn.prop('disabled', false).find('.btn-spinner').remove();
             }
         });
     });
@@ -293,27 +307,27 @@ $(document).ready(function () {
     // TOGGLE STATUS - Open confirm modal
     // =============================================
     $(document).on('click', '.btn-product-toggle', function () {
-        let productId   = $(this).attr('data-id');
-        let productName = $(this).attr('data-name');
-        let status      = $(this).attr('data-status');
+        var productId   = $(this).attr('data-id');
+        var productName = $(this).attr('data-name');
+        var status      = $(this).attr('data-status');
 
-        let actionLabel = status === '1' ? 'Disable' : 'Enable';
+        var actionLabel = (ES ? ES.normalizeStatus(status) : status) === '1' ? 'Disable' : 'Enable';
 
         $('#confirm-title').text(actionLabel + ' Product');
         $('#confirm-body').text('Are you sure you want to ' + actionLabel.toLowerCase() + ' "' + productName + '"?');
 
-        let confirmForm = document.getElementById('productConfirmForm');
+        var confirmForm = document.getElementById('productConfirmForm');
         confirmForm.action = '/admin/products/' + productId + '/toggle-status';
 
         $('#confirm-method-field').html('<input type="hidden" name="_method" value="PATCH">');
         $('#confirm-id').val(productId);
 
-        let confirmBtn = $('#confirm-submit-btn');
+        var confirmBtn = $('#confirm-submit-btn');
         confirmBtn.removeClass('btn-danger btn-warning btn-success');
-        confirmBtn.addClass(status === '1' ? 'btn-warning' : 'btn-success');
+        confirmBtn.addClass((ES ? ES.normalizeStatus(status) : status) === '1' ? 'btn-warning' : 'btn-success');
         confirmBtn.text(actionLabel);
 
-        let modal = new bootstrap.Modal(document.getElementById('productConfirmModal'));
+        var modal = new bootstrap.Modal(document.getElementById('productConfirmModal'));
         modal.show();
     });
 
@@ -321,23 +335,23 @@ $(document).ready(function () {
     // DELETE - Open confirm modal
     // =============================================
     $(document).on('click', '.btn-product-delete', function () {
-        let productId   = $(this).attr('data-id');
-        let productName = $(this).attr('data-name');
+        var productId   = $(this).attr('data-id');
+        var productName = $(this).attr('data-name');
 
         $('#confirm-title').text('Delete Product');
         $('#confirm-body').text('Are you sure you want to permanently delete "' + productName + '"? This action cannot be undone.');
 
-        let confirmForm = document.getElementById('productConfirmForm');
+        var confirmForm = document.getElementById('productConfirmForm');
         confirmForm.action = '/admin/products/' + productId;
 
         $('#confirm-method-field').html('<input type="hidden" name="_method" value="DELETE">');
         $('#confirm-id').val(productId);
 
-        let confirmBtn = $('#confirm-submit-btn');
+        var confirmBtn = $('#confirm-submit-btn');
         confirmBtn.removeClass('btn-warning btn-success btn-danger').addClass('btn-danger');
         confirmBtn.text('Delete');
 
-        let modal = new bootstrap.Modal(document.getElementById('productConfirmModal'));
+        var modal = new bootstrap.Modal(document.getElementById('productConfirmModal'));
         modal.show();
     });
 
@@ -350,6 +364,7 @@ $(document).ready(function () {
         var form = document.getElementById('productConfirmForm');
         var formData = new FormData(form);
         var method = formData.get('_method');
+        var $btn = $(this);
 
         $.ajax({
             url: form.action,
@@ -360,6 +375,9 @@ $(document).ready(function () {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
+            },
+            beforeSend: function () {
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
             },
             success: function (response) {
                 if (response.success) {
@@ -372,8 +390,9 @@ $(document).ready(function () {
 
                     if (method === 'DELETE') {
                         var row = $('#row-' + id);
-                        if (row.length) row.remove();
-                        else window.location.reload();
+                        if (row.length) {
+                            row.fadeOut(300, function () { $(this).remove(); });
+                        }
                     } else if (method === 'PATCH') {
                         if (ES) {
                             ES.syncProductStatus(id, response.new_status);
@@ -383,6 +402,9 @@ $(document).ready(function () {
             },
             error: function () {
                 if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
+            },
+            complete: function () {
+                $btn.prop('disabled', false).find('.btn-spinner').remove();
             }
         });
     });

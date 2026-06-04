@@ -9,10 +9,12 @@ class Invoice extends Model
     protected $fillable = [
         'invoice_number',
         'customer_id',
+        'agent_id',
         'invoice_date',
         'total_vat',
         'total_amount',
         'status',
+        'due_date',
     ];
 
     // Invoice ke sare items
@@ -25,5 +27,11 @@ class Invoice extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    // Invoice creator (Agent)
+    public function agent()
+    {
+        return $this->belongsTo(User::class, 'agent_id');
     }
 }

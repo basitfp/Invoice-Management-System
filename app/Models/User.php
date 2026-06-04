@@ -30,4 +30,9 @@ class User extends Authenticatable
             'status' => 'boolean',
         ];
     }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class, 'agent_id');
+    }
 }

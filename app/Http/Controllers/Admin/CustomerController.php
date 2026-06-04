@@ -30,9 +30,15 @@ class CustomerController extends Controller
 
         $customer = Customer::where('email', $request->email)->first();
 
+        if ($customer) {
+            $data = $customer->toArray();
+            $data['status']         = (int) $customer->status;
+            $data['vat_registered'] = (int) $customer->vat_registered;
+        }
+
         return response()->json([
             'found' => (bool) $customer,
-            'data'  => $customer,
+            'data'  => $customer ? $data : null,
         ]);
     }
 
@@ -44,11 +50,15 @@ class CustomerController extends Controller
         if ($request->boolean('from_invoice')) {
             $existing = Customer::where('email', $request->email)->first();
             if ($existing) {
+                $data = $existing->toArray();
+                $data['status']         = (int) $existing->status;
+                $data['vat_registered'] = (int) $existing->vat_registered;
+
                 return response()->json([
                     'success' => true,
                     'exists'  => true,
                     'message' => 'Customer already exists.',
-                    'data'    => $existing,
+                    'data'    => $data,
                 ]);
             }
         }
@@ -78,10 +88,14 @@ class CustomerController extends Controller
         ]);
 
         if ($request->ajax()) {
+            $data = $customer->toArray();
+            $data['status']         = (int) $customer->status;
+            $data['vat_registered'] = (int) $customer->vat_registered;
+
             return response()->json([
                 'success' => true,
                 'message' => 'Customer created successfully.',
-                'data'    => $customer
+                'data'    => $data
             ]);
         }
 
@@ -117,10 +131,14 @@ class CustomerController extends Controller
         ]);
 
         if ($request->ajax()) {
+            $data = $customer->toArray();
+            $data['status']         = (int) $customer->status;
+            $data['vat_registered'] = (int) $customer->vat_registered;
+
             return response()->json([
                 'success' => true,
                 'message' => 'Customer updated successfully.',
-                'data'    => $customer
+                'data'    => $data
             ]);
         }
 
@@ -140,7 +158,7 @@ class CustomerController extends Controller
             return response()->json([
                 'success'    => true,
                 'message'    => 'Customer status updated.',
-                'new_status' => $customer->status
+                'new_status' => (int) $customer->status
             ]);
         }
 

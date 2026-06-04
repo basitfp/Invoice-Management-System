@@ -81,6 +81,7 @@ $(document).ready(function () {
 
         var form = document.getElementById('customerCreateForm');
         var formData = new FormData(form);
+        var $btn = $(this);
 
         $.ajax({
             url: form.action,
@@ -92,6 +93,9 @@ $(document).ready(function () {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
             },
+            beforeSend: function () {
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
+            },
             success: function (response) {
                 if (response.success) {
                     var modal = bootstrap.Modal.getInstance(document.getElementById('customerCreateModal'));
@@ -101,10 +105,12 @@ $(document).ready(function () {
 
                     // Add new row to table
                     var c = response.data;
+                    var s = ES ? ES.normalizeStatus(c.status) : '1';
+                    var vr = ES ? ES.normalizeStatus(c.vat_registered) : '0';
                     var typeBadge = c.customer_type === 'business' ? 'info' : 'secondary';
                     var typeLabel = c.customer_type.charAt(0).toUpperCase() + c.customer_type.slice(1);
                     var vatCol = '';
-                    if (c.vat_registered) {
+                    if (vr === '1') {
                         vatCol = '<span class="badge bg-success">Yes</span>';
                         if (c.vat_number) {
                             vatCol += '<small class="text-muted ms-1">(' + c.vat_number + ')</small>';
@@ -124,7 +130,7 @@ $(document).ready(function () {
                         </td>
                         <td class="text-center" id="vat-${c.id}">${vatCol}</td>
                         <td class="text-center" id="status-container-${c.id}">
-                            <span class="badge-status-enabled">Active</span>
+                            ${s === '1' ? '<span class="badge-status-enabled">Active</span>' : '<span class="badge-status-disabled">Inactive</span>'}
                         </td>
                         <td>
                             <div class="d-flex gap-2 justify-content-end">
@@ -135,9 +141,9 @@ $(document).ready(function () {
                                     data-phone="${c.phone || ''}"
                                     data-type="${c.customer_type}"
                                     data-address="${c.address || ''}"
-                                    data-vat-registered="${c.vat_registered}"
+                                    data-vat-registered="${vr}"
                                     data-vat-number="${c.vat_number || ''}"
-                                    data-status="${c.status}"
+                                    data-status="${s}"
                                     title="View">
                                     <i class="bi bi-eye"></i>
                                 </button>
@@ -148,16 +154,16 @@ $(document).ready(function () {
                                     data-phone="${c.phone || ''}"
                                     data-type="${c.customer_type}"
                                     data-address="${c.address || ''}"
-                                    data-vat-registered="${c.vat_registered}"
+                                    data-vat-registered="${vr}"
                                     data-vat-number="${c.vat_number || ''}"
-                                    data-status="${c.status}"
+                                    data-status="${s}"
                                     title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <button type="button" class="btn btn-customer-action btn-customer-toggle"
                                     data-id="${c.id}"
                                     data-name="${c.name}"
-                                    data-status="${c.status}"
+                                    data-status="${s}"
                                     title="Toggle Status">
                                     <i class="bi bi-slash-circle"></i>
                                 </button>
@@ -174,8 +180,6 @@ $(document).ready(function () {
                     var tbody = $('table tbody');
                     if(tbody.length) {
                         tbody.prepend(newRow);
-                    } else {
-                        window.location.reload();
                     }
                 }
             },
@@ -201,6 +205,9 @@ $(document).ready(function () {
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
                 }
+            },
+            complete: function () {
+                $btn.prop('disabled', false).find('.btn-spinner').remove();
             }
         });
     });
@@ -228,7 +235,7 @@ $(document).ready(function () {
         var vatCheckbox = $('#e-vat-registered');
         var vatGroup    = $('#e-vat-number-group');
 
-        if (vatRegistered === '1') {
+        if ((ES ? ES.normalizeStatus(vatRegistered) : vatRegistered) === '1') {
             vatCheckbox.prop('checked', true);
             vatGroup.show();
             $('#e-vat-number').val($(this).attr('data-vat-number'));
@@ -252,6 +259,7 @@ $(document).ready(function () {
 
         var form = document.getElementById('customerEditForm');
         var formData = new FormData(form);
+        var $btn = $(this);
 
         $.ajax({
             url: form.action,
@@ -262,6 +270,9 @@ $(document).ready(function () {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
+            },
+            beforeSend: function () {
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
             },
             success: function (response) {
                 if (response.success) {
@@ -297,6 +308,9 @@ $(document).ready(function () {
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
                 }
+            },
+            complete: function () {
+                $btn.prop('disabled', false).find('.btn-spinner').remove();
             }
         });
     });
@@ -314,12 +328,14 @@ $(document).ready(function () {
         $('#v-type').text($(this).attr('data-type'));
         $('#v-address').text($(this).attr('data-address') || '-');
 
-        $('#v-vat-registered').text(vatRegistered === '1' ? 'Yes' : 'No');
+        var normalizedVat = ES ? ES.normalizeStatus(vatRegistered) : vatRegistered;
+        $('#v-vat-registered').text(normalizedVat === '1' ? 'Yes' : 'No');
 
         var vatNumber = $(this).attr('data-vat-number');
-        $('#v-vat-number').text((vatRegistered === '1' && vatNumber) ? vatNumber : '-');
+        $('#v-vat-number').text((normalizedVat === '1' && vatNumber) ? vatNumber : '-');
 
-        $('#v-status').html(status === '1' ? '<span class="badge-status-enabled">Active</span>' : '<span class="badge-status-disabled">Inactive</span>');
+        var normalizedStatus = ES ? ES.normalizeStatus(status) : status;
+        $('#v-status').html(normalizedStatus === '1' ? '<span class="badge-status-enabled">Active</span>' : '<span class="badge-status-disabled">Inactive</span>');
 
         var modal = new bootstrap.Modal(document.getElementById('customerViewModal'));
         modal.show();
@@ -333,7 +349,7 @@ $(document).ready(function () {
         var customerName = $(this).attr('data-name');
         var status       = $(this).attr('data-status');
 
-        var actionLabel = status === '1' ? 'Deactivate' : 'Activate';
+        var actionLabel = (ES ? ES.normalizeStatus(status) : status) === '1' ? 'Deactivate' : 'Activate';
 
         $('#customer-confirm-title').text(actionLabel + ' Customer');
         $('#customer-confirm-body').text('Are you sure you want to ' + actionLabel.toLowerCase() + ' "' + customerName + '"?');
@@ -346,7 +362,7 @@ $(document).ready(function () {
 
         var confirmBtn = $('#customer-confirm-submit');
         confirmBtn.removeClass('btn-danger btn-warning btn-success');
-        confirmBtn.addClass(status === '1' ? 'btn-warning' : 'btn-success');
+        confirmBtn.addClass((ES ? ES.normalizeStatus(status) : status) === '1' ? 'btn-warning' : 'btn-success');
         confirmBtn.text(actionLabel);
 
         var modal = new bootstrap.Modal(document.getElementById('customerConfirmModal'));
@@ -386,6 +402,7 @@ $(document).ready(function () {
         var form = document.getElementById('customerConfirmForm');
         var formData = new FormData(form);
         var method = formData.get('_method');
+        var $btn = $(this);
 
         $.ajax({
             url: form.action,
@@ -396,6 +413,9 @@ $(document).ready(function () {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
+            },
+            beforeSend: function () {
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
             },
             success: function (response) {
                 if (response.success) {
@@ -408,8 +428,9 @@ $(document).ready(function () {
 
                     if (method === 'DELETE') {
                         var row = $('#row-' + id);
-                        if (row.length) row.remove();
-                        else window.location.reload();
+                        if (row.length) {
+                            row.fadeOut(300, function () { $(this).remove(); });
+                        }
                     } else if (method === 'PATCH') {
                         if (ES) {
                             ES.syncCustomerStatus(id, response.new_status);
@@ -419,6 +440,9 @@ $(document).ready(function () {
             },
             error: function () {
                 if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
+            },
+            complete: function () {
+                $btn.prop('disabled', false).find('.btn-spinner').remove();
             }
         });
     });

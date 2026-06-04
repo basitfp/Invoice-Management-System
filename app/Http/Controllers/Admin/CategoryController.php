@@ -44,10 +44,13 @@ class CategoryController extends Controller
         ]);
 
         if ($request->ajax()) {
+            $data = $category->toArray();
+            $data['status'] = (int) $category->status;
+
             return response()->json([
                 'success' => true,
                 'message' => 'Category created successfully.',
-                'data'    => $category
+                'data'    => $data
             ]);
         }
 
@@ -81,10 +84,13 @@ class CategoryController extends Controller
         ]);
 
         if ($request->ajax()) {
+            $data = $category->toArray();
+            $data['status'] = (int) $category->status;
+
             return response()->json([
                 'success' => true,
                 'message' => 'Category updated successfully.',
-                'data'    => $category
+                'data'    => $data
             ]);
         }
 
@@ -104,7 +110,7 @@ class CategoryController extends Controller
             return response()->json([
                 'success'    => true,
                 'message'    => 'Category status updated successfully.',
-                'new_status' => $category->status
+                'new_status' => (int) $category->status
             ]);
         }
 

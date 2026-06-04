@@ -126,7 +126,7 @@ body {
     height: var(--navbar-height);
     background-color: #ffffff;
     border-bottom: 1px solid var(--border-color);
-    padding: 0 28px;
+    padding: 20px 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;

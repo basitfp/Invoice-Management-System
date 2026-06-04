@@ -53,10 +53,13 @@ class ProductController extends Controller
         $product->load('category');
 
         if ($request->ajax()) {
+            $data = $product->toArray();
+            $data['status'] = (int) $product->status;
+
             return response()->json([
                 'success' => true,
                 'message' => 'Product created successfully.',
-                'data'    => $product
+                'data'    => $data
             ]);
         }
 
@@ -95,10 +98,13 @@ class ProductController extends Controller
         $product->load('category');
 
         if ($request->ajax()) {
+            $data = $product->toArray();
+            $data['status'] = (int) $product->status;
+
             return response()->json([
                 'success' => true,
                 'message' => 'Product updated successfully.',
-                'data'    => $product
+                'data'    => $data
             ]);
         }
 
@@ -118,7 +124,7 @@ class ProductController extends Controller
             return response()->json([
                 'success'    => true,
                 'message'    => 'Product status updated.',
-                'new_status' => $product->status
+                'new_status' => (int) $product->status
             ]);
         }
 

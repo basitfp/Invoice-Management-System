@@ -30,10 +30,11 @@ $(document).ready(function () {
             }
         });
 
-        $('#status-pick-error').text('');
+        $('#status-pick-error').text('');   
 
         var form = document.getElementById('invoiceStatusForm');
-        form.action = '/admin/invoices/' + invoiceId + '/status';
+        var prefix = window.invoiceRoutePrefix || '/admin/invoices/';
+        form.action = prefix + invoiceId + '/status';
         
         // Add ID input so we can update UI
         if ($('#status-invoice-id').length === 0) {
@@ -60,6 +61,7 @@ $(document).ready(function () {
         
         var form = document.getElementById('invoiceStatusForm');
         var formData = new FormData(form);
+        var $btn = $(this);
 
         $.ajax({
             url: form.action,
@@ -70,6 +72,9 @@ $(document).ready(function () {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
+            },
+            beforeSend: function () {
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
             },
             success: function (response) {
                 if (response.success) {
@@ -101,6 +106,9 @@ $(document).ready(function () {
             },
             error: function () {
                 if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
+            },
+            complete: function () {
+                $btn.prop('disabled', false).find('.btn-spinner').remove();
             }
         });
     });
@@ -116,7 +124,8 @@ $(document).ready(function () {
         $('#delete-confirm-body').text('Are you sure you want to permanently delete invoice ' + invoiceNumber + '? This action cannot be undone.');
 
         var form = document.getElementById('invoiceDeleteForm');
-        form.action = '/admin/invoices/' + invoiceId;
+        var prefix = window.invoiceRoutePrefix || '/admin/invoices/';
+        form.action = prefix + invoiceId;
 
         // Add ID input so we can update UI
         if ($('#delete-invoice-id').length === 0) {
@@ -137,6 +146,7 @@ $(document).ready(function () {
         
         var form = document.getElementById('invoiceDeleteForm');
         var formData = new FormData(form);
+        var $btn = $(this);
 
         $.ajax({
             url: form.action,
@@ -147,6 +157,9 @@ $(document).ready(function () {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
+            },
+            beforeSend: function () {
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
             },
             success: function (response) {
                 if (response.success) {
@@ -163,6 +176,9 @@ $(document).ready(function () {
             },
             error: function () {
                 if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
+            },
+            complete: function () {
+                $btn.prop('disabled', false).find('.btn-spinner').remove();
             }
         });
     });

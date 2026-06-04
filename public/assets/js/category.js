@@ -26,9 +26,9 @@ $(document).ready(function () {
         $('#view-created-at').text($(this).attr('data-created-at'));
         $('#view-updated-at').text($(this).attr('data-updated-at'));
 
-        // Status badge
+        // Status badge — use normalizeStatus for safe comparison
         var statusEl = $('#view-status');
-        if (status === '1') {
+        if (ES && ES.normalizeStatus(status) === '1') {
             statusEl.html('<span class="badge-status-enabled">Enabled</span>');
         } else {
             statusEl.html('<span class="badge-status-disabled">Disabled</span>');
@@ -67,6 +67,7 @@ $(document).ready(function () {
 
         var form = document.getElementById('categoryCreateForm');
         var formData = new FormData(form);
+        var $btn = $(this);
 
         $.ajax({
             url: form.action,
@@ -78,6 +79,9 @@ $(document).ready(function () {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
             },
+            beforeSend: function () {
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
+            },
             success: function (response) {
                 if (response.success) {
                     var modalEl = document.getElementById('categoryCreateModal');
@@ -86,13 +90,15 @@ $(document).ready(function () {
 
                     if (typeof toastr !== 'undefined') toastr.success(response.message);
 
+                    var s = ES ? ES.normalizeStatus(response.data.status) : '1';
+
                     // Add new row to table
                     var newRow = `
                     <tr id="row-${response.data.id}">
                         <td>${response.data.id}</td>
                         <td id="name-${response.data.id}">${response.data.name}</td>
                         <td class="text-center" id="status-container-${response.data.id}">
-                            <span class="badge-status-enabled">Enabled</span>
+                            ${s === '1' ? '<span class="badge-status-enabled">Enabled</span>' : '<span class="badge-status-disabled">Disabled</span>'}
                         </td>
                         <td class="text-center">Just now</td>
                         <td>
@@ -100,7 +106,7 @@ $(document).ready(function () {
                                 <button type="button" class="btn btn-category-action btn-category-view"
                                     data-id="${response.data.id}"
                                     data-name="${response.data.name}"
-                                    data-status="${response.data.status}"
+                                    data-status="${s}"
                                     data-created-at="Just now"
                                     data-updated-at="Just now"
                                     title="View">
@@ -110,7 +116,7 @@ $(document).ready(function () {
                                 <button type="button" class="btn btn-category-action btn-category-edit"
                                     data-id="${response.data.id}"
                                     data-name="${response.data.name}"
-                                    data-status="${response.data.status}"
+                                    data-status="${s}"
                                     data-action="/admin/categories/${response.data.id}"
                                     title="Edit">
                                     <i class="bi bi-pencil"></i>
@@ -119,7 +125,7 @@ $(document).ready(function () {
                                 <button type="button" class="btn btn-category-action btn-category-toggle"
                                     data-id="${response.data.id}"
                                     data-name="${response.data.name}"
-                                    data-status="${response.data.status}"
+                                    data-status="${s}"
                                     data-action="/admin/categories/${response.data.id}/toggle-status"
                                     title="Toggle Status">
                                     <i class="bi bi-slash-circle"></i>
@@ -138,8 +144,6 @@ $(document).ready(function () {
                     var tbody = $('table tbody');
                     if(tbody.length) {
                         tbody.prepend(newRow);
-                    } else {
-                        window.location.reload();
                     }
                 }
             },
@@ -155,6 +159,9 @@ $(document).ready(function () {
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
                 }
+            },
+            complete: function () {
+                $btn.prop('disabled', false).find('.btn-spinner').remove();
             }
         });
     });
@@ -188,6 +195,7 @@ $(document).ready(function () {
 
         var form = document.getElementById('categoryEditForm');
         var formData = new FormData(form);
+        var $btn = $(this);
 
         $.ajax({
             url: form.action,
@@ -198,6 +206,9 @@ $(document).ready(function () {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
+            },
+            beforeSend: function () {
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
             },
             success: function (response) {
                 if (response.success) {
@@ -223,6 +234,9 @@ $(document).ready(function () {
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
                 }
+            },
+            complete: function () {
+                $btn.prop('disabled', false).find('.btn-spinner').remove();
             }
         });
     });
@@ -236,7 +250,7 @@ $(document).ready(function () {
         var status         = $(this).attr('data-status');
         var id             = $(this).attr('data-id');
 
-        var actionLabel = status === '1' ? 'Disable' : 'Enable';
+        var actionLabel = (ES ? ES.normalizeStatus(status) : status) === '1' ? 'Disable' : 'Enable';
 
         $('#category-confirm-title').text(actionLabel + ' Category');
         $('#category-confirm-body').text('Are you sure you want to ' + actionLabel.toLowerCase() + ' "' + categoryName + '"?');
@@ -249,7 +263,7 @@ $(document).ready(function () {
 
         var confirmBtn = $('#category-confirm-submit');
         confirmBtn.removeClass('btn-danger btn-warning btn-success');
-        if (status === '1') {
+        if ((ES ? ES.normalizeStatus(status) : status) === '1') {
             confirmBtn.addClass('btn-warning');
         } else {
             confirmBtn.addClass('btn-success');
@@ -293,6 +307,7 @@ $(document).ready(function () {
         var form = document.getElementById('categoryConfirmForm');
         var formData = new FormData(form);
         var method = formData.get('_method');
+        var $btn = $(this);
 
         $.ajax({
             url: form.action,
@@ -303,6 +318,9 @@ $(document).ready(function () {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
+            },
+            beforeSend: function () {
+                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
             },
             success: function (response) {
                 if (response.success) {
@@ -316,9 +334,7 @@ $(document).ready(function () {
                     if (method === 'DELETE') {
                         var row = $('#row-' + id);
                         if (row.length) {
-                            row.remove();
-                        } else {
-                            window.location.reload();
+                            row.fadeOut(300, function () { $(this).remove(); });
                         }
                     } else if (method === 'PATCH') {
                         if (ES) {
@@ -329,6 +345,9 @@ $(document).ready(function () {
             },
             error: function () {
                 if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
+            },
+            complete: function () {
+                $btn.prop('disabled', false).find('.btn-spinner').remove();
             }
         });
     });

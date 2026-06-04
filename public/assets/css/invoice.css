@@ -129,48 +129,254 @@
 .btn-invoice-status:hover       { background:#eff6ff; color:#3b82f6; border-color:rgba(59,130,246,.2); }
 .btn-invoice-delete:hover       { background:#fef2f2; color:#ef4444; border-color:rgba(239,68,68,.2); }
 
-/* ══ Create Page: Sections ══════════════ */
-.invoice-section {
-    background: #fff;
-    border: 1px solid var(--border-color);
+/* Base Layout Structure */
+body {
+    background-color: #f8fafc;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1e293b;
+    padding-bottom: 60px;
+}
+
+.invoice-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 24px 28px;
-    margin-bottom: 20px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    margin-bottom: 24px;
 }
 
 .invoice-section-title {
     font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .06em;
-    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    color: #475569;
     margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
 }
 
-.invoice-label {
+/* Form Controls Custom Design */
+.invoice-form-label {
     font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    display: block;
-    margin-bottom: 7px;
+    font-weight: 500;
+    color: #334155;
+    margin-bottom: 6px;
 }
 
-.invoice-input {
-    height: 48px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
+.invoice-form-label .required-star {
+    color: #ef4444;
+    margin-left: 2px;
+}
+
+.invoice-input-sm {
+    font-size: 14px !important;
+    height: 40px !important;
+    border-radius: 6px !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    background-color: #ffffff !important;
+    padding: 8px 12px !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+    width: 100%;
+}
+
+.invoice-input-sm:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+    outline: 0 !important;
+}
+
+.invoice-input-sm:disabled {
+    background-color: #f8fafc !important;
+    color: #64748b !important;
+    cursor: not-allowed;
+    border-color: #e2e8f0 !important;
+}
+
+/* Info Boxes */
+.customer-info-box {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.info-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.info-value {
     font-size: 14px;
-    padding: 0 14px;
-    transition: all .2s ease;
-    color: var(--text-primary);
+    font-weight: 600;
+    color: #1e293b;
 }
-.invoice-input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px var(--focus-ring);
-    outline: none;
+
+/* Modern Invoice Items Table Fixes */
+.invoice-items-table {
+    width: 100%;
+    margin-bottom: 0;
+    vertical-align: top;
+    border-collapse: separate;
+    border-spacing: 0;
 }
+
+.invoice-items-table th {
+    background-color: #f8fafc;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+    padding: 12px 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.invoice-items-table td {
+    padding: 12px 10px !important;
+    vertical-align: top !important;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Table Input Wrappers to Prevent Layout Shifting */
+.table-input-wrapper {
+    position: relative;
+    padding-bottom: 4px;
+}
+
+/* Absolute Floating Errors */
+.invoice-items-table td .field-error {
+    position: absolute;
+    left: 2px;
+    bottom: -12px;
+    font-size: 11px !important;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    z-index: 10;
+    color: #ef4444 !important;
+    background: #ffffff;
+    padding: 0 4px;
+}
+
+/* Input Fields inside Table */
+.invoice-items-table .row-product {
+    min-width: 200px;
+}
+
+.invoice-items-table .row-price {
+    padding-left: 24px !important;
+}
+
+/* Row Totals Typography */
+.row-line-total {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    display: block;
+    padding-top: 9px;
+}
+
+/* Action Buttons & Badges */
+.btn-add-row {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.btn-remove-row {
+    color: #94a3b8;
+    background: transparent;
+    border: none;
+    padding: 4px;
+    border-radius: 6px;
+    margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    width: 28px;
+    height: 28px;
+}
+
+.btn-remove-row:hover {
+    color: #ef4444;
+    background-color: #fef2f2;
+}
+
+/* Summary Box Design Alignment */
+.invoice-summary-box {
+    border-top: 2px solid #e2e8f0;
+    background-color: #ffffff;
+}
+
+.invoice-summary-box td {
+    padding: 10px 12px !important;
+    border: none !important;
+    font-size: 14px;
+}
+
+.invoice-summary-label {
+    font-weight: 500;
+    color: #475569;
+}
+
+.invoice-summary-value {
+    font-weight: 600;
+    color: #0f172a;
+    text-align: right;
+    width: 150px;
+}
+
+.invoice-summary-grand {
+    border-top: 1px solid #e2e8f0 !important;
+    padding-top: 14px !important;
+}
+
+.invoice-summary-grand .invoice-summary-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.invoice-summary-grand .invoice-summary-value {
+    font-size: 16px;
+    font-weight: 800;
+    color: #2563eb;
+}
+
+/* Select2 Custom Skin Overrides */
+.select2-container--default .select2-selection--single {
+    height: 40px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    display: flex;
+    align-items: center;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #0f172a !important;
+    font-size: 14px;
+    padding-left: 12px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 38px !important;
+    right: 8px !important;
+}
+
+.select2-container--default .select2-container--focus .select2-selection--single {
+    border-color: #2563eb !important;
+}
+
+
 
 /* ── Customer Info Box ── */
 .customer-info-box {

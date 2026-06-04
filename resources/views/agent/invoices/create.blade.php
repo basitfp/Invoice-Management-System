@@ -1,4 +1,6 @@
-@extends('layouts.admin')
+@extends('layouts.agent')
+
+@section('title', 'Create New Invoice')
 
 @section('content')
 
@@ -13,14 +15,14 @@
                     <h4 class="invoice-title">Create New Invoice</h4>
                     <p class="invoice-subtitle">Fill in the details below to generate an invoice.</p>
                 </div>
-                <a href="{{ route('admin.invoices.index') }}"
+                <a href="{{ route('agent.invoices.index') }}"
                     class="btn btn-outline-secondary d-flex align-items-center gap-2"
                     style="border-radius: 10px; font-weight: 600; font-size: 14px; height: 44px; padding: 0 20px;">
                     <i class="bi bi-arrow-left"></i> Back
                 </a>
             </div>
 
-            <form id="invoiceCreateForm" method="POST" action="{{ route('admin.invoices.store') }}">
+            <form id="invoiceCreateForm" method="POST" action="{{ route('agent.invoices.store') }}">
                 @csrf
 
                 {{-- ── Section 1: Invoice Details ── --}}
@@ -44,10 +46,10 @@
                         <div class="col-md-6 mb-3">
                             <label class="invoice-label">Status <span class="text-danger">*</span></label>
                             <select name="status" id="status" class="form-control invoice-input">
-                                <!-- <option value="draft">Draft</option> -->
-                                <option value="unpaid" selected>Unpaid</option>
-                                <!-- <option value="paid">Paid</option>
-                                <option value="due">Due</option> -->
+                                <option value="unpaid">Unpaid</option>
+                                <option value="draft">Draft</option>
+                                <option value="paid">Paid</option>
+                                <option value="due">Due</option>
                             </select>
                             <span class="field-error text-danger small" id="status-error"></span>
                         </div>
@@ -163,7 +165,7 @@
 
                 {{-- ── Footer Actions ── --}}
                 <div class="invoice-form-footer">
-                    <a href="{{ route('admin.invoices.index') }}" class="btn btn-outline-secondary"
+                    <a href="{{ route('agent.invoices.index') }}" class="btn btn-outline-secondary"
                         style="height:48px; border-radius:10px; font-weight:600; padding:9px 24px;">
                         Cancel
                     </a>
@@ -211,8 +213,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="invoice-label">Phone</label>
-                        <input type="text" id="nc-phone" class="form-control invoice-input" placeholder="+923121234567">
-                           <span class="field-error text-danger small" id="nc-phone-error"></span>
+                        <input type="text" id="nc-phone" class="form-control invoice-input" placeholder="+44 7700 000000">
                     </div>
                     <div class="col-md-6">
                         <label class="invoice-label">Customer Type</label>
@@ -265,8 +266,8 @@
 {{-- Products data for JS --}}
 <script>
     window.availableProducts = @json($productsData);
-    window.storeCustomerUrl  = "{{ route('admin.customers.store') }}";
-    window.lookupCustomerUrl = "{{ route('admin.customers.lookup-by-email') }}";
+    window.storeCustomerUrl  = "{{ route('agent.customers.store') }}";
+    window.lookupCustomerUrl = "{{ route('agent.customers.lookup-by-email') }}";
     window.csrfToken         = "{{ csrf_token() }}";
 </script>
 

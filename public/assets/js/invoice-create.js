@@ -7,6 +7,12 @@ $(document).ready(function () {
     var ncLookupTimer = null;
     var ncFoundCustomer = null;
 
+    if (FV) {
+        FV.bindNameFields('#nc-name');
+        FV.bindEmailFields('#nc-email');
+        FV.bindPakistaniPhoneFields('#nc-phone');
+    }
+
     function getProductById(id) {
         for (var i = 0; i < availableProducts.length; i++) {
             if (String(availableProducts[i].id) === String(id)) {
@@ -21,9 +27,7 @@ $(document).ready(function () {
             FV.setFieldError($field, message);
         } else {
             var el = $('#' + spanId);
-            if (el.length) {
-                el.text(message);
-            }
+            if (el.length) el.text(message);
         }
     }
 
@@ -40,7 +44,7 @@ $(document).ready(function () {
     }
 
     // =============================================
-    // CUSTOMER DROPDOWN - Show info box on select
+    // CUSTOMER DROPDOWN
     // =============================================
     $(document).on('change', '#customer_id', function () {
         var opt = $(this).find('option:selected');
@@ -70,11 +74,9 @@ $(document).ready(function () {
             FV.setFieldError($el, 'Due date is required.');
             return;
         }
-        var today = new Date();
-        today.setHours(0, 0, 0, 0);
-        var selectedDate = new Date(val);
-        selectedDate.setHours(0, 0, 0, 0);
-        if (selectedDate < today) {
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        var selected = new Date(val); selected.setHours(0, 0, 0, 0);
+        if (selected < today) {
             FV.setFieldError($el, 'Due date cannot be in the past.');
         } else {
             FV.clearFieldError($el);
@@ -82,9 +84,7 @@ $(document).ready(function () {
     });
 
     $(document).on('blur change', '#customer_id', function () {
-        if ($(this).val()) {
-            FV.clearFieldError($(this));
-        }
+        if ($(this).val()) FV.clearFieldError($(this));
     });
 
     // =============================================
@@ -119,21 +119,15 @@ $(document).ready(function () {
 
     function handleInvoiceCustomerResult(response) {
         var customer = response.data;
-        if (!customer || !customer.id) {
-            return;
-        }
+        if (!customer || !customer.id) return;
 
         if (response.exists) {
-            if (typeof toastr !== 'undefined') {
-                toastr.info(response.message || 'Customer already exists.');
-            }
+            if (typeof toastr !== 'undefined') toastr.info(response.message || 'Customer already exists.');
         } else if (typeof toastr !== 'undefined') {
             toastr.success(response.message || 'Customer added successfully!');
         }
 
-        if (ES) {
-            ES.selectInvoiceCustomer(customer);
-        }
+        if (ES) ES.selectInvoiceCustomer(customer);
     }
 
     $(document).on('click', '#openCreateCustomerBtn', function () {
@@ -142,7 +136,6 @@ $(document).ready(function () {
         modal.show();
     });
 
-    // Toggle VAT number field
     $(document).on('change', '#nc-vat-registered', function () {
         if ($(this).is(':checked')) {
             $('#nc-vat-number-wrap').show();
@@ -151,7 +144,6 @@ $(document).ready(function () {
         }
     });
 
-    // Email lookup — existing customer preview
     $(document).on('input blur', '#nc-email', function () {
         var email = $(this).val().trim();
         clearTimeout(ncLookupTimer);
@@ -183,7 +175,6 @@ $(document).ready(function () {
         }, 350);
     });
 
-    // Save new customer via AJAX
     $(document).on('click', '#saveNewCustomerBtn', function () {
         var name    = $('#nc-name').val().trim();
         var email   = $('#nc-email').val().trim();
@@ -201,18 +192,12 @@ $(document).ready(function () {
         ], true);
 
         if (!valid) {
-            if (typeof window.showGlobalValidationError === 'function') {
-                window.showGlobalValidationError();
-            }
+            if (typeof window.showGlobalValidationError === 'function') window.showGlobalValidationError();
             return;
         }
 
         if (ncFoundCustomer && ncFoundCustomer.email && ncFoundCustomer.email.toLowerCase() === email.toLowerCase()) {
-            handleInvoiceCustomerResult({
-                exists: true,
-                message: 'Customer already exists.',
-                data: ncFoundCustomer
-            });
+            handleInvoiceCustomerResult({ exists: true, message: 'Customer already exists.', data: ncFoundCustomer });
             return;
         }
 
@@ -237,27 +222,19 @@ $(document).ready(function () {
             data: formData,
             processData: false,
             contentType: false,
-            headers: {
-                'X-CSRF-TOKEN': window.csrfToken,
-                'Accept': 'application/json'
-            },
+            headers: { 'X-CSRF-TOKEN': window.csrfToken, 'Accept': 'application/json' },
             success: function (response) {
                 setInvoiceCustomerModalLoading(false);
-
-                if (response.success && response.data) {
-                    handleInvoiceCustomerResult(response);
-                }
+                if (response.success && response.data) handleInvoiceCustomerResult(response);
             },
             error: function (xhr) {
                 setInvoiceCustomerModalLoading(false);
-
                 if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.exists && xhr.responseJSON.data) {
                     handleInvoiceCustomerResult(xhr.responseJSON);
                     return;
                 }
-
                 var errBox = $('#customer-modal-error');
-                if (xhr.status === 422 && xhr.responseJSON.errors) {
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
                     var firstError = Object.values(xhr.responseJSON.errors)[0][0];
                     errBox.text(firstError);
                 } else {
@@ -282,22 +259,60 @@ $(document).ready(function () {
     function buildProductOptions(selectedId) {
         var opts = '<option value="">-- Select Product --</option>';
         availableProducts.forEach(function (p) {
-            var sel = (p.id == selectedId) ? 'selected' : '';
+            var sel   = (p.id == selectedId) ? 'selected' : '';
+            var stock = parseInt(p.stock || 0);
+            var label = p.name + (stock <= 0 ? ' [Out of Stock]' : '');
             opts += '<option value="' + p.id + '" ' +
-                    'data-price="' + p.selling_price + '" ' +
-                    'data-purchase="' + p.purchase_price + '" ' +
-                    'data-vat="'   + p.vat           + '" ' +
-                    sel + '>' + p.name + '</option>';
+                    'data-price="'    + p.selling_price    + '" ' +
+                    'data-purchase="' + p.purchase_price   + '" ' +
+                    'data-vat="'      + p.vat              + '" ' +
+                    'data-moq="'      + (p.moq || 1)       + '" ' +
+                    'data-stock="'    + stock              + '" ' +
+                    sel + '>' + label + '</option>';
         });
         return opts;
+    }
+
+    function applyQtyConstraints($row, idx, product) {
+        var $qty  = $row.find('.row-qty');
+        var stock = parseInt(product.stock || 0);
+        var moq   = parseInt(product.moq   || 1);
+
+        if (stock <= 0) {
+            // Out of stock — disable field, show error
+            $qty.val('').prop('disabled', true)
+                .removeAttr('min').removeAttr('max').removeAttr('step');
+            setErrorBySpanId('row-qty-error-' + idx, $qty, 'Out of stock.');
+            if (typeof toastr !== 'undefined') {
+                toastr.error(product.name + ' is currently out of stock.');
+            }
+            return false;
+        }
+
+        // Enable with correct min/max/step
+        $qty.prop('disabled', false)
+            .attr('min',  moq)
+            .attr('max',  stock)
+            .attr('step', moq);
+
+        // Set value to MOQ only if field is empty or below MOQ (e.g. first select)
+        var currentVal = parseInt($qty.val()) || 0;
+        if (currentVal < moq || currentVal === 0) {
+            $qty.val(moq);
+        } else if (currentVal > stock) {
+            $qty.val(stock - ((stock % moq) || moq)); // largest valid multiple ≤ stock
+        }
+
+        clearSpanError('row-qty-error-' + idx, $qty);
+        return true;
     }
 
     function addProductRow(productId, price, vat, qty) {
         var idx   = rowIndex++;
         productId = productId || '';
-        price     = price     !== undefined ? price : '';
-        vat       = vat       !== undefined ? vat   : '0';
-        qty       = qty       !== undefined ? qty   : 1;
+        price     = price !== undefined ? price : '';
+        vat       = vat   !== undefined ? vat   : '0';
+        qty       = qty   !== undefined ? qty   : '';
 
         var row = document.createElement('tr');
         row.setAttribute('data-row', idx);
@@ -327,7 +342,7 @@ $(document).ready(function () {
             '<td>' +
                 '<input type="number" name="products[' + idx + '][qty]" ' +
                     'class="form-control invoice-input-sm row-qty validate-qty-int" ' +
-                    'value="' + qty + '" min="1" step="1" data-row="' + idx + '" data-label="Quantity">' +
+                    'value="' + (qty || '') + '" min="1" step="1" data-row="' + idx + '" data-label="Quantity">' +
                 '<span class="field-error text-danger small" id="row-qty-error-' + idx + '"></span>' +
             '</td>' +
             '<td>' +
@@ -340,12 +355,29 @@ $(document).ready(function () {
             '</td>';
 
         $('#invoice-items-body').append(row);
+
+        // If editing and product pre-selected, apply constraints right away
+        if (productId) {
+            var $newRow = $('tr[data-row="' + idx + '"]');
+            var product = getProductById(productId);
+            if (product) {
+                applyQtyConstraints($newRow, idx, product);
+                if (qty !== '') $newRow.find('.row-qty').val(qty); // keep edit value
+            }
+        }
+
         recalculateRow(idx);
         recalculateSummary();
     }
 
-    // Initial empty row
-    addProductRow();
+    // Initial rows (edit mode or empty)
+    if (window.invoiceItems && window.invoiceItems.length > 0) {
+        window.invoiceItems.forEach(function (item) {
+            addProductRow(item.product_id, item.selling_price, item.vat, item.qty);
+        });
+    } else {
+        addProductRow();
+    }
 
     $(document).on('click', '#addRowBtn', function () {
         addProductRow();
@@ -353,42 +385,93 @@ $(document).ready(function () {
     });
 
     // =============================================
-    // PRODUCT SELECT - Auto-fill price and VAT
+    // PRODUCT SELECT - Auto-fill price, VAT, qty constraints
     // =============================================
     $(document).on('change', '.row-product', function () {
-        var idx = $(this).attr('data-row');
-        var opt = $(this).find('option:selected');
-        
-        if ($(this).val() !== '') {
-            var row = $('tr[data-row="' + idx + '"]');
-            row.find('.row-price').val(opt.attr('data-price') || 0);
-            row.find('.row-vat').val(opt.attr('data-vat') || '0');
-            FV.clearFieldError($(this));
-            clearSpanError('row-product-error-' + idx);
+        var idx     = $(this).attr('data-row');
+        var opt     = $(this).find('option:selected');
+        var $row    = $('tr[data-row="' + idx + '"]');
+        var val     = $(this).val();
+
+        if (!val) {
+            // Reset qty field
+            $row.find('.row-qty')
+                .val('').prop('disabled', false)
+                .attr('min', 1).removeAttr('max').attr('step', 1);
+            clearSpanError('row-qty-error-' + idx);
+            recalculateRow(idx);
+            recalculateSummary();
+            return;
         }
-        
+
+        // Fill price & VAT from option attributes
+        $row.find('.row-price').val(opt.attr('data-price') || 0);
+        $row.find('.row-vat').val(opt.attr('data-vat') || '0');
+
+        var product = getProductById(val);
+        if (product) {
+            applyQtyConstraints($row, idx, product);
+        }
+
+        FV.clearFieldError($(this));
+        clearSpanError('row-product-error-' + idx);
         recalculateRow(idx);
         recalculateSummary();
     });
 
+    // =============================================
+    // QTY / PRICE / VAT INPUT - Validate + Recalc
+    // =============================================
     $(document).on('input blur change', '.row-price, .row-qty, .row-vat', function () {
-        var idx = $(this).attr('data-row');
+        var idx  = $(this).attr('data-row');
         var $row = $('tr[data-row="' + idx + '"]');
+
+        if ($(this).hasClass('row-qty')) {
+            var productId = $row.find('.row-product').val();
+            var product   = getProductById(productId);
+
+            if (product) {
+                var stock = parseInt(product.stock || 0);
+                var moq   = parseInt(product.moq   || 1);
+                var qty   = parseInt($(this).val()) || 0;
+
+                if (stock <= 0) {
+                    setErrorBySpanId('row-qty-error-' + idx, $(this), 'Out of stock.');
+                } else if (qty > stock) {
+                    setErrorBySpanId('row-qty-error-' + idx, $(this),
+                        'Only ' + stock + ' unit(s) in stock.');
+                    if (typeof toastr !== 'undefined' && !$(this).data('stock-toast')) {
+                        toastr.warning('Only ' + stock + ' unit(s) available in stock.');
+                        $(this).data('stock-toast', true);
+                    }
+                } else if (qty < moq) {
+                    setErrorBySpanId('row-qty-error-' + idx, $(this),
+                        'Minimum order quantity is ' + moq + '.');
+                } else if (qty % moq !== 0) {
+                    setErrorBySpanId('row-qty-error-' + idx, $(this),
+                        'Quantity must be a multiple of ' + moq + '.');
+                } else {
+                    clearSpanError('row-qty-error-' + idx, $(this));
+                    $(this).data('stock-toast', false);
+                }
+            }
+        }
+
         validateInvoiceRow($row, idx, false);
         recalculateRow(idx);
         recalculateSummary();
     });
 
+    // =============================================
+    // ROW VALIDATION
+    // =============================================
     function validateInvoiceRow($row, idx, showEmpty) {
-        if (!$row || !$row.length) {
-            return true;
-        }
+        if (!$row || !$row.length) return true;
 
-        var valid = true;
+        var valid    = true;
         var $product = $row.find('.row-product');
-        var $price = $row.find('.row-price');
-        var $qty = $row.find('.row-qty');
-        var $vat = $row.find('.row-vat');
+        var $price   = $row.find('.row-price');
+        var $qty     = $row.find('.row-qty');
         var productId = $product.val();
 
         if (!productId) {
@@ -400,8 +483,9 @@ $(document).ready(function () {
             clearSpanError('row-product-error-' + idx, $product);
         }
 
-        var priceVal = $price.val();
         if (productId) {
+            // Price
+            var priceVal = $price.val();
             if (FV.isEmpty(priceVal) || !FV.isPositiveNumber(priceVal)) {
                 setErrorBySpanId('row-price-error-' + idx, $price, 'Selling price must be greater than zero.');
                 valid = false;
@@ -410,7 +494,7 @@ $(document).ready(function () {
                 var catalogProduct = getProductById(productId);
                 if (catalogProduct) {
                     var purchase = parseFloat(catalogProduct.purchase_price);
-                    var selling = parseFloat(priceVal);
+                    var selling  = parseFloat(priceVal);
                     if (!isNaN(purchase) && !isNaN(selling) && selling <= purchase) {
                         setErrorBySpanId('row-price-error-' + idx, $price, 'Selling price must be greater than purchase price.');
                         valid = false;
@@ -418,49 +502,65 @@ $(document).ready(function () {
                 }
             }
 
-            if (!FV.isPositiveInteger($qty.val())) {
-                setErrorBySpanId('row-qty-error-' + idx, $qty, 'Quantity must be greater than zero.');
-                valid = false;
-            } else {
-                clearSpanError('row-qty-error-' + idx, $qty);
-            }
+            // Qty — stock & MOQ checks
+            var product = getProductById(productId);
+            var qty     = parseInt($qty.val()) || 0;
 
-            if (!FV.isVatRate($vat.val())) {
-                FV.setFieldError($vat, 'VAT must be 0% or 20%.');
-                valid = false;
-            } else {
-                FV.clearFieldError($vat);
+            if (product) {
+                var stock = parseInt(product.stock || 0);
+                var moq   = parseInt(product.moq   || 1);
+
+                if (stock <= 0) {
+                    setErrorBySpanId('row-qty-error-' + idx, $qty, 'Out of stock.');
+                    valid = false;
+                } else if (qty > stock) {
+                    setErrorBySpanId('row-qty-error-' + idx, $qty,
+                        'Only ' + stock + ' unit(s) available in stock.');
+                    if (typeof toastr !== 'undefined' && !$qty.data('stock-toast')) {
+                        toastr.warning('Only ' + stock + ' unit(s) available in stock.');
+                        $qty.data('stock-toast', true);
+                    }
+                    valid = false;
+                } else if (qty < moq) {
+                    setErrorBySpanId('row-qty-error-' + idx, $qty,
+                        'Minimum quantity is ' + moq + '.');
+                    valid = false;
+                } else if (qty % moq !== 0) {
+                    setErrorBySpanId('row-qty-error-' + idx, $qty,
+                        'Quantity must be a multiple of ' + moq + '.');
+                    valid = false;
+                } else {
+                    $qty.removeData('stock-toast');
+                    clearSpanError('row-qty-error-' + idx, $qty);
+                }
             }
         }
 
         return valid;
     }
 
+    // =============================================
+    // FULL FORM VALIDATION
+    // =============================================
     function validateInvoiceForm() {
         var valid = true;
 
-        if (!FV.runRules([
-            {
-                field: $('#invoice_date'),
-                label: 'Invoice date',
-                required: true,
-                requiredMessage: 'Invoice date is required.'
-            }
-        ], true)) {
-            valid = false;
-        }
+        if (!FV.runRules([{
+            field: $('#invoice_date'),
+            label: 'Invoice date',
+            required: true,
+            requiredMessage: 'Invoice date is required.'
+        }], true)) valid = false;
 
-        var $due = $('#due_date');
+        var $due   = $('#due_date');
         var dueVal = $due.val();
         if (!dueVal) {
             FV.setFieldError($due, 'Due date is required.');
             valid = false;
         } else {
-            var today = new Date();
-            today.setHours(0, 0, 0, 0);
-            var selectedDate = new Date(dueVal);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate < today) {
+            var today    = new Date(); today.setHours(0, 0, 0, 0);
+            var selected = new Date(dueVal); selected.setHours(0, 0, 0, 0);
+            if (selected < today) {
                 FV.setFieldError($due, 'Due date cannot be in the past.');
                 valid = false;
             } else {
@@ -468,23 +568,15 @@ $(document).ready(function () {
             }
         }
 
-        if (!FV.runRules([
-            FV.rules.select($('#customer_id'), 'Customer')
-        ], true)) {
-            valid = false;
-        }
+        if (!FV.runRules([FV.rules.select($('#customer_id'), 'Customer')], true)) valid = false;
 
-        var rowCount = 0;
+        var rowCount  = 0;
         var rowsValid = true;
 
         $('#invoice-items-body tr').each(function () {
             var idx = $(this).attr('data-row');
-            if (!validateInvoiceRow($(this), idx, true)) {
-                rowsValid = false;
-            }
-            if ($(this).find('.row-product').val()) {
-                rowCount++;
-            }
+            if (!validateInvoiceRow($(this), idx, true)) rowsValid = false;
+            if ($(this).find('.row-product').val()) rowCount++;
         });
 
         if (rowCount === 0) {
@@ -494,9 +586,7 @@ $(document).ready(function () {
             $('#products-error').text('');
         }
 
-        if (!rowsValid) {
-            valid = false;
-        }
+        if (!rowsValid) valid = false;
 
         return valid;
     }
@@ -507,23 +597,18 @@ $(document).ready(function () {
     $(document).on('click', '.btn-remove-row', function () {
         if ($('#invoice-items-body tr').length === 1) return;
         var row = $('tr[data-row="' + $(this).attr('data-row') + '"]');
-        if (row.length) {
-            row.remove();
-            recalculateSummary();
-        }
+        if (row.length) { row.remove(); recalculateSummary(); }
     });
 
     // =============================================
     // CALCULATIONS
     // =============================================
     function recalculateRow(idx) {
-        var row = $('tr[data-row="' + idx + '"]');
+        var row   = $('tr[data-row="' + idx + '"]');
         if (!row.length) return;
-        
         var price = parseFloat(row.find('.row-price').val()) || 0;
         var qty   = parseInt(row.find('.row-qty').val())     || 0;
         var vat   = parseFloat(row.find('.row-vat').val())   || 0;
-        
         var lineTotal = (price + (price * vat / 100)) * qty;
         $('#row-total-' + idx).text(formatCurrency(lineTotal));
     }
@@ -531,13 +616,11 @@ $(document).ready(function () {
     function recalculateSummary() {
         var subtotal = 0, totalVat = 0;
         $('#invoice-items-body tr').each(function () {
-            var price = parseFloat($(this).find('.row-price').val()) || 0;
-            var qty   = parseInt($(this).find('.row-qty').val())     || 0;
-            var vat   = parseFloat($(this).find('.row-vat').val())   || 0;
-            
+            var price    = parseFloat($(this).find('.row-price').val()) || 0;
+            var qty      = parseInt($(this).find('.row-qty').val())     || 0;
+            var vat      = parseFloat($(this).find('.row-vat').val())   || 0;
             var lineBase = price * qty;
             var vatAmnt  = lineBase * (vat / 100);
-            
             subtotal += lineBase;
             totalVat += vatAmnt;
         });
@@ -551,24 +634,27 @@ $(document).ready(function () {
     // =============================================
     $(document).on('click', '#saveInvoiceBtn', function () {
         if (!validateInvoiceForm()) {
-            if (typeof window.showGlobalValidationError === 'function') {
-                window.showGlobalValidationError();
-            }
+            if (typeof window.showGlobalValidationError === 'function') window.showGlobalValidationError();
             return;
         }
 
-        var form = document.getElementById('invoiceCreateForm');
+        var form     = document.getElementById('invoiceCreateForm');
         var formData = new FormData(form);
+        var $btn     = $(this);
 
         $.ajax({
-            url: form.action,
-            type: 'POST',
-            data: formData,
+            url:         form.action,
+            type:        'POST',
+            data:        formData,
             processData: false,
             contentType: false,
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'Accept': 'application/json'
+                'Accept':       'application/json'
+            },
+            beforeSend: function () {
+                $btn.prop('disabled', true)
+                    .prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
             },
             success: function (response) {
                 if (response.success && response.redirect_url) {
@@ -577,22 +663,31 @@ $(document).ready(function () {
                 }
             },
             error: function (xhr) {
-                if (xhr.status === 422) {
-                    var errors = xhr.responseJSON.errors;
-                    if (errors.due_date) {
-                        FV.setFieldError($('#due_date'), errors.due_date[0]);
+                // Backend stock/MOQ error — show as toastr + highlight qty field
+                if (xhr.status === 422 && xhr.responseJSON) {
+                    var res = xhr.responseJSON;
+
+                    // Our custom stock/MOQ errors come as { success: false, message: '...' }
+                    if (res.message && !res.errors) {
+                        if (typeof toastr !== 'undefined') toastr.error(res.message);
+                        return;
                     }
-                    if (errors.status) {
-                        FV.setFieldError($('#status'), errors.status[0]);
-                    }
-                    if (errors.invoice_date) {
-                        FV.setFieldError($('#invoice_date'), errors.invoice_date[0]);
-                    }
-                    if (typeof window.showGlobalValidationError === 'function') {
-                        window.showGlobalValidationError();
+
+                    // Laravel validation errors
+                    if (res.errors) {
+                        if (res.errors.due_date)     FV.setFieldError($('#due_date'),     res.errors.due_date[0]);
+                        if (res.errors.status)       FV.setFieldError($('#status'),       res.errors.status[0]);
+                        if (res.errors.invoice_date) FV.setFieldError($('#invoice_date'), res.errors.invoice_date[0]);
+                        if (typeof window.showGlobalValidationError === 'function') window.showGlobalValidationError();
                     }
                 } else {
                     if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
+                }
+            },
+            complete: function (xhr) {
+                var res = xhr.responseJSON;
+                if (!(res && res.success && res.redirect_url)) {
+                    $btn.prop('disabled', false).find('.btn-spinner').remove();
                 }
             }
         });

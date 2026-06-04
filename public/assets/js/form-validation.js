@@ -91,44 +91,101 @@
         return trimmed.length > 0 && /^[A-Za-z\s]+$/.test(trimmed);
     };
 
+    // FV.isValidPakistaniPhone = function (phone) {
+    //     var digits = String(phone).replace(/\D/g, '');
+    //     if (digits.length === 11 && digits.charAt(0) === '0' && digits.charAt(1) === '3') {
+    //         return true;
+    //     }
+    //     if (digits.length === 10 && digits.charAt(0) === '3') {
+    //         return true;
+    //     }
+    //     if (digits.length === 12 && digits.substring(0, 2) === '92' && digits.charAt(2) === '3') {
+    //         return true;
+    //     }
+    //     return false;
+    // };
     FV.isValidPakistaniPhone = function (phone) {
-        var digits = String(phone).replace(/\D/g, '');
-        if (digits.length === 11 && digits.charAt(0) === '0' && digits.charAt(1) === '3') {
-            return true;
-        }
-        if (digits.length === 10 && digits.charAt(0) === '3') {
-            return true;
-        }
-        if (digits.length === 12 && digits.substring(0, 2) === '92' && digits.charAt(2) === '3') {
-            return true;
-        }
-        return false;
+
+    var value = String(phone || '')
+        .replace(/\s+/g, '')
+        .replace(/-/g, '');
+
+    return (
+
+        // Mobile
+        /^\+923[0-9]{9}$/.test(value) ||
+        /^923[0-9]{9}$/.test(value) ||
+        /^03[0-9]{9}$/.test(value) ||
+        /^3[0-9]{9}$/.test(value) ||
+
+        // Landline
+        /^\+92[1-9][0-9]{8,11}$/.test(value) ||
+        /^92[1-9][0-9]{8,11}$/.test(value)
+
+    );
     };
+
+    // FV.sanitizePakistaniPhoneInput = function (raw) {
+    //     var value = String(raw);
+    //     var digits = value.replace(/\D/g, '');
+
+    //     if (value.indexOf('+') === 0 || digits.indexOf('92') === 0) {
+    //         if (digits.indexOf('92') !== 0) {
+    //             digits = '92' + digits.replace(/^92/, '');
+    //         }
+    //         digits = digits.substring(0, 12);
+    //         return digits.length ? '+' + digits : '+';
+    //     }
+
+    //     if (digits.charAt(0) === '0') {
+    //         digits = digits.substring(0, 11);
+    //         return digits;
+    //     }
+
+    //     if (digits.charAt(0) === '3') {
+    //         digits = digits.substring(0, 10);
+    //         return digits;
+    //     }
+
+    //     return digits.substring(0, 11);
+    // };
 
     FV.sanitizePakistaniPhoneInput = function (raw) {
-        var value = String(raw);
-        var digits = value.replace(/\D/g, '');
 
-        if (value.indexOf('+') === 0 || digits.indexOf('92') === 0) {
-            if (digits.indexOf('92') !== 0) {
-                digits = '92' + digits.replace(/^92/, '');
-            }
-            digits = digits.substring(0, 12);
-            return digits.length ? '+' + digits : '+';
-        }
+    var value = String(raw || '').trim();
 
-        if (digits.charAt(0) === '0') {
-            digits = digits.substring(0, 11);
-            return digits;
-        }
+    // allow only first +
+    value = value.replace(/(?!^\+)\+/g, '');
 
-        if (digits.charAt(0) === '3') {
-            digits = digits.substring(0, 10);
-            return digits;
-        }
+    // remove everything except digits and +
+    value = value.replace(/[^\d+]/g, '');
 
+    var digits = value.replace(/\D/g, '');
+
+    // +92 / 92
+    if (value.startsWith('+92') || digits.startsWith('92')) {
+
+        digits = digits.replace(/^92/, '');
+        digits = digits.replace(/^0/, '');
+        digits = digits.substring(0, 10);
+
+        return '+92' + digits;
+    }
+
+    // 03xxxxxxxxx
+    if (digits.startsWith('03')) {
         return digits.substring(0, 11);
+    }
+
+    // 3xxxxxxxxx
+    if (digits.startsWith('3')) {
+        return digits.substring(0, 10);
+    }
+
+    return digits.substring(0, 11);
     };
+
+
 
     FV.isNonNegativeNumber = function (value, allowEmpty) {
         if (FV.isEmpty(value)) {
@@ -177,6 +234,63 @@
             return $label.text().replace(/\*/g, '').trim();
         }
         return fallback || 'This field';
+    };
+
+
+    //
+    FV.formatPakistaniPhone = function (value) {
+
+    var digits = String(value || '').replace(/\D/g, '');
+
+    // +92xxxxxxxxxx
+    if (digits.startsWith('92')) {
+
+        digits = digits.substring(2);
+        digits = digits.substring(0, 10);
+
+        if (!digits.length) {
+            return '+92';
+        }
+
+        if (digits.length <= 3) {
+            return '+92 ' + digits;
+        }
+
+        return '+92 ' +
+            digits.substring(0, 3) +
+            ' ' +
+            digits.substring(3);
+    }
+
+    // 03xxxxxxxxx
+    if (digits.startsWith('03')) {
+
+        digits = digits.substring(0, 11);
+
+        if (digits.length <= 4) {
+            return digits;
+        }
+
+        return digits.substring(0, 4) +
+            ' ' +
+            digits.substring(4);
+    }
+
+    // 3xxxxxxxxx
+    if (digits.startsWith('3')) {
+
+        digits = digits.substring(0, 10);
+
+        if (digits.length <= 3) {
+            return digits;
+        }
+
+        return digits.substring(0, 3) +
+            ' ' +
+            digits.substring(3);
+    }
+
+    return value;
     };
 
     // -------------------------------------------------------------------------
@@ -260,9 +374,20 @@
     };
 
     FV.showToast = function () {
-        if (typeof toastr !== 'undefined') {
-            toastr.error(FV.TOAST_MESSAGE);
-        }
+
+    if (typeof toastr === 'undefined') {
+        return;
+    }
+
+    var firstError = $('.field-error')
+        .filter(function () {
+            return $(this).text().trim() !== '';
+        })
+        .first()
+        .text()
+        .trim();
+
+    toastr.error(firstError || FV.TOAST_MESSAGE);
     };
 
     // -------------------------------------------------------------------------
@@ -355,30 +480,42 @@
         });
     };
 
-    FV.bindPakistaniPhoneFields = function (selector) {
-        $(document).on('input', selector, function () {
-            var $el = $(this);
-            var sanitized = FV.sanitizePakistaniPhoneInput($el.val());
-            if ($el.val() !== sanitized) {
-                $el.val(sanitized);
-            }
-            if (FV.isValidPakistaniPhone($el.val())) {
-                FV.clearFieldError($el);
-            }
-        });
-        $(document).on('blur change', selector, function () {
-            var $el = $(this);
-            var val = $el.val().trim();
-            var label = FV.fieldLabel($el, 'Phone number');
-            if (!val) {
-                return;
-            }
-            if (!FV.isValidPakistaniPhone(val)) {
-                FV.setFieldError($el, 'Please enter a valid Pakistani phone number.');
-            } else {
-                FV.clearFieldError($el);
-            }
-        });
+     FV.bindPakistaniPhoneFields = function (selector) {
+
+    $(document).on('input', selector, function () {
+
+        var $el = $(this);
+
+        var sanitized = FV.sanitizePakistaniPhoneInput($el.val());
+        var formatted = FV.formatPakistaniPhone(sanitized);
+
+        if ($el.val() !== formatted) {
+            $el.val(formatted);
+        }
+
+        if (FV.isValidPakistaniPhone(sanitized)) {
+            FV.clearFieldError($el);
+        }
+    });
+
+    $(document).on('blur change', selector, function () {
+
+        var $el = $(this);
+        var val = $el.val().trim();
+
+        if (!val) {
+            return;
+        }
+
+        if (!FV.isValidPakistaniPhone(val)) {
+            FV.setFieldError(
+                $el,
+                'Please enter a valid Pakistani phone number.'
+            );
+        } else {
+            FV.clearFieldError($el);
+        }
+    });
     };
 
     FV.bindNonNegativeNumberFields = function (selector, options) {

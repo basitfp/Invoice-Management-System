@@ -1,4 +1,6 @@
-@extends('layouts.admin')
+@extends('layouts.agent')
+
+@section('title', 'Edit Invoice')
 
 @section('content')
 
@@ -10,18 +12,19 @@
             {{-- Page Header --}}
             <div class="invoice-create-header">
                 <div>
-                    <h4 class="invoice-title">Create New Invoice</h4>
-                    <p class="invoice-subtitle">Fill in the details below to generate an invoice.</p>
+                    <h4 class="invoice-title">Edit Invoice</h4>
+                    <p class="invoice-subtitle">Update details for invoice {{ $invoice->invoice_number }}.</p>
                 </div>
-                <a href="{{ route('admin.invoices.index') }}"
+                <a href="{{ route('agent.invoices.index') }}"
                     class="btn btn-outline-secondary d-flex align-items-center gap-2"
                     style="border-radius: 10px; font-weight: 600; font-size: 14px; height: 44px; padding: 0 20px;">
                     <i class="bi bi-arrow-left"></i> Back
                 </a>
             </div>
 
-            <form id="invoiceCreateForm" method="POST" action="{{ route('admin.invoices.store') }}">
+            <form id="invoiceCreateForm" method="POST" action="{{ route('agent.invoices.update', $invoice->id) }}">
                 @csrf
+                <input type="hidden" name="_method" value="PUT">
 
                 {{-- ── Section 1: Invoice Details ── --}}
                 <div class="invoice-section">
@@ -31,30 +34,30 @@
                             <label class="invoice-label">Invoice Date <span class="text-danger">*</span></label>
                             <input type="date" name="invoice_date" id="invoice_date"
                                 class="form-control invoice-input"
-                                value="{{ date('Y-m-d') }}">
+                                value="{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('Y-m-d') }}">
                             <span class="field-error text-danger small" id="invoice_date-error"></span>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="invoice-label">Due Date <span class="text-danger">*</span></label>
                             <input type="date" name="due_date" id="due_date"
                                 class="form-control invoice-input"
-                                value="{{ date('Y-m-d', strtotime('+7 days')) }}">
+                                value="{{ \Carbon\Carbon::parse($invoice->due_date)->format('Y-m-d') }}">
                             <span class="field-error text-danger small" id="due_date-error"></span>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="invoice-label">Status <span class="text-danger">*</span></label>
                             <select name="status" id="status" class="form-control invoice-input">
-                                <!-- <option value="draft">Draft</option> -->
-                                <option value="unpaid" selected>Unpaid</option>
-                                <!-- <option value="paid">Paid</option>
-                                <option value="due">Due</option> -->
+                                <option value="unpaid" {{ $invoice->status == 'unpaid' ? 'selected' : '' }}>Unpaid</option>
+                                <option value="draft" {{ $invoice->status == 'draft' ? 'selected' : '' }}>Draft</option>
+                                <option value="paid" {{ $invoice->status == 'paid' ? 'selected' : '' }}>Paid</option>
+                                <option value="due" {{ $invoice->status == 'due' ? 'selected' : '' }}>Due</option>
                             </select>
                             <span class="field-error text-danger small" id="status-error"></span>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="invoice-label">Invoice Number</label>
                             <input type="text" class="form-control invoice-input"
-                                value="Auto-generated on save" disabled
+                                value="{{ $invoice->invoice_number }}" disabled
                                 style="background: #f8fafc; color: #94a3b8;">
                         </div>
                     </div>
@@ -71,7 +74,7 @@
                             </label>
                             <button type="button" id="openCreateCustomerBtn"
                                 class="btn btn-outline-primary d-flex align-items-center gap-1"
-                                style="height:32px; font-size:13px; font-weight:600; border-radius:8px; padding:0 16px; height:38px ">
+                                style="height:32px; font-size:12px; font-weight:600; border-radius:8px; padding:0 12px;">
                                 <i class="bi bi-plus-lg"></i> New Customer
                             </button>
                         </div>
@@ -82,7 +85,7 @@
                                     data-email="{{ $customer->email }}"
                                     data-phone="{{ $customer->phone ?? '' }}"
                                     data-vat="{{ $customer->vat_number ?? '' }}"
-                                    {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
+                                    {{ $invoice->customer_id == $customer->id ? 'selected' : '' }}>
                                     {{ $customer->name }}
                                     @if($customer->customer_type === 'business') (Business) @endif
                                 </option>
@@ -92,19 +95,19 @@
                     </div>
 
                     {{-- Customer Info Labels --}}
-                    <div id="customer-info-box" class="customer-info-box" style="display: none;">
+                    <div id="customer-info-box" class="customer-info-box" style="display: {{ $invoice->customer_id ? 'block' : 'none' }};">
                         <div class="row">
                             <div class="col-md-4">
                                 <span class="customer-info-label">Email</span>
-                                <p class="customer-info-value" id="ci-email">-</p>
+                                <p class="customer-info-value" id="ci-email">{{ $invoice->customer->email ?? '-' }}</p>
                             </div>
                             <div class="col-md-4">
                                 <span class="customer-info-label">Phone</span>
-                                <p class="customer-info-value" id="ci-phone">-</p>
+                                <p class="customer-info-value" id="ci-phone">{{ $invoice->customer->phone ?? '-' }}</p>
                             </div>
                             <div class="col-md-4">
                                 <span class="customer-info-label">VAT Number</span>
-                                <p class="customer-info-value" id="ci-vat">-</p>
+                                <p class="customer-info-value" id="ci-vat">{{ $invoice->customer->vat_number ?? '-' }}</p>
                             </div>
                         </div>
                     </div>
@@ -163,13 +166,13 @@
 
                 {{-- ── Footer Actions ── --}}
                 <div class="invoice-form-footer">
-                    <a href="{{ route('admin.invoices.index') }}" class="btn btn-outline-secondary"
-                        style="height:48px; border-radius:10px; font-weight:600; padding:9px 24px;">
+                    <a href="{{ route('agent.invoices.index') }}" class="btn btn-outline-secondary"
+                        style="height:48px; border-radius:10px; font-weight:600; padding:0 24px;">
                         Cancel
                     </a>
                     <button type="button" id="saveInvoiceBtn" class="btn btn-primary"
                         style="height:48px; border-radius:10px; font-weight:600; padding:0 32px;">
-                        <i class="bi bi-save me-2"></i> Save & Print
+                        <i class="bi bi-save me-2"></i> Update Invoice
                     </button>
                 </div>
 
@@ -211,8 +214,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="invoice-label">Phone</label>
-                        <input type="text" id="nc-phone" class="form-control invoice-input" placeholder="+923121234567">
-                           <span class="field-error text-danger small" id="nc-phone-error"></span>
+                        <input type="text" id="nc-phone" class="form-control invoice-input" placeholder="+44 7700 000000">
                     </div>
                     <div class="col-md-6">
                         <label class="invoice-label">Customer Type</label>
@@ -265,9 +267,10 @@
 {{-- Products data for JS --}}
 <script>
     window.availableProducts = @json($productsData);
-    window.storeCustomerUrl  = "{{ route('admin.customers.store') }}";
-    window.lookupCustomerUrl = "{{ route('admin.customers.lookup-by-email') }}";
+    window.storeCustomerUrl  = "{{ route('agent.customers.store') }}";
+    window.lookupCustomerUrl = "{{ route('agent.customers.lookup-by-email') }}";
     window.csrfToken         = "{{ csrf_token() }}";
+    window.invoiceItems      = @json($invoice->items);
 </script>
 
 @endsection

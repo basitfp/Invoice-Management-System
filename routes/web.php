@@ -10,8 +10,8 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
 use App\Http\Controllers\Admin\SettingsController;
-
-use App\Http\Controllers\Agent\InvoiceController as AgentInvoiceController;
+use App\Http\Controllers\Agent\AgentDashboardController;
+use App\Http\Controllers\Agent\AgentInvoiceController;
 
 // Welcome Page
 Route::redirect('/', '/login');
@@ -81,18 +81,26 @@ Route::middleware('admin')->prefix('admin')->group(function () {
 | Agent Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware('agent')->prefix('agent')->group(function () {
+Route::prefix('agent')
+    ->name('agent.')
+    ->middleware(['auth', 'agent'])
+    ->group(function () {
 
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'agentDashboard'])
-        ->name('agent.dashboard');
+        Route::get('/', [AgentDashboardController::class, 'index'])
+            ->name('dashboard');
 
-    // Agent Invoices
-    Route::get('/invoices',                   [AgentInvoiceController::class, 'index'])  ->name('agent.invoices.index');
-    Route::get('/invoices/create',            [AgentInvoiceController::class, 'create']) ->name('agent.invoices.create');
-    Route::post('/invoices',                  [AgentInvoiceController::class, 'store'])  ->name('agent.invoices.store');
-    Route::get('/invoices/{invoice}',         [AgentInvoiceController::class, 'show'])   ->name('agent.invoices.show');
-    Route::get('/invoices/{invoice}/edit',    [AgentInvoiceController::class, 'edit'])   ->name('agent.invoices.edit');
-    Route::put('/invoices/{invoice}',         [AgentInvoiceController::class, 'update']) ->name('agent.invoices.update');
-    Route::delete('/invoices/{invoice}',      [AgentInvoiceController::class, 'destroy'])->name('agent.invoices.destroy');
-});
+        // Agent Invoices
+        Route::get('/invoices',                           [\App\Http\Controllers\Agent\AgentInvoiceController::class, 'index'])       ->name('invoices.index');
+        Route::get('/invoices/create',                    [\App\Http\Controllers\Agent\AgentInvoiceController::class, 'create'])      ->name('invoices.create');
+        Route::post('/invoices',                          [\App\Http\Controllers\Agent\AgentInvoiceController::class, 'store'])       ->name('invoices.store');
+        Route::get('/invoices/{invoice}',                 [\App\Http\Controllers\Agent\AgentInvoiceController::class, 'show'])        ->name('invoices.show');
+        Route::get('/invoices/{invoice}/edit',            [\App\Http\Controllers\Agent\AgentInvoiceController::class, 'edit'])        ->name('invoices.edit');
+        Route::put('/invoices/{invoice}',                 [\App\Http\Controllers\Agent\AgentInvoiceController::class, 'update'])      ->name('invoices.update');
+        Route::patch('/invoices/{invoice}/status',        [\App\Http\Controllers\Agent\AgentInvoiceController::class, 'toggleStatus'])->name('invoices.toggle-status');
+        Route::delete('/invoices/{invoice}',              [\App\Http\Controllers\Agent\AgentInvoiceController::class, 'destroy'])     ->name('invoices.destroy');
+
+        // Agent Quick Customer
+        Route::post('/customers/quick-store',             [\App\Http\Controllers\Agent\AgentInvoiceController::class, 'storeCustomer'])->name('customers.store');
+        Route::get('/customers/lookup-by-email',          [\App\Http\Controllers\Agent\AgentInvoiceController::class, 'lookupCustomer'])->name('customers.lookup-by-email');
+
+    });

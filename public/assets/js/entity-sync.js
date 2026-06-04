@@ -10,6 +10,16 @@
 
     var ES = {};
 
+    /**
+     * Normalize any status value (boolean, string, int) to '1' or '0' string.
+     * This prevents the boolean/string mismatch bug where data-status="true"
+     * fails strict comparison with '1' in view modal handlers.
+     */
+    ES.normalizeStatus = function (val) {
+        if (val === true || val === 1 || val === '1' || val === 'true') return '1';
+        return '0';
+    };
+
     ES.escapeHtml = function (str) {
         return String(str == null ? '' : str)
             .replace(/&/g, '&amp;')
@@ -55,9 +65,9 @@
             phone: c.phone || '',
             type: c.customer_type,
             address: c.address || '',
-            'vat-registered': c.vat_registered,
+            'vat-registered': ES.normalizeStatus(c.vat_registered),
             'vat-number': c.vat_number || '',
-            status: c.status
+            status: ES.normalizeStatus(c.status)
         };
     };
 
@@ -91,7 +101,7 @@
         ES.applyButtonData('.btn-customer-toggle[data-id="' + id + '"]', {
             id: c.id,
             name: c.name,
-            status: c.status
+            status: ES.normalizeStatus(c.status)
         });
         ES.applyButtonData('.btn-customer-delete[data-id="' + id + '"]', {
             id: c.id,
@@ -100,9 +110,10 @@
     };
 
     ES.syncCustomerStatus = function (id, status) {
-        $('#status-container-' + id).html(ES.statusBadge(status, { on: 'Active', off: 'Inactive' }));
+        var s = ES.normalizeStatus(status);
+        $('#status-container-' + id).html(ES.statusBadge(s, { on: 'Active', off: 'Inactive' }));
         $('.btn-customer-view[data-id="' + id + '"], .btn-customer-toggle[data-id="' + id + '"], .btn-customer-edit[data-id="' + id + '"]')
-            .attr('data-status', status);
+            .attr('data-status', s);
     };
 
     ES.customerOptionLabel = function (c) {
@@ -168,7 +179,7 @@
             selling: p.selling_price,
             vat: p.vat,
             moq: p.moq,
-            status: p.status
+            status: ES.normalizeStatus(p.status)
         };
     };
 
@@ -184,7 +195,7 @@
             selling: p.selling_price,
             vat: p.vat,
             moq: p.moq,
-            status: p.status
+            status: ES.normalizeStatus(p.status)
         };
     };
 
@@ -203,15 +214,16 @@
         ES.applyButtonData('.btn-product-toggle[data-id="' + id + '"], .btn-product-delete[data-id="' + id + '"]', {
             id: p.id,
             name: p.name,
-            status: p.status
+            status: ES.normalizeStatus(p.status)
         });
-        $('.btn-product-toggle[data-id="' + id + '"]').attr('data-status', p.status);
+        $('.btn-product-toggle[data-id="' + id + '"]').attr('data-status', ES.normalizeStatus(p.status));
     };
 
     ES.syncProductStatus = function (id, status) {
-        $('#status-container-' + id).html(ES.statusBadge(status, { on: 'Enabled', off: 'Disabled' }));
+        var s = ES.normalizeStatus(status);
+        $('#status-container-' + id).html(ES.statusBadge(s, { on: 'Enabled', off: 'Disabled' }));
         $('.btn-product-view[data-id="' + id + '"], .btn-product-edit[data-id="' + id + '"], .btn-product-toggle[data-id="' + id + '"]')
-            .attr('data-status', status);
+            .attr('data-status', s);
     };
 
     // -------------------------------------------------------------------------
@@ -225,14 +237,15 @@
         ES.applyButtonData('.btn-category-view[data-id="' + id + '"], .btn-category-edit[data-id="' + id + '"], .btn-category-toggle[data-id="' + id + '"], .btn-category-delete[data-id="' + id + '"]', {
             id: category.id,
             name: category.name,
-            status: category.status
+            status: ES.normalizeStatus(category.status)
         });
     };
 
     ES.syncCategoryStatus = function (id, status) {
-        $('#status-container-' + id).html(ES.statusBadge(status, { on: 'Enabled', off: 'Disabled' }));
+        var s = ES.normalizeStatus(status);
+        $('#status-container-' + id).html(ES.statusBadge(s, { on: 'Enabled', off: 'Disabled' }));
         $('.btn-category-view[data-id="' + id + '"], .btn-category-edit[data-id="' + id + '"], .btn-category-toggle[data-id="' + id + '"]')
-            .attr('data-status', status);
+            .attr('data-status', s);
     };
 
     window.EntitySync = ES;
