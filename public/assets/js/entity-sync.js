@@ -58,13 +58,33 @@
     // -------------------------------------------------------------------------
 
     ES.customerButtonData = function (c) {
+        // birthdate may come as a Carbon object serialised to { date: '...' } or plain string
+        var birthdate = '';
+        if (c.birthdate) {
+            birthdate = typeof c.birthdate === 'object' && c.birthdate.date
+                ? c.birthdate.date.substring(0, 10)
+                : String(c.birthdate).substring(0, 10);
+        }
+
         return {
             id: c.id,
             name: c.name,
             email: c.email,
             phone: c.phone || '',
             type: c.customer_type,
+            gender: c.gender || '',
+            birthdate: birthdate,
             address: c.address || '',
+            'shipping-address': c.shipping_address || '',
+            city: c.city || '',
+            'pin-code': c.pin_code || '',
+            state: c.state || '',
+            country: c.country || '',
+            landmark: c.landmark || '',
+            'area-id': c.area_id || '',
+            'area-name': c.area_name || '',
+            'credit-days': c.credit_days || '',
+            'credit-limit': c.credit_limit || '',
             'vat-registered': ES.normalizeStatus(c.vat_registered),
             'vat-number': c.vat_number || '',
             status: ES.normalizeStatus(c.status)
@@ -73,7 +93,7 @@
 
     ES.syncCustomerRow = function (c) {
         var id = c.id;
-        var typeBadge = c.customer_type === 'business' ? 'info' : 'secondary';
+        var typeBadge = c.customer_type === 'company' ? 'info' : 'secondary';
         var typeLabel = c.customer_type.charAt(0).toUpperCase() + c.customer_type.slice(1);
 
         $('#name-' + id).text(c.name);
@@ -96,8 +116,9 @@
         }
         $('#vat-' + id).html(vatHtml);
 
-        ES.applyButtonData('.btn-customer-view[data-id="' + id + '"]', ES.customerButtonData(c));
-        ES.applyButtonData('.btn-customer-edit[data-id="' + id + '"]', ES.customerButtonData(c));
+        var btnData = ES.customerButtonData(c);
+        ES.applyButtonData('.btn-customer-view[data-id="' + id + '"]', btnData);
+        ES.applyButtonData('.btn-customer-edit[data-id="' + id + '"]', btnData);
         ES.applyButtonData('.btn-customer-toggle[data-id="' + id + '"]', {
             id: c.id,
             name: c.name,
@@ -117,7 +138,7 @@
     };
 
     ES.customerOptionLabel = function (c) {
-        return c.name + (c.customer_type === 'business' ? ' (Business)' : '');
+        return c.name + (c.customer_type === 'company' ? ' (Company)' : '');
     };
 
     ES.upsertCustomerDropdownOption = function ($select, c) {
@@ -168,6 +189,7 @@
 
     ES.productButtonData = function (p) {
         var categoryName = p.category && p.category.name ? p.category.name : (p.category_name || '-');
+
         return {
             id: p.id,
             name: p.name,
@@ -179,12 +201,28 @@
             selling: p.selling_price,
             vat: p.vat,
             moq: p.moq,
-            status: ES.normalizeStatus(p.status)
+            status: ES.normalizeStatus(p.status),
+
+            // New Fields
+            'item-code': p.item_code || '',
+            'regional-name': p.regional_name || '',
+            'manufacturer-id': p.manufacturer_id || '',
+            'item-class': p.item_class || '',
+            'hsn-code': p.hsn_code || '',
+            'unit': p.unit || '',
+            'image': p.image || '',
+            'is-weighing': ES.normalizeStatus(p.is_weighing_item),
+            'purchase-tax-inclusive': ES.normalizeStatus(p.purchase_tax_inclusive),
+            'sale-tax-inclusive': ES.normalizeStatus(p.sale_tax_inclusive),
+            'cess-percentage': p.cess_percentage || 0,
+            'additional-cess': p.additional_cess || 0,
+            'discount-percentage': p.discount_percentage || 0
         };
     };
 
     ES.productViewButtonData = function (p) {
         var categoryName = p.category && p.category.name ? p.category.name : (p.category_name || '-');
+
         return {
             id: p.id,
             name: p.name,
@@ -195,13 +233,14 @@
             selling: p.selling_price,
             vat: p.vat,
             moq: p.moq,
-            status: ES.normalizeStatus(p.status)
+            status: ES.normalizeStatus(p.status),
+            'image': p.image || ''
         };
     };
 
     ES.syncProductRow = function (p) {
         var id = p.id;
-        var categoryName = p.category && p.category.name ? p.category.name : '-';
+        var categoryName = p.category && p.category.name ? p.category.name : (p.category_name || '-');
 
         $('#name-' + id).text(p.name);
         $('#category-' + id).text(categoryName);
@@ -209,13 +248,16 @@
         $('#selling-' + id).text('£' + parseFloat(p.selling_price).toFixed(2));
         $('#vat-' + id).text(p.vat + '%');
 
+        // Update all button data attributes
         ES.applyButtonData('.btn-product-edit[data-id="' + id + '"]', ES.productButtonData(p));
         ES.applyButtonData('.btn-product-view[data-id="' + id + '"]', ES.productViewButtonData(p));
+
         ES.applyButtonData('.btn-product-toggle[data-id="' + id + '"], .btn-product-delete[data-id="' + id + '"]', {
             id: p.id,
             name: p.name,
             status: ES.normalizeStatus(p.status)
         });
+
         $('.btn-product-toggle[data-id="' + id + '"]').attr('data-status', ES.normalizeStatus(p.status));
     };
 
@@ -245,6 +287,110 @@
         var s = ES.normalizeStatus(status);
         $('#status-container-' + id).html(ES.statusBadge(s, { on: 'Enabled', off: 'Disabled' }));
         $('.btn-category-view[data-id="' + id + '"], .btn-category-edit[data-id="' + id + '"], .btn-category-toggle[data-id="' + id + '"]')
+            .attr('data-status', s);
+    };
+
+    // -------------------------------------------------------------------------
+    // Areas
+    // -------------------------------------------------------------------------
+
+    ES.syncAreaRow = function (area) {
+        var id = area.id;
+        $('#name-' + id).text(area.name);
+
+        ES.applyButtonData('.btn-area-view[data-id="' + id + '"], .btn-area-edit[data-id="' + id + '"], .btn-area-toggle[data-id="' + id + '"], .btn-area-delete[data-id="' + id + '"]', {
+            id: area.id,
+            name: area.name,
+            status: ES.normalizeStatus(area.status)
+        });
+    };
+
+    ES.syncAreaStatus = function (id, status) {
+        var s = ES.normalizeStatus(status);
+        $('#status-container-' + id).html(ES.statusBadge(s, { on: 'Enabled', off: 'Disabled' }));
+        $('.btn-area-view[data-id="' + id + '"], .btn-area-edit[data-id="' + id + '"], .btn-area-toggle[data-id="' + id + '"]')
+            .attr('data-status', s);
+    };
+
+    // -------------------------------------------------------------------------
+    // Manufacturers
+    // -------------------------------------------------------------------------
+
+    ES.syncManufacturerRow = function (m) {
+        var id = m.id;
+
+        $('#name-' + id).text(m.name);
+        $('#phone-' + id).text(m.phone || '-');
+        $('#email-' + id).text(m.email || '-');
+        $('#address-' + id).text(m.address || '-');
+
+        ES.applyButtonData(
+            '.btn-manufacturer-view[data-id="' + id + '"], ' +
+            '.btn-manufacturer-edit[data-id="' + id + '"], ' +
+            '.btn-manufacturer-toggle[data-id="' + id + '"], ' +
+            '.btn-manufacturer-delete[data-id="' + id + '"]',
+            {
+                id: m.id,
+                name: m.name,
+                phone: m.phone || '',
+                email: m.email || '',
+                address: m.address || '',
+                status: ES.normalizeStatus(m.status)
+            }
+        );
+    };
+
+    ES.syncManufacturerStatus = function (id, status) {
+        var s = ES.normalizeStatus(status);
+        $('#status-container-' + id).html(ES.statusBadge(s, { on: 'Enabled', off: 'Disabled' }));
+        $('.btn-manufacturer-view[data-id="' + id + '"], ' +
+            '.btn-manufacturer-edit[data-id="' + id + '"], ' +
+            '.btn-manufacturer-toggle[data-id="' + id + '"]')
+            .attr('data-status', s);
+    };
+
+    // -------------------------------------------------------------------------
+    // Vendors
+    // -------------------------------------------------------------------------    
+
+    ES.syncVendorRow = function (v) {
+        var id = v.id;
+
+        $('#name-' + id).text(v.name || '-');
+        $('#company-' + id).text(v.company || '-');
+        $('#phone-' + id).text(v.phone || '-');
+        $('#email-' + id).text(v.email || '-');
+        $('#city-' + id).text(v.city || '-');
+
+        ES.applyButtonData(
+            '.btn-vendor-view[data-id="' + id + '"], ' +
+            '.btn-vendor-edit[data-id="' + id + '"], ' +
+            '.btn-vendor-toggle[data-id="' + id + '"], ' +
+            '.btn-vendor-delete[data-id="' + id + '"]',
+            {
+                id: v.id,
+                name: v.name || '',
+                company: v.company || '',
+                phone: v.phone || '',
+                email: v.email || '',
+                'tax-reg-number': v.tax_reg_number || '',
+                'address-line-1': v.address_line_1 || '',
+                'address-line-2': v.address_line_2 || '',
+                city: v.city || '',
+                'pin-code': v.pin_code || '',
+                state: v.state || '',
+                country: v.country || '',
+                status: ES.normalizeStatus(v.status)
+            }
+        );
+    };
+
+    ES.syncVendorStatus = function (id, status) {
+        var s = ES.normalizeStatus(status);
+        $('#status-container-' + id).html(ES.statusBadge(s, { on: 'Enabled', off: 'Disabled' }));
+        $('.btn-vendor-view[data-id="' + id + '"], ' +
+            '.btn-vendor-edit[data-id="' + id + '"], ' +
+            '.btn-vendor-toggle[data-id="' + id + '"]')
             .attr('data-status', s);
     };
 

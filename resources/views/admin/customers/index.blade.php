@@ -44,7 +44,7 @@
                             <td id="email-{{ $customer->id }}">{{ $customer->email }}</td>
                             <td id="phone-{{ $customer->id }}">{{ $customer->phone ?? '-' }}</td>
                             <td class="text-center" id="type-{{ $customer->id }}">
-                                <span class="badge bg-{{ $customer->customer_type === 'business' ? 'info' : 'secondary' }}">
+                                <span class="badge bg-{{ $customer->customer_type === 'company' ? 'info' : 'secondary' }}">
                                     {{ ucfirst($customer->customer_type) }}
                                 </span>
                             </td>
@@ -75,10 +75,23 @@
                                         data-email="{{ $customer->email }}"
                                         data-phone="{{ $customer->phone ?? '' }}"
                                         data-type="{{ $customer->customer_type }}"
+                                        data-gender="{{ $customer->gender ?? '' }}"
+                                        data-birthdate="{{ $customer->birthdate ? $customer->birthdate->format('Y-m-d') : '' }}"
                                         data-address="{{ $customer->address ?? '' }}"
-                                        data-vat-registered="{{ $customer->vat_registered }}"
+                                        data-shipping-address="{{ $customer->shipping_address ?? '' }}"
+                                        data-city="{{ $customer->city ?? '' }}"
+                                        data-pin-code="{{ $customer->pin_code ?? '' }}"
+                                        data-state="{{ $customer->state ?? '' }}"
+                                        data-country="{{ $customer->country ?? '' }}"
+                                        data-landmark="{{ $customer->landmark ?? '' }}"
+                                        data-area-id="{{ $customer->area_id ?? '' }}"
+                                        data-area-name="{{ $customer->area ? $customer->area->name : '' }}"
+                                        data-credit-days="{{ $customer->credit_days ?? '' }}"
+                                        data-credit-limit="{{ $customer->credit_limit ?? '' }}"
+                                        data-vat-registered="{{ $customer->vat_registered ? '1' : '0' }}"
                                         data-vat-number="{{ $customer->vat_number ?? '' }}"
-                                        data-status="{{ $customer->status }}">
+                                        data-status="{{ $customer->status ? '1' : '0' }}"
+                                        title="View">
                                         <i class="bi bi-eye"></i>
                                     </button>
 
@@ -89,10 +102,23 @@
                                         data-email="{{ $customer->email }}"
                                         data-phone="{{ $customer->phone ?? '' }}"
                                         data-type="{{ $customer->customer_type }}"
+                                        data-gender="{{ $customer->gender ?? '' }}"
+                                        data-birthdate="{{ $customer->birthdate ? $customer->birthdate->format('Y-m-d') : '' }}"
                                         data-address="{{ $customer->address ?? '' }}"
-                                        data-vat-registered="{{ $customer->vat_registered }}"
+                                        data-shipping-address="{{ $customer->shipping_address ?? '' }}"
+                                        data-city="{{ $customer->city ?? '' }}"
+                                        data-pin-code="{{ $customer->pin_code ?? '' }}"
+                                        data-state="{{ $customer->state ?? '' }}"
+                                        data-country="{{ $customer->country ?? '' }}"
+                                        data-landmark="{{ $customer->landmark ?? '' }}"
+                                        data-area-id="{{ $customer->area_id ?? '' }}"
+                                        data-area-name="{{ $customer->area ? $customer->area->name : '' }}"
+                                        data-credit-days="{{ $customer->credit_days ?? '' }}"
+                                        data-credit-limit="{{ $customer->credit_limit ?? '' }}"
+                                        data-vat-registered="{{ $customer->vat_registered ? '1' : '0' }}"
                                         data-vat-number="{{ $customer->vat_number ?? '' }}"
-                                        data-status="{{ $customer->status }}">
+                                        data-status="{{ $customer->status ? '1' : '0' }}"
+                                        title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </button>
 
@@ -100,14 +126,16 @@
                                     <button class="btn btn-customer-action btn-customer-toggle"
                                         data-id="{{ $customer->id }}"
                                         data-name="{{ $customer->name }}"
-                                        data-status="{{ $customer->status }}">
+                                        data-status="{{ $customer->status ? '1' : '0' }}"
+                                        title="Toggle Status">
                                         <i class="bi bi-slash-circle"></i>
                                     </button>
 
                                     {{-- Delete Button --}}
                                     <button class="btn btn-customer-action btn-customer-delete"
                                         data-id="{{ $customer->id }}"
-                                        data-name="{{ $customer->name }}">
+                                        data-name="{{ $customer->name }}"
+                                        title="Delete">
                                         <i class="bi bi-trash"></i>
                                     </button>
 

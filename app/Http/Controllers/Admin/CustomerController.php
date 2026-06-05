@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Area;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -14,9 +15,10 @@ class CustomerController extends Controller
     // ----------------------------
     public function index()
     {
-        $customers = Customer::latest()->paginate(15);
+        $customers = Customer::with('area')->latest()->paginate(15);
+        $areas     = Area::where('status', 1)->orderBy('name')->get();
 
-        return view('admin.customers.index', compact('customers'));
+        return view('admin.customers.index', compact('customers', 'areas'));
     }
 
     // ----------------------------
@@ -31,9 +33,7 @@ class CustomerController extends Controller
         $customer = Customer::where('email', $request->email)->first();
 
         if ($customer) {
-            $data = $customer->toArray();
-            $data['status']         = (int) $customer->status;
-            $data['vat_registered'] = (int) $customer->vat_registered;
+            $data = $this->formatForResponse($customer);
         }
 
         return response()->json([
@@ -50,52 +50,65 @@ class CustomerController extends Controller
         if ($request->boolean('from_invoice')) {
             $existing = Customer::where('email', $request->email)->first();
             if ($existing) {
-                $data = $existing->toArray();
-                $data['status']         = (int) $existing->status;
-                $data['vat_registered'] = (int) $existing->vat_registered;
-
                 return response()->json([
                     'success' => true,
                     'exists'  => true,
                     'message' => 'Customer already exists.',
-                    'data'    => $data,
+                    'data'    => $this->formatForResponse($existing),
                 ]);
             }
         }
 
         $request->validate([
-            'name'           => 'required|string|max:255',
-            'email'          => 'required|email|unique:customers,email',
-            'phone'          => 'nullable|string|max:20',
-            'customer_type'  => 'required|in:regular,business',
-            'address'        => 'nullable|string',
-            'vat_registered' => 'nullable|in:0,1',
-            'vat_number'     => 'nullable|string|max:50|required_if:vat_registered,1',
+            'name'             => 'required|string|max:255',
+            'email'            => 'required|email|unique:customers,email',
+            'phone'            => 'nullable|string|max:20',
+            'customer_type'    => 'required|in:individual,company',
+            'gender'           => 'nullable|in:male,female,other',
+            'birthdate'        => 'nullable|date|before:today',
+            'address'          => 'nullable|string',
+            'shipping_address' => 'nullable|string|max:255',
+            'city'             => 'nullable|string|max:100',
+            'pin_code'         => 'nullable|string|max:20',
+            'state'            => 'nullable|string|max:100',
+            'country'          => 'nullable|string|max:100',
+            'landmark'         => 'nullable|string|max:255',
+            'area_id'          => 'nullable|exists:areas,id',
+            'credit_days'      => 'nullable|integer|min:0|max:65535',
+            'credit_limit'     => 'nullable|numeric|min:0',
+            'vat_registered'   => 'nullable|in:0,1',
+            'vat_number'       => 'nullable|string|max:50|required_if:vat_registered,1',
         ]);
 
-        // Checkbox value normalize karo
         $vatRegistered = $request->vat_registered == '1' ? 1 : 0;
 
         $customer = Customer::create([
-            'name'           => $request->name,
-            'email'          => $request->email,
-            'phone'          => $request->phone,
-            'customer_type'  => $request->customer_type,
-            'address'        => $request->address,
-            'vat_registered' => $vatRegistered,
-            'vat_number'     => $vatRegistered ? $request->vat_number : null,
-            'status'         => 1,
+            'name'             => $request->name,
+            'email'            => $request->email,
+            'phone'            => $request->phone,
+            'customer_type'    => $request->customer_type,
+            'gender'           => $request->gender ?: null,
+            'birthdate'        => $request->birthdate ?: null,
+            'address'          => $request->address,
+            'shipping_address' => $request->shipping_address ?: null,
+            'city'             => $request->city ?: null,
+            'pin_code'         => $request->pin_code ?: null,
+            'state'            => $request->state ?: null,
+            'country'          => $request->country ?: null,
+            'landmark'         => $request->landmark ?: null,
+            'area_id'          => $request->area_id ?: null,
+            'credit_days'      => $request->credit_days ?: null,
+            'credit_limit'     => $request->credit_limit ?: null,
+            'vat_registered'   => $vatRegistered,
+            'vat_number'       => $vatRegistered ? $request->vat_number : null,
+            'status'           => 1,
         ]);
 
         if ($request->ajax()) {
-            $data = $customer->toArray();
-            $data['status']         = (int) $customer->status;
-            $data['vat_registered'] = (int) $customer->vat_registered;
-
             return response()->json([
                 'success' => true,
                 'message' => 'Customer created successfully.',
-                'data'    => $data
+                'data'    => $this->formatForResponse($customer->load('area')),
             ]);
         }
 
@@ -108,37 +121,54 @@ class CustomerController extends Controller
     public function update(Request $request, Customer $customer)
     {
         $request->validate([
-            'name'           => 'required|string|max:255',
-            'email'          => ['required', 'email', Rule::unique('customers')->ignore($customer->id)],
-            'phone'          => 'nullable|string|max:20',
-            'customer_type'  => 'required|in:regular,business',
-            'address'        => 'nullable|string',
-            'vat_registered' => 'nullable|in:0,1',
-            'vat_number'     => 'nullable|string|max:50|required_if:vat_registered,1',
+            'name'             => 'required|string|max:255',
+            'email'            => ['required', 'email', Rule::unique('customers')->ignore($customer->id)],
+            'phone'            => 'nullable|string|max:20',
+            'customer_type'    => 'required|in:individual,company',
+            'gender'           => 'nullable|in:male,female,other',
+            'birthdate'        => 'nullable|date|before:today',
+            'address'          => 'nullable|string',
+            'shipping_address' => 'nullable|string|max:255',
+            'city'             => 'nullable|string|max:100',
+            'pin_code'         => 'nullable|string|max:20',
+            'state'            => 'nullable|string|max:100',
+            'country'          => 'nullable|string|max:100',
+            'landmark'         => 'nullable|string|max:255',
+            'area_id'          => 'nullable|exists:areas,id',
+            'credit_days'      => 'nullable|integer|min:0|max:65535',
+            'credit_limit'     => 'nullable|numeric|min:0',
+            'vat_registered'   => 'nullable|in:0,1',
+            'vat_number'       => 'nullable|string|max:50|required_if:vat_registered,1',
         ]);
 
-        // Checkbox value normalize karo
         $vatRegistered = $request->vat_registered == '1' ? 1 : 0;
 
         $customer->update([
-            'name'           => $request->name,
-            'email'          => $request->email,
-            'phone'          => $request->phone,
-            'customer_type'  => $request->customer_type,
-            'address'        => $request->address,
-            'vat_registered' => $vatRegistered,
-            'vat_number'     => $vatRegistered ? $request->vat_number : null,
+            'name'             => $request->name,
+            'email'            => $request->email,
+            'phone'            => $request->phone,
+            'customer_type'    => $request->customer_type,
+            'gender'           => $request->gender ?: null,
+            'birthdate'        => $request->birthdate ?: null,
+            'address'          => $request->address,
+            'shipping_address' => $request->shipping_address ?: null,
+            'city'             => $request->city ?: null,
+            'pin_code'         => $request->pin_code ?: null,
+            'state'            => $request->state ?: null,
+            'country'          => $request->country ?: null,
+            'landmark'         => $request->landmark ?: null,
+            'area_id'          => $request->area_id ?: null,
+            'credit_days'      => $request->credit_days ?: null,
+            'credit_limit'     => $request->credit_limit ?: null,
+            'vat_registered'   => $vatRegistered,
+            'vat_number'       => $vatRegistered ? $request->vat_number : null,
         ]);
 
         if ($request->ajax()) {
-            $data = $customer->toArray();
-            $data['status']         = (int) $customer->status;
-            $data['vat_registered'] = (int) $customer->vat_registered;
-
             return response()->json([
                 'success' => true,
                 'message' => 'Customer updated successfully.',
-                'data'    => $data
+                'data'    => $this->formatForResponse($customer->fresh()->load('area')),
             ]);
         }
 
@@ -158,7 +188,7 @@ class CustomerController extends Controller
             return response()->json([
                 'success'    => true,
                 'message'    => 'Customer status updated.',
-                'new_status' => (int) $customer->status
+                'new_status' => (int) $customer->status,
             ]);
         }
 
@@ -175,10 +205,23 @@ class CustomerController extends Controller
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Customer deleted successfully.'
+                'message' => 'Customer deleted successfully.',
             ]);
         }
 
         return back()->with('success', 'Customer deleted successfully.');
+    }
+
+    // ----------------------------
+    // PRIVATE - Consistent response shape
+    // ----------------------------
+    private function formatForResponse(Customer $customer): array
+    {
+        $data                  = $customer->toArray();
+        $data['status']        = (int) $customer->status;
+        $data['vat_registered'] = (int) $customer->vat_registered;
+        $data['area_name']     = $customer->area ? $customer->area->name : '';
+
+        return $data;
     }
 }

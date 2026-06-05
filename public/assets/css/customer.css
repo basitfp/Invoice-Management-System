@@ -1,6 +1,15 @@
-/* Customer Module Styles - Premium SaaS Aesthetic (Extended Version) */
+/* Customer Module Styles - Premium SaaS Aesthetic (Strictly CSS Only) */
 
-/* Base Card */
+:root {
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --primary-color: #2563eb;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --focus-ring: rgba(37, 99, 235, 0.15);
+}
+
+/* ══ Card Layout Base ═════════════════ */
 .customer-card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -9,7 +18,13 @@
     padding: 32px;
 }
 
-/* Header */
+@media (max-width: 768px) {
+    .customer-card {
+        padding: 20px;
+    }
+}
+
+/* ══ Header Row ═══════════════════════ */
 .customer-header {
     display: flex;
     justify-content: space-between;
@@ -30,205 +45,347 @@
     font-size: 14px;
     color: var(--text-secondary);
     margin-top: 4px;
+    margin-bottom: 0;
 }
 
-/* Table */
+/* ══ Table Wrapper & Responsiveness ═══ */
+.table-responsive {
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
 .table-customer {
     margin-bottom: 0 !important;
+    vertical-align: middle;
 }
 
 .table-customer thead th {
-    background-color: #fafbfc;
+    background-color: #f8fafc;
     font-size: 12px;
     text-transform: uppercase;
     font-weight: 600;
     letter-spacing: 0.05em;
     color: var(--text-secondary);
-    padding: 16px 24px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
+    border-top: none;
 }
 
 .table-customer tbody td {
-    padding: 16px 24px;
+    padding: 16px 20px;
     font-size: 14px;
-    color: var(--text-primary);
-    vertical-align: middle;
-    border-bottom: 1px solid var(--border-color);
-    transition: background-color 0.15s ease;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .table-customer tbody tr:last-child td {
     border-bottom: none;
 }
 
-.table-customer tbody tr:hover td {
-    background-color: rgba(15, 23, 42, 0.015);
-}
-
-/* Badges */
-.badge-status-enabled {
-    display: inline-flex;
-    align-items: center;
-    background-color: #ecfdf5;
-    color: #059669;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 9999px;
-    font-size: 12px;
-}
-
-.badge-status-disabled {
-    display: inline-flex;
-    align-items: center;
-    background-color: #fef2f2;
-    color: #ef4444;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 9999px;
-    font-size: 12px;
-}
-
-/* Customer Type Badges */
-.badge-customer-regular {
-    background-color: #f3e8ff;
-    color: #7c3aed;
-}
-
-.badge-customer-business {
-    background-color: #dbeafe;
-    color: #2563eb;
-}
-
-/* Action Buttons */
-.btn-customer-action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    font-size: 15px;
-    border-radius: 10px;
-    transition: all 0.15s ease;
-    border: 1px solid var(--border-color);
-    background-color: #fff;
-    color: var(--text-secondary);
-}
-
-.btn-customer-action:hover {
-    background-color: rgba(15, 23, 42, 0.03);
-    color: var(--text-primary);
-    border-color: #cbd5e1;
-}
-
-/* Specific Hover States */
-.btn-customer-view:hover {
-    background-color: rgba(91, 141, 239, 0.08);
-    color: #3b82f6;
-}
-
-.btn-customer-edit:hover {
-    background-color: rgba(234, 179, 8, 0.08);
-    color: #eab308;
-}
-
-.btn-customer-toggle:hover {
-    background-color: #fef2f2;
-    color: #ef4444;
-}
-
-/* Modals - Same Premium Style as Product */
-.modal-content {
-    border: none;
-    border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
-}
-
-.modal-header {
-    border-bottom: 1px solid var(--border-color);
-    padding: 24px 28px;
-}
-
-.modal-header .modal-title {
-    font-size: 18px;
+/* Typography Enhancements for Row Cells */
+.table-customer tbody td:nth-child(2) {
     font-weight: 700;
     color: var(--text-primary);
 }
 
+.table-customer tbody td.text-center {
+    font-weight: 500;
+}
+
+/* ══ Action Row Buttons ═══════════════ */
+.btn-customer-action {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    padding: 0;
+    font-size: 15px;
+}
+
+.btn-customer-action:hover {
+    background-color: #f8fafc;
+    color: var(--text-primary);
+    border-color: #cbd5e1;
+}
+
+/* Contextual Actions hover states via class mappings safely */
+.btn-customer-action:has(.bi-eye):hover {
+    color: #2563eb !important;
+    background-color: #eff6ff !important;
+    border-color: #bfdbfe !important;
+}
+
+.btn-customer-action:has(.bi-pencil):hover {
+    color: #d97706 !important;
+    background-color: #fffbeb !important;
+    border-color: #fde68a !important;
+}
+
+.btn-customer-action:has(.bi-slash-circle):hover {
+    color: #16a34a !important;
+    background-color: #f0fdf4 !important;
+    border-color: #bbf7d0 !important;
+}
+
+.btn-customer-action:has(.bi-trash):hover {
+    color: #dc2626 !important;
+    background-color: #fef2f2 !important;
+    border-color: #fca5a5 !important;
+}
+
+/* ══ Badges Styling Overrides ═════════ */
+.badge {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* ══ Modals Premium Layout Fixes ══════ */
+.modal-content {
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1) !important;
+    overflow: hidden;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 20px 24px !important;
+    background-color: #f8fafc !important;
+}
+
+.modal-header .modal-title {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: var(--text-primary) !important;
+}
+
 .modal-body {
-    padding: 28px;
+    padding: 24px !important;
 }
 
 .modal-footer {
-    border-top: 1px solid var(--border-color);
-    padding: 20px 28px;
-    gap: 12px;
+    border-top: 1px solid var(--border-color) !important;
+    padding: 16px 24px !important;
+    gap: 10px !important;
+    background-color: #f8fafc !important;
 }
 
-/* Form Elements */
-.modal .form-label {
+/* View details alignment overrides without structural changes */
+.modal-body .border-bottom {
+    border-bottom: 1px solid #f1f5f9 !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+
+.modal-body .text-secondary.fw-medium {
     font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
+    color: var(--text-secondary) !important;
+}
+
+.modal-body .fw-semibold.text-dark {
+    font-size: 14px;
+    color: var(--text-primary) !important;
+}
+
+/* ══ Form Fields Stabilization ════════ */
+.modal .mb-3 {
+    position: relative;
+    margin-bottom: 20px !important;
+}
+
+.modal label {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+    margin-bottom: 6px !important;
+    display: inline-block;
 }
 
 .modal .form-control,
 .modal select,
 .modal textarea {
-    height: 52px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    font-size: 14px;
-    padding: 0 16px;
-    transition: all 0.2s ease;
+    height: 44px !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color) !important;
+    font-size: 14px !important;
+    padding: 0 14px !important;
+    transition: all 0.2s ease !important;
+    background-color: #fff !important;
+    color: var(--text-primary) !important;
 }
 
 .modal textarea {
-    height: auto;
-    padding: 12px 16px;
-    resize: vertical;
+    height: auto !important;
+    padding: 10px 14px !important;
+    min-height: 80px;
 }
 
 .modal .form-control:focus,
 .modal select:focus,
 .modal textarea:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px var(--focus-ring);
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px var(--focus-ring) !important;
+    outline: 0 !important;
 }
 
-/* Invalid State */
-.modal .form-control.is-invalid {
-    border-color: #ef4444;
+/* Form Checkbox custom look override */
+.modal .form-check-input {
+    width: 18px !important;
+    height: 18px !important;
+    margin-top: 2px !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 4px !important;
 }
 
-.modal .form-control.is-invalid:focus {
-    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+.modal .form-check-input:checked {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
 }
 
-/* Buttons */
-.modal .btn {
-    height: 48px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 14px;
-    padding: 0 20px;
+.modal .form-check-label {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: var(--text-primary) !important;
+    padding-left: 6px;
+    margin-bottom: 0 !important;
+}
+
+/* ══ Dynamic Validation Spans Setup ══ */
+.field-error {
+    display: block;
+    font-size: 11px !important;
+    font-weight: 500;
+    color: #dc2626;
+    margin-top: 4px;
+    min-height: 16px; /* Layout displacement or element shaking prevent karega jab backend error fetch ho */
+}
+
+/* Standard bootstrap validation error style controls */
+.modal .form-control.is-invalid,
+.modal select.is-invalid {
+    border-color: #ef4444 !important;
+    background-image: none !important;
+}
+
+/* ══ Buttons Global Overrides inside Modals ══ */
+.modal-footer .btn {
+    height: 40px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    padding: 0 20px !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
 }
 
-/* Toast (Global) */
-.toast-container {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    z-index: 9999;
+.modal-footer .btn-secondary {
+    background-color: #fff !important;
+    color: var(--text-secondary) !important;
+    border: 1px solid #cbd5e1 !important;
 }
 
-.toast {
-    background: #ffffff;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-    border-radius: 12px;
-    min-width: 380px;
+.modal-footer .btn-secondary:hover {
+    background-color: #f8fafc !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-footer .btn-primary {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #fff !important;
+}
+
+.modal-footer .btn-primary:hover {
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+}
+
+.modal-footer .btn-danger {
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: #fff !important;
+}
+
+.modal-footer .btn-danger:hover {
+    background-color: #b91c1c !important;
+    border-color: #b91c1c !important;
+}
+
+/* Laravel Pagination Alignment Support */
+.table-responsive + .mt-3, .customer-card .mt-3 {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Small Confirm Dialog Modal Configuration */
+#customerConfirmModal .modal-dialog {
+    max-width: 400px;
+}
+/* ══ Modal Section Labels ═════════════ */
+.customer-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* ══ View Modal Field Layout ═══════════ */
+.customer-view-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.customer-view-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+}
+
+.customer-view-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+/* ══ Modal Large Size Row Spacing ═════ */
+.modal-lg .modal-body .row {
+    row-gap: 0;
+}
+
+.modal-lg .modal-body .col-md-6,
+.modal-lg .modal-body .col-md-3,
+.modal-lg .modal-body .col-md-4,
+.modal-lg .modal-body .col-md-2,
+.modal-lg .modal-body .col-12 {
+    margin-bottom: 16px;
+}
+
+/* Textarea height override for modals */
+.modal textarea.form-control {
+    height: auto !important;
+    min-height: 70px !important;
 }

@@ -5,120 +5,148 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Manufacturer;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    // ----------------------------
-    // INDEX - Show all products
-    // ----------------------------
     public function index()
     {
-        $products   = Product::with('category')->latest()->get();
-        $categories = Category::where('status', 1)->orderBy('name')->get();
+        $products      = Product::with(['category', 'manufacturer'])->latest()->get();
+        $categories    = Category::where('status', 1)->orderBy('name')->get();
+        $manufacturers = Manufacturer::where('status', 1)->orderBy('name')->get();
 
-        return view('admin.products.index', compact('products', 'categories'));
+        return view('admin.products.index', compact('products', 'categories', 'manufacturers'));
     }
 
-    // ----------------------------
-    // STORE - Save new product
-    // ----------------------------
     public function store(Request $request)
     {
         $request->validate([
-            'name'           => ['required', 'string', 'min:2', 'max:150', Rule::unique('products', 'name')],
-            'description'    => ['nullable', 'string'],
-            'category_id'    => ['required', 'exists:categories,id'],
-            'qty'            => ['required', 'integer', 'min:0'],
-            'purchase_price' => ['required', 'numeric', 'min:0'],
-            'selling_price'  => ['required', 'numeric', 'min:0', 'gte:purchase_price'],
-            'vat'            => ['required', 'in:0,20'],
-            'moq'            => ['required', 'integer', 'min:1'],
-            'status'         => ['nullable', 'boolean'],
+            'image'                  => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'name'                   => ['required', 'string', 'min:2', 'max:150', Rule::unique('products', 'name')],
+            'item_code'              => ['nullable', 'string', 'max:100', Rule::unique('products', 'item_code')],
+            'category_id'            => ['required', 'exists:categories,id'],
+            'manufacturer_id'        => ['nullable', 'exists:manufacturers,id'],
+            'item_class'             => ['required', 'string', Rule::in(['general', 'sale_only', 'raw_material'])],
+            'hsn_code'               => ['nullable', 'string', 'max:50'],
+            'regional_name'          => ['nullable', 'string', 'max:255'],
+            'unit'                   => ['nullable', 'string', 'max:50'],
+            
+            // Purchase Section
+            'purchase_price'         => ['required', 'numeric', 'min:0'],
+            'purchase_tax_percent'   => ['required', 'numeric', 'min:0', 'max:100'],
+            'purchase_tax_inclusive' => ['boolean'],
+            
+            // Sale Section
+            'sale_price'             => ['required', 'numeric', 'min:0', 'gte:purchase_price'],
+            'gst_vat_percent'        => ['required', 'numeric', 'min:0', 'max:100'],
+            'sale_tax_inclusive'     => ['boolean'],
+            
+            'discount_percent'       => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'cess_percent'           => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'additional_cess'        => ['nullable', 'numeric', 'min:0'],
+            'is_weighing_item'       => ['boolean'],
+            'qty'                    => ['required', 'integer', 'min:0'],
+            'moq'                    => ['required', 'integer', 'min:1'],
+            'description'            => ['nullable', 'string'],
+            'status'                 => ['nullable', 'boolean'],
         ]);
 
-        $product = Product::create([
-            'name'           => $request->name,
-            'description'    => $request->description,
-            'category_id'    => $request->category_id,
-            'qty'            => $request->qty,
-            'purchase_price' => $request->purchase_price,
-            'selling_price'  => $request->selling_price,
-            'vat'            => $request->vat,
-            'moq'            => $request->moq,
-            'status'         => $request->has('status') ? (int) $request->status : 1,
-        ]);
+        $data = $request->except(['image']);
 
-        $product->load('category');
+        // Handle structural boolean presence flags
+        $data['purchase_tax_inclusive'] = $request->has('purchase_tax_inclusive');
+        $data['sale_tax_inclusive']     = $request->has('sale_tax_inclusive');
+        $data['is_weighing_item']       = $request->has('is_weighing_item');
+        $data['status']                 = $request->has('status') ? (int)$request->status : 1;
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product = Product::create($data);
+
+        $product->load(['category', 'manufacturer']);
 
         if ($request->ajax()) {
-            $data = $product->toArray();
-            $data['status'] = (int) $product->status;
-
             return response()->json([
                 'success' => true,
                 'message' => 'Product created successfully.',
-                'data'    => $data
+                'data'    => $product
             ]);
         }
 
         return back()->with('success', 'Product created successfully.');
     }
 
-    // ----------------------------
-    // UPDATE - Edit existing product
-    // ----------------------------
     public function update(Request $request, Product $product)
     {
         $request->validate([
-            'name'           => ['required', 'string', 'min:2', 'max:150', Rule::unique('products', 'name')->ignore($product->id)],
-            'description'    => ['nullable', 'string'],
-            'category_id'    => ['required', 'exists:categories,id'],
-            'qty'            => ['required', 'integer', 'min:0'],
-            'purchase_price' => ['required', 'numeric', 'min:0'],
-            'selling_price'  => ['required', 'numeric', 'min:0', 'gte:purchase_price'],
-            'vat'            => ['required', 'in:0,20'],
-            'moq'            => ['required', 'integer', 'min:1'],
-            'status'         => ['nullable', 'boolean'],
+            'image'                  => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'name'                   => ['required', 'string', 'min:2', 'max:150', Rule::unique('products', 'name')->ignore($product->id)],
+            'item_code'              => ['nullable', 'string', 'max:100', Rule::unique('products', 'item_code')->ignore($product->id)],
+            'category_id'            => ['required', 'exists:categories,id'],
+            'manufacturer_id'        => ['nullable', 'exists:manufacturers,id'],
+            'item_class'             => ['required', 'string', Rule::in(['general', 'sale_only', 'raw_material'])],
+            'hsn_code'               => ['nullable', 'string', 'max:50'],
+            'regional_name'          => ['nullable', 'string', 'max:255'],
+            'unit'                   => ['nullable', 'string', 'max:50'],
+            
+            // Purchase Section
+            'purchase_price'         => ['required', 'numeric', 'min:0'],
+            'purchase_tax_percent'   => ['required', 'numeric', 'min:0', 'max:100'],
+            'purchase_tax_inclusive' => ['boolean'],
+            
+            // Sale Section
+            'sale_price'             => ['required', 'numeric', 'min:0', 'gte:purchase_price'],
+            'gst_vat_percent'        => ['required', 'numeric', 'min:0', 'max:100'],
+            'sale_tax_inclusive'     => ['boolean'],
+            
+            'discount_percent'       => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'cess_percent'           => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'additional_cess'        => ['nullable', 'numeric', 'min:0'],
+            'is_weighing_item'       => ['boolean'],
+            'qty'                    => ['required', 'integer', 'min:0'],
+            'moq'                    => ['required', 'integer', 'min:1'],
+            'description'            => ['nullable', 'string'],
+            'status'                 => ['nullable', 'boolean'],
         ]);
 
-        $product->update([
-            'name'           => $request->name,
-            'description'    => $request->description,
-            'category_id'    => $request->category_id,
-            'qty'            => $request->qty,
-            'purchase_price' => $request->purchase_price,
-            'selling_price'  => $request->selling_price,
-            'vat'            => $request->vat,
-            'moq'            => $request->moq,
-            'status'         => $request->status ?? $product->status,
-        ]);
+        $data = $request->except(['image']);
 
-        $product->load('category');
+        // Explicitly handle updates for HTML inputs that omit unselected checkboxes
+        $data['purchase_tax_inclusive'] = $request->has('purchase_tax_inclusive');
+        $data['sale_tax_inclusive']     = $request->has('sale_tax_inclusive');
+        $data['is_weighing_item']       = $request->has('is_weighing_item');
+        $data['status']                 = $request->has('status');
+
+        if ($request->hasFile('image')) {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product->update($data);
+
+        $product->load(['category', 'manufacturer']);
 
         if ($request->ajax()) {
-            $data = $product->toArray();
-            $data['status'] = (int) $product->status;
-
             return response()->json([
                 'success' => true,
                 'message' => 'Product updated successfully.',
-                'data'    => $data
+                'data'    => $product
             ]);
         }
 
         return back()->with('success', 'Product updated successfully.');
     }
 
-    // ----------------------------
-    // TOGGLE STATUS - Enable / Disable
-    // ----------------------------
     public function toggleStatus(Request $request, Product $product)
     {
-        $product->update([
-            'status' => $product->status ? 0 : 1,
-        ]);
+        $product->update(['status' => !$product->status]);
 
         if ($request->ajax()) {
             return response()->json([
@@ -131,11 +159,11 @@ class ProductController extends Controller
         return back()->with('success', 'Product status updated.');
     }
 
-    // ----------------------------
-    // DESTROY - Delete product
-    // ----------------------------
     public function destroy(Request $request, Product $product)
     {
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
         $product->delete();
 
         if ($request->ajax()) {

@@ -1,6 +1,15 @@
-/* Product Module Styles - Premium SaaS Aesthetic (Extended Version) */
+/* Product Module Styles - Premium SaaS Aesthetic (Strictly CSS Only) */
 
-/* Same base card as category */
+:root {
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --primary-color: #2563eb;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --focus-ring: rgba(37, 99, 235, 0.15);
+}
+
+/* ══ Card Layout ══════════════════════ */
 .product-card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -9,7 +18,13 @@
     padding: 32px;
 }
 
-/* Header */
+@media (max-width: 768px) {
+    .product-card {
+        padding: 20px;
+    }
+}
+
+/* ══ Header section ═══════════════════ */
 .product-header {
     display: flex;
     justify-content: space-between;
@@ -30,231 +45,418 @@
     font-size: 14px;
     color: var(--text-secondary);
     margin-top: 4px;
+    margin-bottom: 0;
 }
 
-/* Table */
+/* ══ Table & Responsiveness ═══════════ */
+.table-responsive {
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
 .table-product {
     margin-bottom: 0 !important;
+    vertical-align: middle;
 }
 
 .table-product thead th {
-    background-color: #fafbfc;
+    background-color: #f8fafc;
     font-size: 12px;
     text-transform: uppercase;
     font-weight: 600;
     letter-spacing: 0.05em;
     color: var(--text-secondary);
-    padding: 16px 24px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
+    border-top: none;
 }
 
 .table-product tbody td {
-    padding: 16px 24px;
+    padding: 16px 20px;
     font-size: 14px;
-    color: var(--text-primary);
-    vertical-align: middle;
-    border-bottom: 1px solid var(--border-color);
-    transition: background-color 0.15s ease;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .table-product tbody tr:last-child td {
     border-bottom: none;
 }
 
-.table-product tbody tr:hover td {
-    background-color: rgba(15, 23, 42, 0.015);
-}
-
-/* Badges */
-.badge-status-enabled {
-    display: inline-flex;
-    align-items: center;
-    background-color: #ecfdf5;
-    color: #059669;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 9999px;
-    font-size: 12px;
-}
-
-.badge-status-disabled {
-    display: inline-flex;
-    align-items: center;
-    background-color: #fef2f2;
-    color: #ef4444;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 9999px;
-    font-size: 12px;
-}
-
-/* Product specific badges */
-.badge-vat {
-    display: inline-flex;
-    align-items: center;
-    background-color: #eff6ff;
-    color: #2563eb;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 9999px;
-    font-size: 12px;
-}
-
-.badge-moq {
-    display: inline-flex;
-    align-items: center;
-    background-color: #f5f3ff;
-    color: #7c3aed;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 9999px;
-    font-size: 12px;
-}
-
-/* Action Buttons */
-.btn-product-action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 8px 14px;
-    border-radius: 8px;
-    transition: all 0.15s ease;
-    gap: 6px;
-    border: 1px solid var(--border-color);
-    background-color: #fff;
-    color: var(--text-secondary);
-}
-
-.btn-product-action:hover {
-    background-color: rgba(15, 23, 42, 0.03);
-    color: var(--text-primary);
-    border-color: #cbd5e1;
-}
-
-/* View/Edit/Delete states */
-.btn-product-view:hover {
-    background-color: rgba(91, 141, 239, 0.06);
-    color: var(--primary-color);
-    border-color: rgba(91, 141, 239, 0.2);
-}
-
-.btn-product-edit:hover {
-    background-color: rgba(91, 141, 239, 0.06);
-    color: var(--primary-color);
-    border-color: rgba(91, 141, 239, 0.2);
-}
-
-.btn-product-disable:hover {
-    background-color: #fef2f2;
-    color: #ef4444;
-    border-color: rgba(239, 68, 68, 0.2);
-}
-
-.btn-product-enable:hover {
-    background-color: #ecfdf5;
-    color: #059669;
-    border-color: rgba(5, 150, 105, 0.2);
-}
-
-/* Modals (same but improved spacing for heavy forms) */
-.modal-content {
-    border: none;
-    border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
-}
-
-.modal-header {
-    border-bottom: 1px solid var(--border-color);
-    padding: 24px 28px;
-}
-
-.modal-header .modal-title {
-    font-size: 18px;
+/* Table Fonts & Utility Weights */
+.table-product tbody td:nth-child(2) {
     font-weight: 700;
     color: var(--text-primary);
 }
 
-.modal-body {
-    padding: 28px;
+.table-product tbody td.text-center {
+    font-weight: 500;
 }
 
-/* Extra spacing for product forms */
-.modal-body .row {
-    margin-bottom: 12px;
+.table-product tbody td.text-end {
+    font-weight: 600;
+}
+
+/* ══ Status Badges ════════════════════ */
+.badge {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.badge.bg-success {
+    background-color: #eff6ff !important; /* Premium Blue/Green look depending on standard classes */
+    color: #2563eb !important;
+    border: 1px solid #bfdbfe !important;
+}
+
+/* ══ Actions Row Buttons ══════════════ */
+.btn-product-action {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    padding: 0;
+    font-size: 15px;
+}
+
+.btn-product-action:hover {
+    background-color: #f8fafc;
+    color: var(--text-primary);
+    border-color: #cbd5e1;
+}
+
+/* Individual Button States without changing Blade triggers */
+.btn-product-action.btn-light:hover, 
+.btn-product-action[title*="View"]:hover,
+.bi-eye:parent, .bi-eye {
+    transition: color 0.2s;
+}
+
+/* Contextual Actions hover effect mapped by CSS selectors safely */
+.btn-product-action:has(.bi-eye):hover {
+    color: #2563eb !important;
+    background-color: #eff6ff !important;
+    border-color: #bfdbfe !important;
+}
+
+.btn-product-action:has(.bi-pencil):hover {
+    color: #d97706 !important;
+    background-color: #fffbeb !important;
+    border-color: #fde68a !important;
+}
+
+.btn-product-action:has(.bi-slash-circle):hover {
+    color: #16a34a !important;
+    background-color: #f0fdf4 !important;
+    border-color: #bbf7d0 !important;
+}
+
+.btn-product-action:has(.bi-trash):hover {
+    color: #dc2626 !important;
+    background-color: #fef2f2 !important;
+    border-color: #fca5a5 !important;
+}
+
+/* ══ Modals Premium Polish ════════════ */
+.modal-content {
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1) !important;
+    overflow: hidden;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 20px 24px !important;
+    background-color: #f8fafc !important;
+}
+
+.modal-header .modal-title {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-body {
+    padding: 24px !important;
 }
 
 .modal-footer {
-    border-top: 1px solid var(--border-color);
-    padding: 20px 28px;
-    gap: 12px;
+    border-top: 1px solid var(--border-color) !important;
+    padding: 16px 24px !important;
+    gap: 10px !important;
+    background-color: #f8fafc !important;
 }
 
-/* Inputs */
-.modal .form-label {
-    font-size: 13px;
-    font-weight: 600;
+/* Layout fixing for view modal elements */
+.modal-body strong {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
     color: var(--text-secondary);
-    margin-bottom: 8px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.modal-body p.mb-0, .modal-body p {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px !important;
+}
+
+/* ══ Form Fields & Layout Stabilization ══ */
+.modal .mb-3 {
+    position: relative;
+    margin-bottom: 20px !important;
+}
+
+.modal .form-label, .modal label {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--text-secondary) !important;
+    margin-bottom: 6px !important;
+    display: inline-block;
 }
 
 .modal .form-control,
 .modal select,
 .modal textarea {
-    height: 52px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    font-size: 14px;
-    padding: 0 16px;
-    transition: all 0.2s ease;
+    height: 44px !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color) !important;
+    font-size: 14px !important;
+    padding: 0 14px !important;
+    transition: all 0.2s ease !important;
+    background-color: #fff !important;
+    color: var(--text-primary) !important;
 }
 
 .modal textarea {
-    height: auto;
-    padding: 12px 16px;
+    height: auto !important;
+    padding: 10px 14px !important;
+    min-height: 80px;
 }
 
 .modal .form-control:focus,
 .modal select:focus,
 .modal textarea:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px var(--focus-ring);
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px var(--focus-ring) !important;
+    outline: 0 !important;
 }
 
-/* Invalid */
-.modal .form-control.is-invalid {
-    border-color: #ef4444;
+/* ══ Dynamic Validation Spans (Shift Prevention) ══ */
+.field-error {
+    display: block;
+    font-size: 11px !important;
+    font-weight: 500;
+    color: #dc2626;
+    margin-top: 4px;
+    min-height: 16px; /* Dynamic message ke aane par form fields shake ya niche nahi hilenge */
 }
 
-.modal .form-control.is-invalid:focus {
-    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+/* Standard bootstrap invalid field overrides */
+.modal .form-control.is-invalid,
+.modal select.is-invalid {
+    border-color: #ef4444 !important;
+    background-image: none !important;
 }
 
-/* Buttons */
-.modal .btn {
-    height: 48px;
-    border-radius: 10px;
+/* Modals Buttons Styling mapped via standard bootstrap classes */
+.modal-footer .btn {
+    height: 40px;
+    border-radius: 8px;
     font-weight: 600;
     font-size: 14px;
     padding: 0 20px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.15s ease;
 }
 
-/* Toast (same as category, reused globally) */
-.toast-container {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    z-index: 9999;
+.modal-footer .btn-secondary {
+    background-color: #fff !important;
+    color: var(--text-secondary) !important;
+    border: 1px solid #cbd5e1 !important;
 }
 
-.toast {
-    background: #ffffff;
+.modal-footer .btn-secondary:hover {
+    background-color: #f8fafc !important;
+    color: var(--text-primary) !important;
+}
+
+.modal-footer .btn-primary {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #fff !important;
+}
+
+.modal-footer .btn-primary:hover {
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+}
+
+.modal-footer .btn-danger {
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: #fff !important;
+}
+
+.modal-footer .btn-danger:hover {
+    background-color: #b91c1c !important;
+    border-color: #b91c1c !important;
+}
+
+/* Small Confirm Dialog Custom Width Setup */
+#productConfirmModal .modal-dialog {
+    max-width: 400px;
+}
+
+/* =========================================================================
+   ══ Dropzone Premium SaaS Refinements & Fixes ════════════════════════════
+   ========================================================================= */
+
+/* CRITICAL FIX: Prevent global modal input styles from overriding Dropzone's hidden file inputs */
+.dropzone-container input[type="file"].dz-hidden-input {
+    height: 0px !important;
+    padding: 0px !important;
+    border: none !important;
+    visibility: hidden !important;
+}
+
+/* Base Dropzone Container Style Customizations */
+.dropzone-container.dropzone {
+    min-height: 140px !important;
+    border: 2px dashed var(--border-color) !important;
+    background-color: #f8fafc !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hover & Active Drag States */
+.dropzone-container.dropzone:hover,
+.dropzone-container.dropzone.dz-drag-hover {
+    border-color: var(--primary-color) !important;
+    background-color: #eff6ff !important;
+}
+
+/* Styling the Internal Message */
+.dropzone-container .dz-message {
+    margin: 0 !important;
+}
+
+.dropzone-container .dz-message i {
+    color: #94a3b8;
+    transition: color 0.2s;
+}
+
+.dropzone-container.dropzone:hover .dz-message i {
+    color: var(--primary-color);
+}
+
+/* Premium Image Preview Thumbnail Styling */
+.dropzone-container .dz-preview.dz-image-preview {
+    background: transparent !important;
+    margin: 0 !important;
+}
+
+.dropzone-container .dz-preview .dz-image {
+    border-radius: 10px !important;
+    width: 90px !important;
+    height: 90px !important;
     border: 1px solid var(--border-color);
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-    border-radius: 12px;
-    min-width: 380px;
+}
+
+/* Syncing dropzone validation state with your premium design tokens */
+.dropzone-container.is-invalid {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+}
+
+/* Section Dividers formatting */
+.section-divider {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 4px;
+    margin-top: 24px;
+    margin-bottom: 16px;
+}
+
+/* =========================================================================
+   ══ Scrollable Modal Fix — append these lines to the bottom of product.css
+   =========================================================================
+   ROOT CAUSE: The <form> element sits between .modal-content and the
+   .modal-header / .modal-body / .modal-footer. Bootstrap's modal-dialog-
+   scrollable uses flexbox on .modal-content and expects those three to be
+   its DIRECT flex children. The <form> wrapper breaks that flex chain, so
+   the body never gets overflow-y:auto and the footer falls off screen.
+
+   FIX: Make the form itself a flex column that fills .modal-content,
+   then give the .modal-body inside it the scroll behaviour.
+   ========================================================================= */
+
+/* 1. Form acts as the new flex container */
+#productCreateModal .modal-content > form,
+#productEditModal   .modal-content > form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* 2. Body is the only part that grows and scrolls */
+#productCreateModal .modal-content > form > .modal-body,
+#productEditModal   .modal-content > form > .modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+}
+
+/* 3. Header and footer stay pinned — never pushed off screen */
+#productCreateModal .modal-content > form > .modal-header,
+#productCreateModal .modal-content > form > .modal-footer,
+#productEditModal   .modal-content > form > .modal-header,
+#productEditModal   .modal-content > form > .modal-footer {
+    flex-shrink: 0;
+}
+
+/* 4. Cap modal dialog height so Bootstrap has a reference point */
+#productCreateModal .modal-dialog,
+#productEditModal   .modal-dialog {
+    height: calc(100vh - 3.5rem);
+    max-height: calc(100vh - 3.5rem);
+}
+
+/* 5. Modal content must fill the dialog */
+#productCreateModal .modal-content,
+#productEditModal   .modal-content {
+    max-height: 100% !important;
+    height: 100%;
 }

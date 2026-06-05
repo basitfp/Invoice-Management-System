@@ -6,6 +6,9 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\AreaController;
+use App\Http\Controllers\Admin\ManufacturerController;
+use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
@@ -41,6 +44,27 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::put('/categories/{category}',              [CategoryController::class, 'update']) ->name('admin.categories.update');
     Route::delete('/categories/{category}',           [CategoryController::class, 'destroy'])->name('admin.categories.destroy');
     Route::patch('/categories/{category}/toggle-status',[CategoryController::class,'toggleStatus'])->name('admin.categories.toggle-status');
+
+    // Areas
+    Route::get('/areas',                              [AreaController::class, 'index'])       ->name('admin.areas.index');
+    Route::post('/areas',                             [AreaController::class, 'store'])       ->name('admin.areas.store');
+    Route::put('/areas/{area}',                       [AreaController::class, 'update'])      ->name('admin.areas.update');
+    Route::delete('/areas/{area}',                    [AreaController::class, 'destroy'])     ->name('admin.areas.destroy');
+    Route::patch('/areas/{area}/toggle-status',       [AreaController::class, 'toggleStatus'])->name('admin.areas.toggle-status');
+
+    // Manufacturers
+    Route::get('/manufacturers',                              [ManufacturerController::class, 'index'])       ->name('admin.manufacturers.index');
+    Route::post('/manufacturers',                             [ManufacturerController::class, 'store'])       ->name('admin.manufacturers.store');
+    Route::put('/manufacturers/{manufacturer}',               [ManufacturerController::class, 'update'])      ->name('admin.manufacturers.update');
+    Route::delete('/manufacturers/{manufacturer}',            [ManufacturerController::class, 'destroy'])     ->name('admin.manufacturers.destroy');
+    Route::patch('/manufacturers/{manufacturer}/toggle-status',[ManufacturerController::class,'toggleStatus'])->name('admin.manufacturers.toggle-status');
+    
+    // Vendors
+    Route::get('/vendors',                            [VendorController::class, 'index'])->name('admin.vendors.index');
+    Route::post('/vendors',                           [VendorController::class, 'store'])->name('admin.vendors.store');
+    Route::put('/vendors/{vendor}',                   [VendorController::class, 'update'])->name('admin.vendors.update');
+    Route::patch('/vendors/{vendor}/toggle-status',   [VendorController::class, 'toggleStatus'])->name('admin.vendors.toggle-status');
+    Route::delete('/vendors/{vendor}',                [VendorController::class, 'destroy'])->name('admin.vendors.destroy');
 
     // Products
     Route::get('/products',                           [ProductController::class, 'index'])  ->name('admin.products.index');

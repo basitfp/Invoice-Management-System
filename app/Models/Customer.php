@@ -15,14 +15,35 @@ class Customer extends Model
         'email',
         'phone',
         'customer_type',
+        'gender',
+        'birthdate',
         'address',
+        'shipping_address',
+        'city',
+        'pin_code',
+        'state',
+        'country',
+        'landmark',
+        'area_id',
+        'credit_days',
+        'credit_limit',
         'vat_registered',
         'vat_number',
-        'status'
+        'status',
     ];
 
     protected $casts = [
         'vat_registered' => 'boolean',
-        'status' => 'boolean',
+        'status'         => 'boolean',
+        'birthdate'      => 'date',
+        'credit_limit'   => 'decimal:2',
     ];
+
+    // ----------------------------
+    // Relationships
+    // ----------------------------
+    public function area()
+    {
+        return $this->belongsTo(Area::class);
+    }
 }

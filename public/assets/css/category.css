@@ -1,11 +1,26 @@
 /* Category Module Styles - Premium SaaS Aesthetic */
 
+:root {
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --primary-color: #2563eb;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --focus-ring: rgba(37, 99, 235, 0.15);
+}
+
 .category-card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
     box-shadow: 0 10px 40px rgba(15,23,42,.04), 0 2px 8px rgba(15,23,42,.02);
     border-radius: 16px;
     padding: 32px;
+}
+
+@media (max-width: 768px) {
+    .category-card {
+        padding: 20px;
+    }
 }
 
 .category-header {
@@ -30,196 +45,164 @@
     margin-top: 4px;
 }
 
-/* Custom Table Styling */
+/* Custom Table Styling & Responsiveness Fix */
 .table-responsive {
     border-radius: 12px;
     border: 1px solid var(--border-color);
     background: #fff;
     overflow: hidden;
+    margin-top: 10px;
 }
 
 .table-category {
     margin-bottom: 0 !important;
+    vertical-align: middle;
 }
 
 .table-category thead th {
-    background-color: #fafbfc;
+    background-color: #f8fafc;
     font-size: 12px;
     text-transform: uppercase;
     font-weight: 600;
     letter-spacing: 0.05em;
     color: var(--text-secondary);
-    padding: 16px 24px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
+    border-top: none;
 }
 
 .table-category tbody td {
-    padding: 16px 24px;
+    padding: 16px 20px;
     font-size: 14px;
-    color: var(--text-primary);
-    vertical-align: middle;
-    border-bottom: 1px solid var(--border-color);
-    transition: background-color 0.15s ease;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .table-category tbody tr:last-child td {
     border-bottom: none;
 }
 
-.table-category tbody tr:hover td {
-    background-color: rgba(15, 23, 42, 0.015);
-}
-
-/* Status Badges */
-.badge-status-enabled {
+/* Badges styling */
+.badge {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
     display: inline-flex;
     align-items: center;
-    background-color: #ecfdf5;
-    color: #059669;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 9999px;
-    font-size: 12px;
 }
 
-.badge-status-disabled {
-    display: inline-flex;
-    align-items: center;
-    background-color: #fef2f2;
-    color: #ef4444;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 9999px;
-    font-size: 12px;
-}
-
-/* Action Buttons */
+/* Action Buttons Design */
 .btn-category-action {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 8px 14px;
-    border-radius: 8px;
-    transition: all 0.15s ease;
-    gap: 6px;
     border: 1px solid var(--border-color);
-    background-color: #fff;
+    background: #fff;
     color: var(--text-secondary);
+    transition: all 0.2s ease;
+    padding: 0;
+    font-size: 15px;
 }
 
 .btn-category-action:hover {
-    background-color: rgba(15, 23, 42, 0.03);
+    background-color: #f8fafc;
     color: var(--text-primary);
     border-color: #cbd5e1;
 }
 
 .btn-category-view:hover {
-    background-color: rgba(91, 141, 239, 0.06);
-    color: var(--primary-color);
-    border-color: rgba(91, 141, 239, 0.2);
+    color: #2563eb;
+    background-color: #eff6ff;
+    border-color: #bfdbfe;
 }
 
 .btn-category-edit:hover {
-    background-color: rgba(91, 141, 239, 0.06);
-    color: var(--primary-color);
-    border-color: rgba(91, 141, 239, 0.2);
+    color: #d97706;
+    background-color: #fffbeb;
+    border-color: #fde68a;
 }
 
-.btn-category-disable:hover {
+.btn-category-status:hover {
+    color: #65a30d;
+    background-color: #f7fee7;
+    border-color: #d9f99d;
+}
+
+.btn-category-delete:hover {
+    color: #dc2626;
     background-color: #fef2f2;
-    color: #ef4444;
-    border-color: rgba(239, 68, 68, 0.2);
+    border-color: #fca5a5;
 }
 
-.btn-category-enable:hover {
-    background-color: #ecfdf5;
-    color: #059669;
-    border-color: rgba(5, 150, 105, 0.2);
-}
-
-/* Modals */
+/* Modals Modern Polish */
 .modal-content {
     border: none;
-    border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
 }
 
 .modal-header {
     border-bottom: 1px solid var(--border-color);
-    padding: 24px 28px;
+    padding: 20px 24px;
+    background-color: #f8fafc;
 }
 
 .modal-header .modal-title {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--text-primary);
 }
 
 .modal-body {
-    padding: 28px;
+    padding: 24px;
 }
 
 .modal-footer {
     border-top: 1px solid var(--border-color);
-    padding: 20px 28px;
-    gap: 12px;
+    padding: 16px 24px;
+    gap: 10px;
+    background-color: #f8fafc;
+}
+
+/* Form Input Alignment & Shift Prevention */
+.form-group-validation {
+    position: relative;
+    padding-bottom: 4px;
 }
 
 .modal .form-label {
     font-size: 13px;
     font-weight: 600;
     color: var(--text-secondary);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .modal .form-control {
-    height: 52px;
-    border-radius: 12px;
+    height: 44px;
+    border-radius: 8px;
     border: 1px solid var(--border-color);
     font-size: 14px;
-    padding: 0 16px;
+    padding: 0 14px;
     transition: all 0.2s ease;
 }
 
 .modal .form-control:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px var(--focus-ring);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+    outline: 0;
 }
 
-.modal .form-control.is-invalid {
-    border-color: #ef4444;
-}
-
-.modal .form-control.is-invalid:focus {
-    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
-}
-
-.modal .btn {
-    height: 48px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 14px;
-    padding: 0 20px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-
-/* Toast Notifications styling */
-.toast-container {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    z-index: 9999;
-}
-
-.toast {
-    background: #ffffff;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-    border-radius: 12px;
-    min-width: 380px;
+/* Floating validation errors overlayed nicely */
+.field-error {
+    display: block;
+    font-size: 11px !important;
+    font-weight: 500;
+    color: #dc2626;
+    margin-top: 4px;
+    min-height: 16px;
 }
