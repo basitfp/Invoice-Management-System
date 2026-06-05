@@ -576,7 +576,7 @@
                 FV.validateField($saleField, {
                     label: 'Sale Price',
                     check: function (value) {
-                        var sale     = parseFloat(value);
+                        var sale = parseFloat(value);
                         var purchase = parseFloat($('#c-purchase_price').val());
                         if (!isNaN(purchase) && purchase > 0 && sale <= purchase) {
                             return 'Sale Price must be greater than Purchase Price.';
@@ -772,12 +772,10 @@
             contentType: false,
             success: function (response) {
                 setCreateBusy(false);
-
                 if (response && response.success) {
                     toastr.success(response.message || 'Product created successfully.');
                     bootstrap.Modal.getInstance(document.getElementById('productCreateModal')).hide();
                     resetCreateModal();
-
                     if (response.product) {
                         appendProductRow(response.product);
                     } else {
@@ -809,10 +807,9 @@
 
         setEditBusy(true);
 
-        var id  = $('#edit-id').val();
-        var fd  = buildEditFormData();
+        var id = $('#edit-id').val();
+        var fd = buildEditFormData();
         var url = '/admin/products/' + id;
-
         fd.append('_method', 'PUT');
 
         $.ajax({
@@ -823,11 +820,9 @@
             contentType: false,
             success: function (response) {
                 setEditBusy(false);
-
                 if (response && response.success) {
                     toastr.success(response.message || 'Product updated successfully.');
                     bootstrap.Modal.getInstance(document.getElementById('productEditModal')).hide();
-
                     if (response.product && ES) {
                         ES.syncProductRow(response.product);
                     } else {
@@ -850,37 +845,57 @@
 
     $(document).on('click', '.btn-product-edit', function () {
         var $btn = $(this);
-
         resetEditModal();
 
-        var id = $btn.data('id');
+        var id             = $btn.data('id');
+        var name           = $btn.data('name') || '';
+        var itemCode       = $btn.data('item-code') || '';
+        var itemClass      = $btn.data('item-class') || 'general';
+        var regionalName   = $btn.data('regional-name') || '';
+        var categoryId     = $btn.data('category') || '';
+        var manufacturerId = $btn.data('manufacturer-id') || '';
+        var hsnCode        = $btn.data('hsn-code') || '';
+        var unit           = $btn.data('unit') || 'pcs';
+        var purchase       = $btn.data('purchase') || '';
+        var purchaseTax    = $btn.data('purchase-tax-percent') || '0';
+        var purchaseTaxI   = $btn.data('purchase-tax-inclusive') || '0';
+        var sale           = $btn.data('selling') || '';
+        var gstVat         = $btn.data('gst-vat-percent') || '0';
+        var saleTaxI       = $btn.data('sale-tax-inclusive') || '0';
+        var discount       = $btn.data('discount-percentage') || '0';
+        var cess           = $btn.data('cess-percentage') || '0';
+        var addCess        = $btn.data('additional-cess') || '0';
+        var isWeighing     = $btn.data('is-weighing') || '0';
+        var qty            = $btn.data('qty') || '0';
+        var moq            = $btn.data('moq') || '1';
+        var status         = $btn.data('status') === '1' ? '1' : '0';
+        var desc           = $btn.data('desc') || '';
+        var imageUrl       = $btn.data('image') || '';
 
         $('#edit-id').val(id);
-        $('#e-name').val($btn.data('name') || '');
-        $('#e-item_code').val($btn.data('item-code') || '');
-        $('#e-item_class').val($btn.data('item-class') || 'general');
-        $('#e-category_id').val($btn.data('category') || '');
-        $('#e-manufacturer_id').val($btn.data('manufacturer-id') || '');
-        $('#e-hsn_code').val($btn.data('hsn-code') || '');
-        $('#e-regional_name').val($btn.data('regional-name') || '');
-        $('#e-unit').val($btn.data('unit') || '');
-        $('#e-purchase_price').val($btn.data('purchase') || 0);
-        $('#e-purchase_tax_percent').val($btn.data('purchase-tax-percent') || 0);
-        $('#e-purchase_tax_inclusive').val(String($btn.data('purchase-tax-inclusive') || '0'));
-        $('#e-sale_price').val($btn.data('selling') || 0);
-        $('#e-gst_vat_percent').val($btn.data('gst-vat-percent') || 0);
-        $('#e-sale_tax_inclusive').val(String($btn.data('sale-tax-inclusive') || '0'));
-        $('#e-discount_percent').val($btn.data('discount-percentage') || 0);
-        $('#e-cess_percent').val($btn.data('cess-percentage') || 0);
-        $('#e-additional_cess').val($btn.data('additional-cess') || 0);
-        $('#e-is_weighing_item').val(String($btn.data('is-weighing') || '0'));
-        $('#e-qty').val($btn.data('qty') || 0);
-        $('#e-moq').val($btn.data('moq') || 1);
-        $('#e-status').val(String($btn.data('status') || '1'));
-        $('#e-description').val($btn.data('desc') || '');
-        $('#edit-remove-image').val('0');
+        $('#e-name').val(name);
+        $('#e-item_code').val(itemCode);
+        $('#e-item_class').val(itemClass);
+        $('#e-regional_name').val(regionalName);
+        $('#e-category_id').val(categoryId);
+        $('#e-manufacturer_id').val(manufacturerId);
+        $('#e-hsn_code').val(hsnCode);
+        $('#e-unit').val(unit);
+        $('#e-purchase_price').val(purchase);
+        $('#e-purchase_tax_percent').val(purchaseTax);
+        $('#e-purchase_tax_inclusive').val(purchaseTaxI);
+        $('#e-sale_price').val(sale);
+        $('#e-gst_vat_percent').val(gstVat);
+        $('#e-sale_tax_inclusive').val(saleTaxI);
+        $('#e-discount_percent').val(discount);
+        $('#e-cess_percent').val(cess);
+        $('#e-additional_cess').val(addCess);
+        $('#e-is_weighing_item').val(isWeighing);
+        $('#e-qty').val(qty);
+        $('#e-moq').val(moq);
+        $('#e-status').val(status);
+        $('#e-description').val(desc);
 
-        var imageUrl = $btn.data('image-url') || '';
         if (imageUrl) {
             $('#edit_current_image').attr('src', imageUrl);
             $('#edit_image_preview_wrapper').show();
@@ -909,21 +924,21 @@
         var name         = $btn.data('name') || '';
         var itemCode     = $btn.data('item-code') || '';
         var itemClass    = $btn.data('item-class') || '';
-        var regionalName = $btn.data('regional-name') || '';
-        var category     = $btn.data('category') || '-';
+        var regionalName = $btn.data('regional-name') || '-';
+        var category     = $btn.data('category-name') || '-';
         var manufacturer = $btn.data('manufacturer') || '-';
         var hsnCode      = $btn.data('hsn-code') || '-';
         var unit         = $btn.data('unit') || '-';
         var purchase     = parseFloat($btn.data('purchase') || 0);
         var purchaseTax  = $btn.data('purchase-tax-percent') || '0';
-        var purchaseTaxI = $btn.data('purchase-tax-inclusive') === '1' ? 'Tax Inclusive' : 'Tax Exclusive';
+        var purchaseTaxI = $btn.data('purchase-tax-inclusive') === 1 ? 'Tax Inclusive' : 'Tax Exclusive';
         var sale         = parseFloat($btn.data('selling') || 0);
         var gstVat       = $btn.data('gst-vat-percent') || '0';
-        var saleTaxI     = $btn.data('sale-tax-inclusive') === '1' ? 'Tax Inclusive' : 'Tax Exclusive';
+        var saleTaxI     = $btn.data('sale-tax-inclusive') === 1 ? 'Tax Inclusive' : 'Tax Exclusive';
         var discount     = $btn.data('discount-percentage') || '0';
         var cess         = $btn.data('cess-percentage') || '0';
         var addCess      = $btn.data('additional-cess') || '0';
-        var isWeighing   = $btn.data('is-weighing') === '1' ? 'Yes' : 'No';
+        var isWeighing   = $btn.data('is-weighing') === 1 ? 'Yes' : 'No';
         var qty          = $btn.data('qty') || '0';
         var moq          = $btn.data('moq') || '1';
         var status       = $btn.data('status');
@@ -931,8 +946,8 @@
         var imageUrl     = $btn.data('image') || '';
 
         var itemClassLabel = {
-            general:      'General',
-            sale_only:    'Sale Only',
+            general: 'General',
+            sale_only: 'Sale Only',
             raw_material: 'Raw Material'
         }[itemClass] || itemClass;
 
@@ -945,34 +960,26 @@
         $('#v-hsn_code').text(hsnCode);
         $('#v-unit').text(unit);
         $('#v-purchase_price').text('$' + purchase.toFixed(2));
-        $('#v-purchase_tax_percent').text(purchaseTax + '%');
-        $('#v-purchase_tax_inclusive').text(purchaseTaxI);
+        $('#v-purchase_tax_percent').text(purchaseTax + '% (' + purchaseTaxI + ')');
         $('#v-sale_price').text('$' + sale.toFixed(2));
-        $('#v-gst_vat_percent').text(gstVat + '%');
-        $('#v-sale_tax_inclusive').text(saleTaxI);
+        $('#v-gst_vat_percent').text(gstVat + '% (' + saleTaxI + ')');
         $('#v-discount_percent').text(discount + '%');
         $('#v-cess_percent').text(cess + '%');
         $('#v-additional_cess').text('$' + parseFloat(addCess).toFixed(2));
         $('#v-is_weighing_item').text(isWeighing);
-        $('#v-qty').text(qty);
-        $('#v-moq').text(moq);
+        $('#v-qty').text(qty + ' ' + unit);
+        $('#v-moq').text(moq + ' ' + unit);
         $('#v-desc').text(desc || 'No description provided.');
 
-        var statusHtml = (status === '1' || status === 1)
-            ? '<span class="badge-status-enabled">Enabled</span>'
-            : '<span class="badge-status-disabled">Disabled</span>';
+        var statusHtml = status == 1 
+            ? '<span class="badge bg-success bg-opacity-10 text-success" style="font-size:12px; padding:4px 12px; border-radius:20px;">Enabled</span>'
+            : '<span class="badge bg-danger bg-opacity-10 text-danger" style="font-size:12px; padding:4px 12px; border-radius:20px;">Disabled</span>';
         $('#v-status').html(statusHtml);
 
-        var $imageWrapper = $('#v-image-wrapper');
         if (imageUrl) {
-            $imageWrapper.html(
-                '<img src="' + imageUrl + '" alt="' + name + '" style="width: 80px; height: 80px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border-color);">'
-            );
+            $('#v-image-wrapper').html('<img src="' + imageUrl + '" alt="Product Image" style="width:70px; height:70px; object-fit:cover; border-radius:10px; border:1px solid var(--border-color);">');
         } else {
-            $imageWrapper.html(
-                '<div style="width: 80px; height: 80px; background-color: #f1f5f9; border-radius: 12px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: #94a3b8;">' +
-                '<i class="bi bi-image" style="font-size: 28px;"></i></div>'
-            );
+            $('#v-image-wrapper').html('<div class="d-flex align-items-center justify-content-center" style="width:70px; height:70px; background-color:#f1f5f9; border-radius:10px; border:1px solid var(--border-color); color:#94a3b8;"><i class="bi bi-image" style="font-size:24px;"></i></div>');
         }
 
         var modal = new bootstrap.Modal(document.getElementById('productViewModal'));
@@ -984,7 +991,7 @@
     // =========================================================================
 
     $(document).on('click', '.btn-product-toggle', function () {
-        var $btn   = $(this);
+        var $btn = $(this);
         var id     = $btn.data('id');
         var name   = $btn.data('name') || 'this product';
         var status = String($btn.data('status'));
@@ -1046,11 +1053,12 @@
             $.ajax({
                 url: '/admin/products/' + id + '/toggle-status',
                 method: 'PATCH',
-                data: { _token: $('meta[name="csrf-token"]').attr('content') },
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
                 success: function (response) {
                     setConfirmBusy(false);
                     bootstrap.Modal.getInstance(document.getElementById('productConfirmModal')).hide();
-
                     if (response && response.success) {
                         toastr.success(response.message || 'Status updated.');
                         if (ES) {
@@ -1059,7 +1067,7 @@
                             location.reload();
                         }
                     } else {
-                        toastr.error(response.message || 'Could not update status.');
+                        toastr.error(response.message || 'Action failed.');
                     }
                 },
                 error: function (xhr) {
@@ -1068,21 +1076,23 @@
                     toastr.error(parseAjaxError(xhr));
                 }
             });
-
         } else if (action === 'delete') {
             $.ajax({
                 url: '/admin/products/' + id,
                 method: 'DELETE',
-                data: { _token: $('meta[name="csrf-token"]').attr('content') },
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
                 success: function (response) {
                     setConfirmBusy(false);
                     bootstrap.Modal.getInstance(document.getElementById('productConfirmModal')).hide();
-
                     if (response && response.success) {
                         toastr.success(response.message || 'Product deleted.');
-                        $('tr[data-id="' + id + '"]').fadeOut(300, function () { $(this).remove(); });
+                        $('tr[data-id="' + id + '"]').fadeOut(300, function () {
+                            $(this).remove();
+                        });
                     } else {
-                        toastr.error(response.message || 'Could not delete product.');
+                        toastr.error(response.message || 'Delete failed.');
                     }
                 },
                 error: function (xhr) {
@@ -1095,43 +1105,26 @@
     });
 
     // =========================================================================
-    // Modal reset on hidden
-    // =========================================================================
-
-    document.addEventListener('hidden.bs.modal', function (e) {
-        if (e.target.id === 'productCreateModal') {
-            resetCreateModal();
-            setCreateBusy(false);
-        }
-        if (e.target.id === 'productEditModal') {
-            resetEditModal();
-            setEditBusy(false);
-        }
-        if (e.target.id === 'productConfirmModal') {
-            setConfirmBusy(false);
-        }
-    });
-
-    // =========================================================================
-    // Append new row to table after create
+    // Append newly created product row to table dynamically
     // =========================================================================
 
     function appendProductRow(p) {
-        var categoryName    = (p.category && p.category.name) ? p.category.name : (p.category_name || '-');
+        var categoryName     = (p.category && p.category.name) ? p.category.name : (p.category_name || '-');
         var manufacturerName = (p.manufacturer && p.manufacturer.name) ? p.manufacturer.name : (p.manufacturer_name || '-');
-        var salePrice       = parseFloat(p.sale_price || 0).toFixed(2);
-        var statusBadge     = (p.status == 1) ? '<span class="badge-status-enabled">Enabled</span>' : '<span class="badge-status-disabled">Disabled</span>';
-        var qty             = p.qty || 0;
-        var moq             = p.moq || 1;
-        var unit            = p.unit || 'pcs';
+        var salePrice        = parseFloat(p.sale_price || 0).toFixed(2);
+        var statusBadge      = (p.status == 1) ? '<span class="badge-status-enabled">Enabled</span>' : '<span class="badge-status-disabled">Disabled</span>';
+        var qty              = p.qty || 0;
+        var moq              = p.moq || 1;
+        var unit             = p.unit || 'pcs';
+
         var stockBadgeClass = (qty <= moq) ? 'bg-danger' : 'bg-success';
 
-        var imageCell = p.image
+        var imageCell = p.image 
             ? '<img src="/storage/' + p.image + '" alt="' + escapeHtml(p.name) + '" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color);">'
             : '<div class="d-flex align-items-center justify-content-center" style="width:40px;height:40px;background-color:#f1f5f9;border-radius:8px;border:1px solid var(--border-color);color:#94a3b8;"><i class="bi bi-image" style="font-size:16px;"></i></div>';
 
-        var imageUrl   = p.image ? window.location.origin + '/storage/' + p.image : '';
-        var statusStr  = ES ? ES.normalizeStatus(p.status) : (p.status ? '1' : '0');
+        var imageUrl  = p.image ? window.location.origin + '/storage/' + p.image : '';
+        var statusStr = ES ? ES.normalizeStatus(p.status) : (p.status ? '1' : '0');
 
         var row = '<tr data-id="' + p.id + '">' +
             '<td>' + imageCell + '</td>' +
@@ -1139,9 +1132,11 @@
             '<td id="name-' + p.id + '" class="fw-semibold">' + escapeHtml(p.name) + '</td>' +
             '<td id="category-' + p.id + '">' + escapeHtml(categoryName) + '</td>' +
             '<td id="manufacturer-' + p.id + '">' + escapeHtml(manufacturerName) + '</td>' +
-            '<td id="selling-' + p.id + '" class="text-end fw-bold" style="color:var(--text-primary);">$' + salePrice + '</td>' +
-            '<td id="qty-' + p.id + '" class="text-center"><span class="badge ' + stockBadgeClass + '" style="font-weight:600;font-size:12px;padding:6px 12px;border-radius:6px;opacity:.85;">' + qty + ' ' + escapeHtml(unit) + '</span></td>' +
-            '<td class="text-center" id="status-container-' + p.id + '">' + statusBadge + '</td>' +
+            '<td class="text-end fw-bold" id="price-' + p.id + '">$' + salePrice + '</td>' +
+            '<td class="text-center">' +
+                '<span id="stock-badge-' + p.id + '" class="badge ' + stockBadgeClass + '" style="font-size:12px; padding:4px 10px; border-radius:6px;">' + qty + ' ' + unit + '</span>' +
+            '</td>' +
+            '<td class="text-center" id="status-badge-' + p.id + '">' + statusBadge + '</td>' +
             '<td class="text-end">' +
                 '<div class="d-flex justify-content-end gap-1">' +
                     '<button class="btn btn-product-action btn-product-view" title="View"' +
@@ -1149,7 +1144,7 @@
                         ' data-item-code="' + escapeHtml(p.item_code || '') + '"' +
                         ' data-item-class="' + escapeHtml(p.item_class || 'general') + '"' +
                         ' data-regional-name="' + escapeHtml(p.regional_name || '') + '"' +
-                        ' data-category="' + escapeHtml(categoryName) + '"' +
+                        ' data-category-name="' + escapeHtml(categoryName) + '"' +
                         ' data-manufacturer="' + escapeHtml(manufacturerName) + '"' +
                         ' data-hsn-code="' + escapeHtml(p.hsn_code || '') + '"' +
                         ' data-unit="' + escapeHtml(unit) + '"' +
@@ -1192,8 +1187,7 @@
                         ' data-qty="' + qty + '" data-moq="' + moq + '"' +
                         ' data-status="' + statusStr + '"' +
                         ' data-desc="' + escapeHtml(p.description || '') + '"' +
-                        ' data-image="' + escapeHtml(p.image || '') + '"' +
-                        ' data-image-url="' + imageUrl + '">' +
+                        ' data-image="' + imageUrl + '">' +
                         '<i class="bi bi-pencil"></i>' +
                     '</button>' +
                     '<button class="btn btn-product-action btn-product-toggle" title="Toggle Status"' +
@@ -1223,46 +1217,37 @@
     function handleServerErrors(response, prefix) {
         if (response && response.errors) {
             var fieldMap = {
-                name:                  prefix + '-name',
-                item_code:             prefix + '-item_code',
-                item_class:            prefix + '-item_class',
-                category_id:           prefix + '-category_id',
-                manufacturer_id:       prefix + '-manufacturer_id',
-                hsn_code:              prefix + '-hsn_code',
-                regional_name:         prefix + '-regional_name',
-                unit:                  prefix + '-unit',
-                purchase_price:        prefix + '-purchase_price',
-                purchase_tax_percent:  prefix + '-purchase_tax_percent',
-                purchase_tax_inclusive: prefix + '-purchase_tax_inclusive',
-                sale_price:            prefix + '-sale_price',
-                gst_vat_percent:       prefix + '-gst_vat_percent',
-                sale_tax_inclusive:    prefix + '-sale_tax_inclusive',
-                discount_percent:      prefix + '-discount_percent',
-                cess_percent:          prefix + '-cess_percent',
-                additional_cess:       prefix + '-additional_cess',
-                is_weighing_item:      prefix + '-is_weighing_item',
-                qty:                   prefix + '-qty',
-                moq:                   prefix + '-moq',
-                status:                prefix + '-status',
-                description:           prefix + '-description',
-                image:                 prefix + '-image'
+                name: prefix + '-name',
+                item_code: prefix + '-item_code',
+                item_class: prefix + '-item_class',
+                category_id: prefix + '-category_id',
+                manufacturer_id: prefix + '-manufacturer_id',
+                hsn_code: prefix + '-hsn_code',
+                regional_name: prefix + '-regional_name',
+                unit: prefix + '-unit',
+                purchase_price: prefix + '-purchase_price',
+                purchase_tax_percent: prefix + '-purchase_tax_percent',
+                sale_price: prefix + '-sale_price',
+                gst_vat_percent: prefix + '-gst_vat_percent',
+                discount_percent: prefix + '-discount_percent',
+                cess_percent: prefix + '-cess_percent',
+                additional_cess: prefix + '-additional_cess',
+                qty: prefix + '-qty',
+                moq: prefix + '-moq',
+                status: prefix + '-status',
+                description: prefix + '-description'
             };
 
-            $.each(response.errors, function (field, messages) {
-                var elId = fieldMap[field] || (prefix + '-' + field);
-                var $el  = $('#' + elId);
-
-                if (field === 'image') {
-                    showImageError(prefix, Array.isArray(messages) ? messages[0] : messages);
-                    return;
-                }
-
-                if ($el.length) {
-                    FV.setFieldError($el, Array.isArray(messages) ? messages[0] : messages);
+            Object.keys(response.errors).forEach(function (key) {
+                var fieldId = fieldMap[key];
+                if (fieldId) {
+                    var $field = $('#' + fieldId);
+                    if ($field.length) {
+                        FV.setFieldError($field, response.errors[key][0]);
+                    }
                 }
             });
         }
-
         var msg = (response && response.message) ? response.message : 'Please fix the errors and try again.';
         toastr.error(msg);
     }
