@@ -39,7 +39,7 @@
                             <span class="field-error text-danger small" id="c-item_code-error"></span>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label>Item Class <span class="text-danger">*</span></label>
+                            <label>Item Class</label>
                             <select name="item_class" id="c-item_class" class="form-control">
                                 <option value="general" selected>General</option>
                                 <option value="sale_only">Sale Only</option>
@@ -171,7 +171,7 @@
                             <div class="row">
                                 <div class="col-6">
                                     <label>Quantity <span class="text-danger">*</span></label>
-                                    <input type="number" name="qty" id="c-qty" class="form-control" min="0" step="1" value="0">
+                                    <input type="number" name="qty" id="c-qty" class="form-control" min="0" step="1" value="1">
                                     <span class="field-error text-danger small" id="c-qty-error"></span>
                                 </div>
                                 <div class="col-6">

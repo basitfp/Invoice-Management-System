@@ -25,8 +25,7 @@ $(document).ready(function () {
         var rules = [
             FV.rules.name($('#' + prefix + '-name'), 'Name'),
             FV.rules.email($('#' + prefix + '-email'), 'Email'),
-            FV.rules.phone($('#' + prefix + '-phone'), 'Phone number'),
-            FV.rules.select($('#' + prefix + '-type'), 'Customer type')
+            FV.rules.phone($('#' + prefix + '-phone'), 'Phone number', false)
         ];
 
         var valid = FV.runRules(rules, true);
@@ -325,7 +324,7 @@ $(document).ready(function () {
         $('#e-name').val($btn.attr('data-name'));
         $('#e-email').val($btn.attr('data-email'));
         $('#e-phone').val($btn.attr('data-phone'));
-        $('#e-type').val($btn.attr('data-type'));
+        $('#e-type').val($btn.attr('data-type') || 'individual');
         $('#e-gender').val($btn.attr('data-gender') || '');
         $('#e-birthdate').val($btn.attr('data-birthdate') || '');
 

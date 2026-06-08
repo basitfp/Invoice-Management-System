@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 class InvoiceController extends Controller
 {
     // ----------------------------
-    // INDEX - All invoices list
+    // INDEX
     // ----------------------------
     public function index()
     {
@@ -24,7 +24,7 @@ class InvoiceController extends Controller
     }
 
     // ----------------------------
-    // CREATE - Show create form
+    // CREATE
     // ----------------------------
     public function create()
     {
@@ -39,7 +39,7 @@ class InvoiceController extends Controller
                 'purchase_price' => $p->purchase_price,
                 'vat'            => $p->vat,
                 'moq'            => (int) $p->moq,
-                'stock'          => (int) $p->qty,   // current available stock
+                'stock'          => (int) $p->qty,
             ];
         });
 
@@ -47,7 +47,7 @@ class InvoiceController extends Controller
     }
 
     // ----------------------------
-    // STORE - Save new invoice
+    // STORE
     // ----------------------------
     public function store(Request $request)
     {
@@ -66,7 +66,6 @@ class InvoiceController extends Controller
         // ── Stock / MOQ validation ──────────────────────────────────────────
         foreach ($request->products as $item) {
             $product = Product::find($item['product_id']);
-
             if (!$product) continue;
 
             $stock = (int) $product->qty;
@@ -74,43 +73,28 @@ class InvoiceController extends Controller
             $qty   = (int) $item['qty'];
 
             if ($stock <= 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $product->name . ' is out of stock.',
-                ], 422);
+                return response()->json(['success' => false, 'message' => $product->name . ' is out of stock.'], 422);
             }
-
             if ($qty > $stock) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $product->name . ' — only ' . $stock . ' unit(s) available in stock.',
-                ], 422);
+                return response()->json(['success' => false, 'message' => $product->name . ' — only ' . $stock . ' unit(s) available in stock.'], 422);
             }
-
             if ($moq > 0 && $qty < $moq) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $product->name . ' — minimum order quantity is ' . $moq . '.',
-                ], 422);
+                return response()->json(['success' => false, 'message' => $product->name . ' — minimum order quantity is ' . $moq . '.'], 422);
             }
-
             if ($moq > 0 && $qty % $moq !== 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $product->name . ' — quantity must be a multiple of ' . $moq . '.',
-                ], 422);
+                return response()->json(['success' => false, 'message' => $product->name . ' — quantity must be a multiple of ' . $moq . '.'], 422);
             }
         }
 
         try {
             DB::beginTransaction();
 
-            // Auto-generate invoice number
+            // Auto-generate invoice number (sequential, admin style)
             $lastInvoice   = Invoice::latest('id')->first();
             $nextNumber    = $lastInvoice ? ($lastInvoice->id + 1) : 1;
             $invoiceNumber = 'INV-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
-            // ── Calculate totals ────────────────────────────────────────────
+            // Calculate totals
             $totalVat    = 0;
             $totalAmount = 0;
 
@@ -121,7 +105,7 @@ class InvoiceController extends Controller
                 $totalAmount += $lineTotal;
             }
 
-            // ── Save invoice ────────────────────────────────────────────────
+            // Save invoice
             $invoice = Invoice::create([
                 'invoice_number' => $invoiceNumber,
                 'customer_id'    => $request->customer_id,
@@ -132,7 +116,7 @@ class InvoiceController extends Controller
                 'status'         => $request->status,
             ]);
 
-            // ── Save items & deduct stock ───────────────────────────────────
+            // Save items & deduct stock
             foreach ($request->products as $item) {
                 $product   = Product::find($item['product_id']);
                 $lineTotal = $item['selling_price'] * $item['qty'];
@@ -146,7 +130,6 @@ class InvoiceController extends Controller
                     'line_total'    => $lineTotal,
                 ]);
 
-                // Deduct from stock
                 $product->decrement('qty', $item['qty']);
             }
 
@@ -174,7 +157,7 @@ class InvoiceController extends Controller
     }
 
     // ----------------------------
-    // SHOW - View + Print invoice
+    // SHOW
     // ----------------------------
     public function show(Invoice $invoice)
     {
@@ -201,7 +184,7 @@ class InvoiceController extends Controller
             return response()->json([
                 'success'    => true,
                 'message'    => 'Invoice status updated.',
-                'new_status' => $invoice->status,
+                'new_status' => $invoice->fresh()->status,
             ]);
         }
 
@@ -209,16 +192,37 @@ class InvoiceController extends Controller
     }
 
     // ----------------------------
-    // DESTROY - Delete invoice
+    // DESTROY - Delete invoice (restores stock)
     // ----------------------------
     public function destroy(Request $request, Invoice $invoice)
     {
-        $invoice->delete();
+        try {
+            DB::beginTransaction();
 
-        if ($request->ajax()) {
-            return response()->json(['success' => true, 'message' => 'Invoice deleted successfully.']);
+            // Restore stock before deleting
+            foreach ($invoice->items as $item) {
+                Product::where('id', $item->product_id)->increment('qty', $item->qty);
+            }
+
+            $invoice->items()->delete();
+            $invoice->delete();
+
+            DB::commit();
+
+            if ($request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Invoice deleted successfully.']);
+            }
+
+            return back()->with('success', 'Invoice deleted successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Error deleting invoice.'], 500);
+            }
+
+            return back()->with('error', 'Error deleting invoice: ' . $e->getMessage());
         }
-
-        return back()->with('success', 'Invoice deleted successfully.');
     }
 }

@@ -31,7 +31,7 @@ return new class extends Migration
                   ->nullOnDelete();
 
             $table->string('item_class', 100)->nullable()
-                  ->comment('e.g. Goods, Service, Consumable');
+                  ->comment('general, sale_only, raw_material');
             $table->string('hsn_code', 50)->nullable()
                   ->comment('Harmonised System Nomenclature code');
             $table->string('unit', 50)->nullable()
@@ -49,10 +49,12 @@ return new class extends Migration
                   ->comment('True if sold by weight');
 
             // ── Pricing ──────────────────────────────────────
-            $table->decimal('purchase_price', 10, 2);
-            $table->decimal('selling_price', 10, 2);
+            $table->decimal('purchase_price', 10, 2)->default(0);
+            $table->decimal('selling_price', 10, 2)->default(0);
 
             // ── Tax ──────────────────────────────────────────
+            $table->decimal('purchase_tax_percent', 5, 2)->default(0)
+                  ->comment('Purchase tax rate %');
             $table->unsignedTinyInteger('vat')->default(0)
                   ->comment('VAT rate: 0 or 20');
             $table->boolean('purchase_tax_inclusive')->default(false)

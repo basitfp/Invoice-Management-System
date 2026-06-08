@@ -61,14 +61,28 @@
 }
 </style>
 <body>
+    @php
+        $appSettings = \App\Models\Setting::first();
+        $brandName = $appSettings->app_name ?? config('app.name', 'InvoicePro');
+        $brandInitial = strtoupper(substr($brandName, 0, 1));
+    @endphp
 
     <div id="wrapper">
 
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
             <div class="sidebar-brand">
-                <i class="bi bi-receipt-cutoff me-2"></i>
-                {{ config('app.name', 'InvoicePro') }}
+                <div class="brand-mark">
+                    @if($appSettings && $appSettings->logo)
+                        <img src="{{ asset('storage/' . $appSettings->logo) }}" alt="{{ $brandName }}">
+                    @else
+                        <span>{{ $brandInitial }}</span>
+                    @endif
+                </div>
+                <div class="brand-copy">
+                    <span class="brand-name">{{ $brandName }}</span>
+                    <span class="brand-subtitle">Admin Workspace</span>
+                </div>
             </div>
 
             <div class="list-group">
@@ -117,13 +131,21 @@
 
             <!-- Top Navbar -->
             <nav class="dashboard-navbar">
-                <div class="d-flex align-items-center">
-                    <span class="fw-semibold text-dark">
-                        {{ config('app.name', 'Invoice Management System') }}
+                <div class="navbar-business">
+                    <span class="navbar-business-name">{{ $brandName }}</span>
+                    <span class="navbar-business-meta">
+                        @if($appSettings && $appSettings->email)
+                            <i class="bi bi-envelope"></i> {{ $appSettings->email }}
+                        @elseif($appSettings && $appSettings->phone)
+                            <i class="bi bi-telephone"></i> {{ $appSettings->phone }}
+                        @else
+                            Invoice Management System
+                        @endif
                     </span>
                 </div>
 
                 <div class="navbar-user-info">
+                    <div class="navbar-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</div>
                     <div class="text-end me-2">
                         <div class="navbar-user-name">{{ Auth::user()->name }}</div>
                         <span class="role-badge {{ Auth::user()->role }}">{{ Auth::user()->role }}</span>

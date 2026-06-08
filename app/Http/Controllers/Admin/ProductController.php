@@ -37,7 +37,7 @@ class ProductController extends Controller
             $validated = $request->validate([
                 'name'                   => ['required', 'string', 'max:255', 'regex:/^[A-Za-z0-9\s]+$/'],
                 'item_code'              => ['nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9\-_]+$/', 'unique:products,item_code'],
-                'item_class'             => ['required', Rule::in(['general', 'sale_only', 'raw_material'])],
+                'item_class'             => ['nullable', Rule::in(['general', 'sale_only', 'raw_material'])],
                 'category_id'            => ['required', 'exists:categories,id'],
                 'manufacturer_id'        => ['nullable', 'exists:manufacturers,id'],
                 'hsn_code'               => ['nullable', 'string', 'max:50'],
@@ -122,7 +122,7 @@ class ProductController extends Controller
             $request->validate([
                 'name'                   => ['required', 'string', 'max:255', 'regex:/^[A-Za-z0-9\s]+$/'],
                 'item_code'              => ['nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9\-_]+$/', Rule::unique('products', 'item_code')->ignore($product->id)],
-                'item_class'             => ['required', Rule::in(['general', 'sale_only', 'raw_material'])],
+                'item_class'             => ['nullable', Rule::in(['general', 'sale_only', 'raw_material'])],
                 'category_id'            => ['required', 'exists:categories,id'],
                 'manufacturer_id'        => ['nullable', 'exists:manufacturers,id'],
                 'hsn_code'               => ['nullable', 'string', 'max:50'],
@@ -264,7 +264,7 @@ class ProductController extends Controller
         return [
             'name'             => trim($request->name),
             'item_code'        => $request->item_code ? trim($request->item_code) : null,
-            'item_class'       => $request->item_class,
+            'item_class'       => $request->item_class ?: 'general',
             'category_id'      => $request->category_id,
             'manufacturer_id'  => $request->manufacturer_id ?: null,
             'hsn_code'         => $request->hsn_code ?: null,
@@ -274,8 +274,8 @@ class ProductController extends Controller
 
             // Purchase Columns
             'purchase_price'         => $request->purchase_price ?? 0,
+            'purchase_tax_percent'   => $request->purchase_tax_percent ?? 0,
             'purchase_tax_inclusive' => $request->purchase_tax_inclusive ?? 0,
-            // 'purchase_tax_percent' is excluded until the column migration is applied
 
             // Active Database Structural Columns Mapping
             'selling_price'          => $request->sale_price,
@@ -349,6 +349,7 @@ class ProductController extends Controller
             'status'                 => $product->status ? '1' : '0',
             'description'            => $product->description,
             'image'                  => $product->image,
+            'image_url'              => $product->image ? asset('storage/' . $product->image) : null,
         ];
     }
 }

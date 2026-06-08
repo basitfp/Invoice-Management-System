@@ -29,12 +29,13 @@ $(document).ready(function () {
             if (!phoneOk) valid = false;
         }
 
-        // Email — optional, validate only if filled
+       // Email — required
         var $email = $('#create-mfr-email');
-        if ($email.val().trim() !== '') {
-            var emailOk = FV.runRules([FV.rules.email($email, 'Email')], true);
-            if (!emailOk) valid = false;
-        }
+        var emailOk = FV.runRules([
+        FV.rules.email($email, 'Email')
+        ], true);
+
+        if (!emailOk) valid = false;
 
         return valid;
     }
@@ -62,12 +63,13 @@ $(document).ready(function () {
             if (!phoneOk) valid = false;
         }
 
-        // Email — optional, validate only if filled
+       // Email — required
         var $email = $('#edit-mfr-email');
-        if ($email.val().trim() !== '') {
-            var emailOk = FV.runRules([FV.rules.email($email, 'Email')], true);
-            if (!emailOk) valid = false;
-        }
+        var emailOk = FV.runRules([
+        FV.rules.email($email, 'Email')
+        ], true);
+
+        if (!emailOk) valid = false;
 
         return valid;
     }

@@ -2,196 +2,186 @@
 
 @section('content')
 
-{{-- Welcome Header --}}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="fw-bold mb-1" style="color: var(--text-primary);">Dashboard Overview</h4>
-        <p class="text-muted mb-0" style="font-size: 14px;">Welcome back, {{ Auth::user()->name }}. Here is what's happening today.</p>
+@php
+    $companyName = $settings->app_name ?? config('app.name', 'InvoicePro');
+    $companyInitial = strtoupper(substr($companyName, 0, 1));
+@endphp
+
+<div class="dashboard-hero">
+    <div class="dashboard-hero-main">
+        <div class="dashboard-hero-logo">
+            @if($settings && $settings->logo)
+                <img src="{{ asset('storage/' . $settings->logo) }}" alt="{{ $companyName }}">
+            @else
+                <span>{{ $companyInitial }}</span>
+            @endif
+        </div>
+        <div>
+            <p class="dashboard-eyebrow">Admin Overview</p>
+            <h4 class="dashboard-title">{{ $companyName }}</h4>
+            <p class="dashboard-subtitle">Welcome back, {{ Auth::user()->name }}. Here is what needs attention today.</p>
+        </div>
     </div>
-    <div>
-        <a href="{{ route('admin.invoices.create') }}" class="btn btn-primary d-flex align-items-center gap-2" style="border-radius: 10px; font-weight: 600;">
+    <div class="dashboard-hero-side">
+        @if($settings && ($settings->email || $settings->phone))
+            <div class="dashboard-contact">
+                @if($settings->email)
+                    <span><i class="bi bi-envelope"></i>{{ $settings->email }}</span>
+                @endif
+                @if($settings->phone)
+                    <span><i class="bi bi-telephone"></i>{{ $settings->phone }}</span>
+                @endif
+            </div>
+        @endif
+        <a href="{{ route('admin.invoices.create') }}" class="btn btn-primary dashboard-primary-action">
             <i class="bi bi-plus-lg"></i> New Invoice
         </a>
     </div>
 </div>
 
-{{-- Top KPI Cards --}}
-<div class="row g-4 mb-5">
-    
-    {{-- Card 1: Revenue --}}
+<div class="row g-4 mb-4">
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff; overflow: hidden;">
-            <div class="card-body p-4 position-relative">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="text-uppercase text-muted fw-bold mb-0" style="font-size: 11px; letter-spacing: 0.05em;">Total Revenue</h6>
-                    <div class="bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 10px;">
-                        <i class="bi bi-currency-pound fs-5"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bolder mb-1" style="color: var(--text-primary); font-size: 28px;">£{{ number_format($totalRevenue, 2) }}</h3>
-                <p class="text-muted mb-0" style="font-size: 13px;">
-                    <span class="text-danger fw-semibold"><i class="bi bi-arrow-up-right"></i> £{{ number_format($pendingRevenue, 2) }}</span> Pending
-                </p>
+        <div class="metric-card metric-card--green">
+            <div class="metric-card-head">
+                <span>Total Revenue</span>
+                <i class="bi bi-currency-pound"></i>
             </div>
-            <div class="bg-success" style="height: 4px; width: 100%; position: absolute; bottom: 0;"></div>
+            <strong>£{{ number_format($totalRevenue, 2) }}</strong>
+            <p><span>£{{ number_format($pendingRevenue, 2) }}</span> pending</p>
         </div>
     </div>
 
-    {{-- Card 2: Invoices --}}
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff; overflow: hidden;">
-            <div class="card-body p-4 position-relative">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="text-uppercase text-muted fw-bold mb-0" style="font-size: 11px; letter-spacing: 0.05em;">Total Invoices</h6>
-                    <div class="bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 10px;">
-                        <i class="bi bi-receipt fs-5"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bolder mb-1" style="color: var(--text-primary); font-size: 28px;">{{ number_format($totalInvoices) }}</h3>
-                <p class="text-muted mb-0" style="font-size: 13px;">Invoices generated</p>
+        <div class="metric-card metric-card--blue">
+            <div class="metric-card-head">
+                <span>Total Invoices</span>
+                <i class="bi bi-receipt"></i>
             </div>
-            <div class="bg-primary" style="height: 4px; width: 100%; position: absolute; bottom: 0;"></div>
+            <strong>{{ number_format($totalInvoices) }}</strong>
+            <p>Invoices generated</p>
         </div>
     </div>
 
-    {{-- Card 3: Customers --}}
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff; overflow: hidden;">
-            <div class="card-body p-4 position-relative">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="text-uppercase text-muted fw-bold mb-0" style="font-size: 11px; letter-spacing: 0.05em;">Total Customers</h6>
-                    <div class="bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 10px;">
-                        <i class="bi bi-people fs-5"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bolder mb-1" style="color: var(--text-primary); font-size: 28px;">{{ number_format($totalCustomers) }}</h3>
-                <p class="text-muted mb-0" style="font-size: 13px;">Active clients</p>
+        <div class="metric-card metric-card--cyan">
+            <div class="metric-card-head">
+                <span>Total Customers</span>
+                <i class="bi bi-people"></i>
             </div>
-            <div class="bg-info" style="height: 4px; width: 100%; position: absolute; bottom: 0;"></div>
+            <strong>{{ number_format($totalCustomers) }}</strong>
+            <p>Customer records</p>
         </div>
     </div>
 
-    {{-- Card 4: Products --}}
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff; overflow: hidden;">
-            <div class="card-body p-4 position-relative">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="text-uppercase text-muted fw-bold mb-0" style="font-size: 11px; letter-spacing: 0.05em;">Total Products</h6>
-                    <div class="bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 10px;">
-                        <i class="bi bi-box-seam fs-5"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bolder mb-1" style="color: var(--text-primary); font-size: 28px;">{{ number_format($totalProducts) }}</h3>
-                <p class="text-muted mb-0" style="font-size: 13px;">In inventory</p>
+        <div class="metric-card metric-card--amber">
+            <div class="metric-card-head">
+                <span>Total Products</span>
+                <i class="bi bi-box-seam"></i>
             </div>
-            <div class="bg-warning" style="height: 4px; width: 100%; position: absolute; bottom: 0;"></div>
+            <strong>{{ number_format($totalProducts) }}</strong>
+            <p>Inventory items</p>
         </div>
     </div>
-
 </div>
 
-{{-- Main Content Row --}}
 <div class="row g-4">
-    
-    {{-- Recent Invoices --}}
     <div class="col-12 col-xl-8">
-        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff;">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
-                <h6 class="fw-bold mb-0" style="color: var(--text-primary);">Recent Invoices</h6>
-                <a href="{{ route('admin.invoices.index') }}" class="text-decoration-none" style="font-size: 13px; font-weight: 600;">View All</a>
+        <div class="dashboard-panel">
+            <div class="dashboard-panel-header">
+                <div>
+                    <h6>Recent Invoices</h6>
+                    <p>Latest invoice activity across your workspace.</p>
+                </div>
+                <a href="{{ route('admin.invoices.index') }}">View All</a>
             </div>
-            <div class="card-body p-0 mt-3">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" style="font-size: 14px;">
-                        <thead style="background: #fafbfc;">
+            <div class="table-responsive">
+                <table class="table dashboard-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Customer</th>
+                            <th class="text-end">Amount</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($recentInvoices as $invoice)
                             <tr>
-                                <th class="px-4 py-3 text-muted" style="font-weight: 600; font-size: 12px; text-transform: uppercase;">Invoice #</th>
-                                <th class="py-3 text-muted" style="font-weight: 600; font-size: 12px; text-transform: uppercase;">Customer</th>
-                                <th class="py-3 text-muted text-end" style="font-weight: 600; font-size: 12px; text-transform: uppercase;">Amount</th>
-                                <th class="px-4 py-3 text-muted text-center" style="font-weight: 600; font-size: 12px; text-transform: uppercase;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($recentInvoices as $invoice)
-                            <tr>
-                                <td class="px-4 py-3 align-middle">
-                                    <a href="{{ route('admin.invoices.show', $invoice) }}" class="fw-semibold text-decoration-none">
-                                        {{ $invoice->invoice_number }}
-                                    </a>
+                                <td>
+                                    <a href="{{ route('admin.invoices.show', $invoice) }}">{{ $invoice->invoice_number }}</a>
                                 </td>
-                                <td class="py-3 align-middle">{{ $invoice->customer->name ?? '-' }}</td>
-                                <td class="py-3 align-middle text-end fw-semibold">£{{ number_format($invoice->total_amount + $invoice->total_vat, 2) }}</td>
-                                <td class="px-4 py-3 align-middle text-center">
+                                <td>{{ $invoice->customer->name ?? '-' }}</td>
+                                <td class="text-end fw-semibold">£{{ number_format($invoice->total_amount + $invoice->total_vat, 2) }}</td>
+                                <td class="text-center">
                                     @php
                                         $statusClasses = [
-                                            'draft'     => 'bg-secondary bg-opacity-10 text-secondary',
-                                            'unpaid'    => 'bg-primary bg-opacity-10 text-primary',
-                                            'paid'      => 'bg-success bg-opacity-10 text-success',
-                                            'due'       => 'bg-danger bg-opacity-10 text-danger',
+                                            'draft'  => 'status-pill status-pill--draft',
+                                            'unpaid' => 'status-pill status-pill--unpaid',
+                                            'paid'   => 'status-pill status-pill--paid',
+                                            'due'    => 'status-pill status-pill--due',
                                         ];
-                                        $cls = $statusClasses[$invoice->status] ?? 'bg-secondary bg-opacity-10 text-secondary';
+                                        $cls = $statusClasses[$invoice->status] ?? 'status-pill status-pill--draft';
                                     @endphp
-                                    <span class="badge rounded-pill {{ $cls }}" style="font-weight: 600; padding: 6px 12px;">{{ ucfirst($invoice->status) }}</span>
+                                    <span class="{{ $cls }}">{{ ucfirst($invoice->status) }}</span>
                                 </td>
                             </tr>
-                            @empty
+                        @empty
                             <tr>
                                 <td colspan="4" class="text-center py-4 text-muted">No recent invoices found.</td>
                             </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    {{-- Quick Actions & User Info --}}
     <div class="col-12 col-xl-4">
-        <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px; background: #fff;">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
-                <h6 class="fw-bold mb-0" style="color: var(--text-primary);">Quick Actions</h6>
-            </div>
-            <div class="card-body p-4">
-                <div class="d-flex flex-column gap-3">
-                    <a href="{{ route('admin.customers.index') }}" class="btn btn-light d-flex align-items-center justify-content-start gap-3 py-3 px-4" style="border-radius: 12px; font-weight: 600; border: 1px solid var(--border-color); color: var(--text-primary);">
-                        <div class="bg-info bg-opacity-10 text-info rounded d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;"><i class="bi bi-person-plus fs-5"></i></div>
-                        Add New Customer
-                    </a>
-                    <a href="{{ route('admin.products.index') }}" class="btn btn-light d-flex align-items-center justify-content-start gap-3 py-3 px-4" style="border-radius: 12px; font-weight: 600; border: 1px solid var(--border-color); color: var(--text-primary);">
-                        <div class="bg-warning bg-opacity-10 text-warning rounded d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;"><i class="bi bi-box-seam fs-5"></i></div>
-                        Add New Product
-                    </a>
-                    <a href="{{ route('admin.settings.index') }}" class="btn btn-light d-flex align-items-center justify-content-start gap-3 py-3 px-4" style="border-radius: 12px; font-weight: 600; border: 1px solid var(--border-color); color: var(--text-primary);">
-                        <div class="bg-secondary bg-opacity-10 text-secondary rounded d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;"><i class="bi bi-gear fs-5"></i></div>
-                        System Settings
-                    </a>
+        <div class="dashboard-panel mb-4">
+            <div class="dashboard-panel-header">
+                <div>
+                    <h6>Quick Actions</h6>
+                    <p>Jump into common admin work.</p>
                 </div>
+            </div>
+            <div class="quick-action-list">
+                <a href="{{ route('admin.customers.index') }}" class="quick-action">
+                    <span class="quick-action-icon quick-action-icon--cyan"><i class="bi bi-person-plus"></i></span>
+                    <span>Add New Customer</span>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <a href="{{ route('admin.products.index') }}" class="quick-action">
+                    <span class="quick-action-icon quick-action-icon--amber"><i class="bi bi-box-seam"></i></span>
+                    <span>Add New Product</span>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <a href="{{ route('admin.settings.index') }}" class="quick-action">
+                    <span class="quick-action-icon quick-action-icon--slate"><i class="bi bi-gear"></i></span>
+                    <span>System Settings</span>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff;">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center gap-3 mb-4">
-                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px; font-size: 20px;">
-                        {{ substr(Auth::user()->name, 0, 1) }}
-                    </div>
-                    <div>
-                        <h6 class="fw-bold mb-1" style="color: var(--text-primary);">{{ Auth::user()->name }}</h6>
-                        <p class="text-muted mb-0" style="font-size: 13px;">{{ Auth::user()->email }}</p>
-                    </div>
+        <div class="dashboard-panel">
+            <div class="admin-profile">
+                <div class="admin-profile-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</div>
+                <div>
+                    <h6>{{ Auth::user()->name }}</h6>
+                    <p>{{ Auth::user()->email }}</p>
                 </div>
-                <div class="d-flex justify-content-between align-items-center py-2 border-top border-bottom mb-4" style="font-size: 14px;">
-                    <span class="text-secondary">Role</span>
-                    <span class="fw-semibold text-dark text-capitalize px-2 py-1 bg-light rounded">{{ Auth::user()->role }}</span>
-                </div>
-                <form action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-danger w-100 py-2 d-flex align-items-center justify-content-center gap-2" style="font-size: 14px; font-weight: 600; border-radius: 10px;">
-                        <i class="bi bi-box-arrow-right"></i> Sign Out
-                    </button>
-                </form>
             </div>
+            <div class="profile-line">
+                <span>Role</span>
+                <strong>{{ Auth::user()->role }}</strong>
+            </div>
+            @if($settings && $settings->address)
+                <div class="profile-line">
+                    <span>Business</span>
+                    <strong>{{ \Illuminate\Support\Str::limit($settings->address, 34) }}</strong>
+                </div>
+            @endif
         </div>
     </div>
 </div>

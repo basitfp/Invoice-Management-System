@@ -29,12 +29,13 @@ $(document).ready(function () {
             if (!phoneOk) valid = false;
         }
 
-        // Email — optional, validate only if filled
-        var $email = $('#' + prefix + '-vnd-email');
-        if ($email.val().trim() !== '') {
-            var emailOk = FV.runRules([FV.rules.email($email, 'Email')], true);
-            if (!emailOk) valid = false;
-        }
+       // Email — required
+       var $email = $('#' + prefix + '-vnd-email');
+        var emailOk = FV.runRules([
+        FV.rules.email($email, 'Email')
+        ], true);
+
+        if (!emailOk) valid = false;
 
         return valid;
     }

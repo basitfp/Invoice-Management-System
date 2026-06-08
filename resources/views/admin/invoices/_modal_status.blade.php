@@ -24,6 +24,7 @@
     border: 2px solid #cbd5e1;
     position: relative;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 .status-option-label.active .status-indicator {
     border-color: var(--primary-color, #3b82f6);
@@ -40,6 +41,7 @@
     border-radius: 50%;
 }
 </style>
+
 <div class="modal fade" id="invoiceStatusModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius:16px; border:1px solid var(--border-color); overflow:hidden;">
@@ -47,6 +49,12 @@
             <form id="invoiceStatusForm" method="POST" action="#">
                 @csrf
                 @method('PATCH')
+
+                {{--
+                    FIX: This hidden field name="status" is what the controller validates.
+                    invoice-list.js populates it via $('#status-value').val(selectedStatus)
+                    before FormData is built, so the correct value is always submitted.
+                --}}
                 <input type="hidden" name="status" id="status-value">
 
                 <div class="modal-header" style="background:#fafbfc; border-bottom:1px solid var(--border-color); padding:20px 24px;">

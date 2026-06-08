@@ -141,6 +141,7 @@
             </div>
 
             {{-- ── Totals ── --}}
+            {{-- FIX: use total_amount (DB column) instead of non-existent total_excl_vat / grand_total --}}
             <div class="inv-totals-wrap">
                 <div class="inv-totals-box">
                     <div class="inv-total-row">
@@ -179,7 +180,6 @@
 
 @push('scripts')
 <script>
-    // Auto-print after save
     var shouldAutoPrint = {{ $autoPrint ? 'true' : 'false' }};
     if (shouldAutoPrint) {
         window.addEventListener('load', function () {

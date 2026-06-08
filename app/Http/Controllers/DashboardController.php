@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Invoice;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\Setting;
 
 class DashboardController extends Controller
 {
@@ -34,6 +35,7 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->take(6)
             ->get();
+        $settings = Setting::first();
 
         return view('admin.dashboard', compact(
             'totalCustomers', 
@@ -41,7 +43,8 @@ class DashboardController extends Controller
             'totalInvoices', 
             'totalRevenue', 
             'pendingRevenue',
-            'recentInvoices'
+            'recentInvoices',
+            'settings'
         ));
     }
 

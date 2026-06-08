@@ -42,9 +42,8 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label>Customer Type <span class="text-danger">*</span></label>
+                            <label>Customer Type</label>
                             <select name="customer_type" id="e-type" class="form-control" data-label="Customer type">
-                                <option value="">-- Select --</option>
                                 <option value="individual">Individual</option>
                                 <option value="company">Company</option>
                             </select>

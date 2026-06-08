@@ -55,7 +55,7 @@
                             <span class="field-error text-danger small" id="e-item_code-error"></span>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label>Item Class <span class="text-danger">*</span></label>
+                            <label>Item Class</label>
                             <select name="item_class" id="e-item_class" class="form-control">
                                 <option value="general">General</option>
                                 <option value="sale_only">Sale Only</option>

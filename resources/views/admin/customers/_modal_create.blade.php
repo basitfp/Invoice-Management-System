@@ -40,10 +40,9 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label>Customer Type <span class="text-danger">*</span></label>
+                            <label>Customer Type</label>
                             <select name="customer_type" id="c-type" class="form-control" data-label="Customer type">
-                                <option value="">-- Select --</option>
-                                <option value="individual">Individual</option>
+                                <option value="individual" selected>Individual</option>
                                 <option value="company">Company</option>
                             </select>
                             <span class="field-error text-danger small" id="c-type-error"></span>

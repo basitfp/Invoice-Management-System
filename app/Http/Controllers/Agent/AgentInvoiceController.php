@@ -50,26 +50,26 @@ class AgentInvoiceController extends Controller
     }
 
     // ----------------------------
-    // STORE
+    // STORE - Fixed & Aligned with Schema
     // ----------------------------
     public function store(Request $request)
     {
         $request->validate([
-            'customer_id'  => 'required|exists:customers,id',
-            'invoice_date' => 'required|date',
-            'due_date'     => 'required|date|after_or_equal:invoice_date',
-            'status'       => 'required|in:draft,unpaid,paid,cancelled',
-            'products'     => 'required|array|min:1',
+            'customer_id'              => 'required|exists:customers,id',
+            'invoice_date'             => 'required|date',
+            'due_date'                 => 'required|date|after_or_equal:invoice_date',
+            'status'                   => 'required|in:draft,unpaid,paid,due',
+            'products'                 => 'required|array|min:1',
             'products.*.product_id'    => 'required|exists:products,id',
             'products.*.qty'           => 'required|integer|min:1',
             'products.*.selling_price' => 'required|numeric|min:0',
-            'products.*.vat'           => 'required|numeric|min:0',
+            'products.*.vat'           => 'required|in:0,20', // Aligned with admin validation
         ]);
 
         try {
             DB::beginTransaction();
 
-            // 1. Generate unique invoice number
+            // 1. Generate unique invoice number (Keep agent specific pattern or switch to global)
             $today = date('Ymd');
             $lastInvoice = Invoice::where('invoice_number', 'LIKE', "INV-{$today}-%")
                 ->orderBy('id', 'desc')
@@ -83,75 +83,79 @@ class AgentInvoiceController extends Controller
             }
             $invoiceNumber = "INV-{$today}-" . str_pad($seq, 4, '0', STR_PAD_LEFT);
 
-            // 2. Initialise totals
-            $totalExclVat = 0;
+            // 2. Initialize totals using standard schema attributes
             $totalVat = 0;
+            $totalAmount = 0; // base subtotal amount matching admin schema
 
-            // Temp items placeholder array
-            $itemsToSave = [];
+            // Stock / MOQ Safeguard loop
+            foreach ($request->products as $item) {
+                $product = Product::find($item['product_id']);
 
-            foreach ($request->products as $pData) {
-                $product = Product::find($pData['product_id']);
+                if (!$product) continue;
 
-                // Backend Safeguard: Check actual current stock
-                if ($product->qty < (int)$pData['qty']) {
+                $stock = (int) $product->qty;
+                $moq   = (int) $product->moq;
+                $qty   = (int) $item['qty'];
+
+                if ($stock <= 0) {
                     return response()->json([
                         'success' => false,
-                        'message' => "Insufficient stock for product: {$product->name}. Current stock: {$product->qty}"
+                        'message' => $product->name . ' is out of stock.',
                     ], 422);
                 }
 
-                // Backend Safeguard: Check MOQ constraints
-                if ((int)$pData['qty'] < (int)$product->moq) {
+                if ($qty > $stock) {
                     return response()->json([
                         'success' => false,
-                        'message' => "Product '{$product->name}' does not meet the Minimum Order Quantity of {$product->moq} units."
+                        'message' => $product->name . ' — only ' . $stock . ' unit(s) available in stock.',
                     ], 422);
                 }
 
-                $qty = (int) $pData['qty'];
-                $sellingPrice = (float) $pData['selling_price'];
-                $vatPercent = (float) $pData['vat'];
-
-                $subTotal = $qty * $sellingPrice;
-                $vatAmount = $subTotal * ($vatPercent / 100);
-
-                $totalExclVat += $subTotal;
-                $totalVat     += $vatAmount;
-
-                $itemsToSave[] = [
-                    'product_id'     => $product->id,
-                    'qty'            => $qty,
-                    'purchase_price' => $product->purchase_price, // snapshot metrics
-                    'selling_price'  => $sellingPrice,
-                    'vat_percent'    => $vatPercent,
-                    'sub_total'      => $subTotal,
-                    'vat_amount'     => $vatAmount,
-                ];
+                if ($moq > 0 && $qty < $moq) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $product->name . ' — minimum order quantity is ' . $moq . '.',
+                    ], 422);
+                }
             }
 
-            $grandTotal = $totalExclVat + $totalVat;
+            // Calculate totals explicitly
+            foreach ($request->products as $item) {
+                $lineTotal    = $item['selling_price'] * $item['qty'];
+                $vatAmount    = $lineTotal * ($item['vat'] / 100);
+                $totalVat    += $vatAmount;
+                $totalAmount += $lineTotal; 
+            }
 
-            // 3. Create the Parent Invoice entry
-            $invoice = Invoice::create([
+            // 3. Create invoice — use forceFill so agent_id is always set
+            //    even if the Invoice model's $fillable does not list agent_id
+            $invoice = new Invoice();
+            $invoice->forceFill([
                 'invoice_number' => $invoiceNumber,
                 'agent_id'       => auth()->id(),
                 'customer_id'    => $request->customer_id,
                 'invoice_date'   => $request->invoice_date,
                 'due_date'       => $request->due_date,
-                'total_excl_vat' => $totalExclVat,
                 'total_vat'      => $totalVat,
-                'grand_total'    => $grandTotal,
+                'total_amount'   => $totalAmount,
                 'status'         => $request->status,
-            ]);
+            ])->save();
 
-            // 4. Save snapshot child line items & update active inventories
-            foreach ($itemsToSave as $item) {
-                $invoice->items()->create($item);
+            // 4. Save items & deduct inventory stock
+            foreach ($request->products as $item) {
+                $lineTotal = $item['selling_price'] * $item['qty'];
 
-                // Reduce inventory stock levels
-                $prod = Product::find($item['product_id']);
-                $prod->decrement('qty', $item['qty']);
+                InvoiceItem::create([
+                    'invoice_id'    => $invoice->id,
+                    'product_id'    => $item['product_id'],
+                    'selling_price' => $item['selling_price'],
+                    'vat'           => $item['vat'],
+                    'qty'           => $item['qty'],
+                    'line_total'    => $lineTotal,
+                ]);
+
+                // Reduce inventory stock level safely
+                Product::where('id', $item['product_id'])->decrement('qty', $item['qty']);
             }
 
             DB::commit();
@@ -159,7 +163,7 @@ class AgentInvoiceController extends Controller
             return response()->json([
                 'success'      => true,
                 'message'      => 'Invoice generated successfully.',
-                'redirect_url' => route('agent.invoices.index')
+                'redirect_url' => route('agent.invoices.show', $invoice->id) . '?print=1'
             ]);
 
         } catch (\Exception $e) {
@@ -202,6 +206,57 @@ class AgentInvoiceController extends Controller
             'message' => 'Customer created successfully.',
             'data'    => $customer,
         ]);
+    }
+
+    // ----------------------------
+    // SHOW - View + Print invoice for Agent
+    // ----------------------------
+    public function show(Invoice $invoice)
+    {
+        // Security Check: Ensure the agent can only view their own invoices
+        if ($invoice->agent_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $invoice->load('customer', 'items.product');
+
+        // Setting model agar aap use kar rahe hain company layout ke liye
+        // Agar Setting model imported nahi hai to check karlein top par use App\Models\Setting; hai ya nahi
+        $settings  = \App\Models\Setting::first(); 
+        $autoPrint = request()->query('print') || session('print') ? true : false;
+
+        return view('agent.invoices.show', compact('invoice', 'settings', 'autoPrint'));
+    }
+
+
+    // ----------------------------
+    // TOGGLE STATUS - Agent Specific
+    // ----------------------------
+    public function toggleStatus(Request $request, Invoice $invoice)
+    {
+        // Security Check: Ensure agent only toggles their own invoice
+        if ($invoice->agent_id !== auth()->id()) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+            }
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'status' => 'required|in:draft,paid,unpaid,due',
+        ]);
+
+        $invoice->update(['status' => $request->status]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success'    => true,
+                'message'    => 'Invoice status updated.',
+                'new_status' => $invoice->status,
+            ]);
+        }
+
+        return back()->with('success', 'Invoice status updated.');
     }
 
     // ----------------------------

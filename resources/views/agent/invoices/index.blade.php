@@ -38,31 +38,34 @@
                     </thead>
                     <tbody>
                         @forelse($invoices as $invoice)
-                        <tr>
+                        {{-- FIX: id="row-{id}" required by invoice-list.js for AJAX DOM updates --}}
+                        <tr id="row-{{ $invoice->id }}">
                             <td class="fw-bold text-primary">{{ $invoice->invoice_number }}</td>
                             <td>
                                 <div class="customer-name">{{ $invoice->customer->name }}</div>
                                 <div class="customer-email text-muted small">{{ $invoice->customer->email }}</div>
                             </td>
                             <td class="text-center">{{ date('d M Y', strtotime($invoice->invoice_date)) }}</td>
-                            <td class="text-end fw-semibold">£{{ number_format($invoice->total_excl_vat, 2) }}</td>
+                            <td class="text-end fw-semibold">£{{ number_format($invoice->total_amount, 2) }}</td>
                             <td class="text-end text-muted">£{{ number_format($invoice->total_vat, 2) }}</td>
-                            <td class="text-end text-dark fw-bold">£{{ number_format($invoice->grand_total, 2) }}</td>
-                            <td class="text-center">
+                            <td class="text-end text-dark fw-bold">£{{ number_format($invoice->total_amount + $invoice->total_vat, 2) }}</td>
+                            {{-- FIX: class="status-container" is what invoice-list.js targets for live update --}}
+                            <td class="text-center status-container">
                                 @php
-                                    $statusClass = 'invoice-status-draft';
-                                    if($invoice->status === 'paid') $statusClass = 'invoice-status-paid';
-                                    if($invoice->status === 'unpaid') $statusClass = 'invoice-status-unpaid';
-                                    if($invoice->status === 'cancelled') $statusClass = 'invoice-status-cancelled';
+                                    $statusClasses = [
+                                        'draft'     => 'invoice-status-draft',
+                                        'unpaid'    => 'invoice-status-sent',
+                                        'paid'      => 'invoice-status-paid',
+                                        'due'       => 'invoice-status-cancelled',
+                                    ];
+                                    $cls = $statusClasses[$invoice->status] ?? 'invoice-status-draft';
                                 @endphp
-                                <span class="badge invoice-status-badge {{ $statusClass }}">
-                                    {{ ucfirst($invoice->status) }}
-                                </span>
+                                <span class="{{ $cls }}">{{ ucfirst($invoice->status) }}</span>
                             </td>
                             <td class="text-end">
                                 <div class="d-flex justify-content-end gap-1">
-                                    <a href="{{ route('agent.invoices.show', $invoice->id) }}" 
-                                       class="btn btn-invoice-action btn-invoice-view" 
+                                    <a href="{{ route('agent.invoices.show', $invoice->id) }}"
+                                       class="btn btn-invoice-action btn-invoice-view"
                                        title="View & Print">
                                         <i class="bi bi-eye"></i>
                                     </a>

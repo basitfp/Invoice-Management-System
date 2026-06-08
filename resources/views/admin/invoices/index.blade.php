@@ -36,6 +36,7 @@
                     </thead>
                     <tbody>
                         @forelse($invoices as $invoice)
+                        {{-- FIX: id="row-{id}" required by invoice-list.js for DOM updates --}}
                         <tr id="row-{{ $invoice->id }}">
                             <td><span class="invoice-number-badge">{{ $invoice->invoice_number }}</span></td>
                             <td id="name-{{ $invoice->id }}">{{ $invoice->customer->name ?? '-' }}</td>
@@ -43,13 +44,14 @@
                             <td class="text-end">£{{ number_format($invoice->total_amount, 2) }}</td>
                             <td class="text-end">£{{ number_format($invoice->total_vat, 2) }}</td>
                             <td class="text-end"><strong>£{{ number_format($invoice->total_amount + $invoice->total_vat, 2) }}</strong></td>
-                            <td class="text-center" id="status-container-{{ $invoice->id }}">
+                            {{-- FIX: added class="status-container" so JS can find and update it --}}
+                            <td class="text-center status-container" id="status-container-{{ $invoice->id }}">
                                 @php
                                     $statusClasses = [
-                                        'draft'     => 'invoice-status-draft',
-                                        'unpaid'    => 'invoice-status-sent',
-                                        'paid'      => 'invoice-status-paid',
-                                        'due'       => 'invoice-status-cancelled',
+                                        'draft'  => 'invoice-status-draft',
+                                        'unpaid' => 'invoice-status-sent',
+                                        'paid'   => 'invoice-status-paid',
+                                        'due'    => 'invoice-status-cancelled',
                                     ];
                                     $cls = $statusClasses[$invoice->status] ?? 'invoice-status-draft';
                                 @endphp
@@ -60,12 +62,14 @@
 
                                     {{-- View / Print --}}
                                     <a href="{{ route('admin.invoices.show', $invoice) }}"
-                                        class="btn btn-invoice-action btn-invoice-view">
+                                        class="btn btn-invoice-action btn-invoice-view"
+                                        title="View & Print">
                                         <i class="bi bi-eye"></i>
                                     </a>
 
                                     {{-- Status Change --}}
                                     <button class="btn btn-invoice-action btn-invoice-status"
+                                        title="Change Status"
                                         data-id="{{ $invoice->id }}"
                                         data-status="{{ $invoice->status }}"
                                         data-number="{{ $invoice->invoice_number }}">
@@ -74,6 +78,7 @@
 
                                     {{-- Delete --}}
                                     <button class="btn btn-invoice-action btn-invoice-delete"
+                                        title="Delete"
                                         data-id="{{ $invoice->id }}"
                                         data-number="{{ $invoice->invoice_number }}">
                                         <i class="bi bi-trash"></i>
@@ -107,5 +112,6 @@
 @endpush
 
 @push('scripts')
+    {{-- No invoiceRoutePrefix needed — admin default '/admin/invoices/' is set in invoice-list.js --}}
     <script src="{{ asset('assets/js/invoice-list.js') }}"></script>
 @endpush

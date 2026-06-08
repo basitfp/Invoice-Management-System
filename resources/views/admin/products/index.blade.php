@@ -58,7 +58,7 @@
                             <td id="category-{{ $product->id }}">{{ $product->category->name ?? 'N/A' }}</td>
                             <td id="manufacturer-{{ $product->id }}">{{ $product->manufacturer->name ?? 'N/A' }}</td>
                             <td id="selling-{{ $product->id }}" class="text-end fw-bold" style="color: var(--text-primary);">
-                                ${{ number_format($product->sale_price, 2) }}
+                            £{{ number_format($product->selling_price, 2) }}
                             </td>
                             <td id="qty-{{ $product->id }}" class="text-center">
                                 <span class="badge {{ $product->qty <= $product->moq ? 'bg-danger' : 'bg-success' }}"
@@ -91,11 +91,11 @@
                                         data-purchase="{{ $product->purchase_price }}"
                                         data-purchase-tax-percent="{{ $product->purchase_tax_percent ?? 0 }}"
                                         data-purchase-tax-inclusive="{{ $product->purchase_tax_inclusive ? '1' : '0' }}"
-                                        data-selling="{{ $product->sale_price }}"
-                                        data-gst-vat-percent="{{ $product->gst_vat_percent ?? 0 }}"
+                                        data-selling="{{ $product->selling_price }}"
+                                        data-gst-vat-percent="{{ $product->vat ?? 0 }}"
                                         data-sale-tax-inclusive="{{ $product->sale_tax_inclusive ? '1' : '0' }}"
-                                        data-discount-percentage="{{ $product->discount_percent ?? 0 }}"
-                                        data-cess-percentage="{{ $product->cess_percent ?? 0 }}"
+                                        data-discount-percentage="{{ $product->discount_percentage ?? 0 }}"
+                                        data-cess-percentage="{{ $product->cess_percentage ?? 0 }}"
                                         data-additional-cess="{{ $product->additional_cess ?? 0 }}"
                                         data-is-weighing="{{ $product->is_weighing_item ? '1' : '0' }}"
                                         data-qty="{{ $product->qty }}"
@@ -122,11 +122,11 @@
                                         data-purchase="{{ $product->purchase_price }}"
                                         data-purchase-tax-percent="{{ $product->purchase_tax_percent ?? 0 }}"
                                         data-purchase-tax-inclusive="{{ $product->purchase_tax_inclusive ? '1' : '0' }}"
-                                        data-selling="{{ $product->sale_price }}"
-                                        data-gst-vat-percent="{{ $product->gst_vat_percent ?? 0 }}"
+                                        data-selling="{{ $product->selling_price }}"
+                                        data-gst-vat-percent="{{ $product->vat ?? 0 }}"
                                         data-sale-tax-inclusive="{{ $product->sale_tax_inclusive ? '1' : '0' }}"
-                                        data-discount-percentage="{{ $product->discount_percent ?? 0 }}"
-                                        data-cess-percentage="{{ $product->cess_percent ?? 0 }}"
+                                        data-discount-percentage="{{ $product->discount_percentage ?? 0 }}"
+                                        data-cess-percentage="{{ $product->cess_percentage ?? 0 }}"
                                         data-additional-cess="{{ $product->additional_cess ?? 0 }}"
                                         data-is-weighing="{{ $product->is_weighing_item ? '1' : '0' }}"
                                         data-qty="{{ $product->qty }}"

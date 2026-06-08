@@ -48,7 +48,7 @@
 
                         {{-- Email --}}
                         <div class="col-md-6">
-                            <label class="form-label" for="edit-vnd-email">Email</label>
+                            <label class="form-label" for="edit-vnd-email">Email<span class="text-danger">*</span></label>
                             <input type="email" name="email" id="edit-vnd-email"
                                 class="form-control validate-email"
                                 data-label="Email"

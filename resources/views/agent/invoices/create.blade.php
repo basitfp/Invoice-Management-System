@@ -1,7 +1,5 @@
 @extends('layouts.agent')
 
-@section('title', 'Create New Invoice')
-
 @section('content')
 
 <div class="row justify-content-center">
@@ -46,10 +44,10 @@
                         <div class="col-md-6 mb-3">
                             <label class="invoice-label">Status <span class="text-danger">*</span></label>
                             <select name="status" id="status" class="form-control invoice-input">
-                                <option value="unpaid">Unpaid</option>
-                                <option value="draft">Draft</option>
-                                <option value="paid">Paid</option>
-                                <option value="due">Due</option>
+                                <!-- <option value="draft">Draft</option> -->
+                                <option value="unpaid" selected>Unpaid</option>
+                                <!-- <option value="paid">Paid</option>
+                                <option value="due">Due</option> -->
                             </select>
                             <span class="field-error text-danger small" id="status-error"></span>
                         </div>
@@ -213,7 +211,8 @@
                     </div>
                     <div class="col-md-6">
                         <label class="invoice-label">Phone</label>
-                        <input type="text" id="nc-phone" class="form-control invoice-input" placeholder="+44 7700 000000">
+                        <input type="text" id="nc-phone" class="form-control invoice-input" placeholder="+923121234567">
+                           <span class="field-error text-danger small" id="nc-phone-error"></span>
                     </div>
                     <div class="col-md-6">
                         <label class="invoice-label">Customer Type</label>

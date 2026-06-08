@@ -663,25 +663,30 @@ $(document).ready(function () {
                 }
             },
             error: function (xhr) {
-                // Backend stock/MOQ error — show as toastr + highlight qty field
-                if (xhr.status === 422 && xhr.responseJSON) {
-                    var res = xhr.responseJSON;
+                var res = xhr.responseJSON || {};
 
-                    // Our custom stock/MOQ errors come as { success: false, message: '...' }
+                if (xhr.status === 422) {
+                    // Custom stock/MOQ errors: { success: false, message: '...' }
                     if (res.message && !res.errors) {
                         if (typeof toastr !== 'undefined') toastr.error(res.message);
                         return;
                     }
 
-                    // Laravel validation errors
+                    // Laravel field validation errors
                     if (res.errors) {
                         if (res.errors.due_date)     FV.setFieldError($('#due_date'),     res.errors.due_date[0]);
                         if (res.errors.status)       FV.setFieldError($('#status'),       res.errors.status[0]);
                         if (res.errors.invoice_date) FV.setFieldError($('#invoice_date'), res.errors.invoice_date[0]);
+                        if (res.errors.customer_id)  FV.setFieldError($('#customer_id'),  res.errors.customer_id[0]);
+                        if (res.errors.products)     $('#products-error').text(res.errors.products[0]);
                         if (typeof window.showGlobalValidationError === 'function') window.showGlobalValidationError();
                     }
                 } else {
-                    if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
+                    // Show the real server error message if available, otherwise generic
+                    var msg = (res.message && res.message.length < 300)
+                        ? res.message
+                        : 'Something went wrong. Please try again.';
+                    if (typeof toastr !== 'undefined') toastr.error(msg);
                 }
             },
             complete: function (xhr) {

@@ -160,8 +160,7 @@
             {
                 field: '#c-item_class',
                 label: 'Item Class',
-                required: true,
-                requiredMessage: 'Item Class is required.',
+                required: false,
                 getValue: function ($f) { return String($f.val() || '').trim(); }
             },
             {
@@ -327,8 +326,7 @@
             {
                 field: '#e-item_class',
                 label: 'Item Class',
-                required: true,
-                requiredMessage: 'Item Class is required.',
+                required: false,
                 getValue: function ($f) { return String($f.val() || '').trim(); }
             },
             {
@@ -847,30 +845,30 @@
         var $btn = $(this);
         resetEditModal();
 
-        var id             = $btn.data('id');
-        var name           = $btn.data('name') || '';
-        var itemCode       = $btn.data('item-code') || '';
-        var itemClass      = $btn.data('item-class') || 'general';
-        var regionalName   = $btn.data('regional-name') || '';
-        var categoryId     = $btn.data('category') || '';
-        var manufacturerId = $btn.data('manufacturer-id') || '';
-        var hsnCode        = $btn.data('hsn-code') || '';
-        var unit           = $btn.data('unit') || 'pcs';
-        var purchase       = $btn.data('purchase') || '';
-        var purchaseTax    = $btn.data('purchase-tax-percent') || '0';
-        var purchaseTaxI   = $btn.data('purchase-tax-inclusive') || '0';
-        var sale           = $btn.data('selling') || '';
-        var gstVat         = $btn.data('gst-vat-percent') || '0';
-        var saleTaxI       = $btn.data('sale-tax-inclusive') || '0';
-        var discount       = $btn.data('discount-percentage') || '0';
-        var cess           = $btn.data('cess-percentage') || '0';
-        var addCess        = $btn.data('additional-cess') || '0';
-        var isWeighing     = $btn.data('is-weighing') || '0';
-        var qty            = $btn.data('qty') || '0';
-        var moq            = $btn.data('moq') || '1';
-        var status         = $btn.data('status') === '1' ? '1' : '0';
-        var desc           = $btn.data('desc') || '';
-        var imageUrl       = $btn.data('image') || '';
+        var id             = readButtonData($btn, 'id', '');
+        var name           = readButtonData($btn, 'name', '');
+        var itemCode       = readButtonData($btn, 'item-code', '');
+        var itemClass      = readButtonData($btn, 'item-class', 'general');
+        var regionalName   = readButtonData($btn, 'regional-name', '');
+        var categoryId     = readButtonData($btn, 'category', '');
+        var manufacturerId = readButtonData($btn, 'manufacturer-id', '');
+        var hsnCode        = readButtonData($btn, 'hsn-code', '');
+        var unit           = readButtonData($btn, 'unit', 'pcs');
+        var purchase       = readButtonData($btn, 'purchase', '');
+        var purchaseTax    = readButtonData($btn, 'purchase-tax-percent', '0');
+        var purchaseTaxI   = readButtonData($btn, 'purchase-tax-inclusive', '0');
+        var sale           = readButtonData($btn, 'selling', '');
+        var gstVat         = readButtonData($btn, 'gst-vat-percent', '0');
+        var saleTaxI       = readButtonData($btn, 'sale-tax-inclusive', '0');
+        var discount       = readButtonData($btn, 'discount-percentage', '0');
+        var cess           = readButtonData($btn, 'cess-percentage', '0');
+        var addCess        = readButtonData($btn, 'additional-cess', '0');
+        var isWeighing     = readButtonData($btn, 'is-weighing', '0');
+        var qty            = readButtonData($btn, 'qty', '0');
+        var moq            = readButtonData($btn, 'moq', '1');
+        var status         = readButtonData($btn, 'status', '0') === '1' ? '1' : '0';
+        var desc           = readButtonData($btn, 'desc', '');
+        var imageUrl       = readButtonData($btn, 'image-url', '');
 
         $('#edit-id').val(id);
         $('#e-name').val(name);
@@ -925,16 +923,16 @@
         var itemCode     = $btn.data('item-code') || '';
         var itemClass    = $btn.data('item-class') || '';
         var regionalName = $btn.data('regional-name') || '-';
-        var category     = $btn.data('category-name') || '-';
+        var category     = $btn.data('category') || $btn.data('category-name') || '-';
         var manufacturer = $btn.data('manufacturer') || '-';
         var hsnCode      = $btn.data('hsn-code') || '-';
         var unit         = $btn.data('unit') || '-';
         var purchase     = parseFloat($btn.data('purchase') || 0);
         var purchaseTax  = $btn.data('purchase-tax-percent') || '0';
-        var purchaseTaxI = $btn.data('purchase-tax-inclusive') === 1 ? 'Tax Inclusive' : 'Tax Exclusive';
+        var purchaseTaxI = $btn.data('purchase-tax-inclusive') === '1' ? 'Tax Inclusive' : 'Tax Exclusive';
         var sale         = parseFloat($btn.data('selling') || 0);
         var gstVat       = $btn.data('gst-vat-percent') || '0';
-        var saleTaxI     = $btn.data('sale-tax-inclusive') === 1 ? 'Tax Inclusive' : 'Tax Exclusive';
+        var saleTaxI     = $btn.data('sale-tax-inclusive') === '1' ? 'Tax Inclusive' : 'Tax Exclusive';
         var discount     = $btn.data('discount-percentage') || '0';
         var cess         = $btn.data('cess-percentage') || '0';
         var addCess      = $btn.data('additional-cess') || '0';
@@ -959,13 +957,13 @@
         $('#v-manufacturer').text(manufacturer);
         $('#v-hsn_code').text(hsnCode);
         $('#v-unit').text(unit);
-        $('#v-purchase_price').text('$' + purchase.toFixed(2));
+        $('#v-purchase_price').text('£' + purchase.toFixed(2));
         $('#v-purchase_tax_percent').text(purchaseTax + '% (' + purchaseTaxI + ')');
-        $('#v-sale_price').text('$' + sale.toFixed(2));
+        $('#v-sale_price').text('£' + sale.toFixed(2));
         $('#v-gst_vat_percent').text(gstVat + '% (' + saleTaxI + ')');
         $('#v-discount_percent').text(discount + '%');
         $('#v-cess_percent').text(cess + '%');
-        $('#v-additional_cess').text('$' + parseFloat(addCess).toFixed(2));
+        $('#v-additional_cess').text('£' + parseFloat(addCess).toFixed(2));
         $('#v-is_weighing_item').text(isWeighing);
         $('#v-qty').text(qty + ' ' + unit);
         $('#v-moq').text(moq + ' ' + unit);
@@ -1132,7 +1130,7 @@
             '<td id="name-' + p.id + '" class="fw-semibold">' + escapeHtml(p.name) + '</td>' +
             '<td id="category-' + p.id + '">' + escapeHtml(categoryName) + '</td>' +
             '<td id="manufacturer-' + p.id + '">' + escapeHtml(manufacturerName) + '</td>' +
-            '<td class="text-end fw-bold" id="price-' + p.id + '">$' + salePrice + '</td>' +
+            '<td class="text-end fw-bold" id="price-' + p.id + '">£' + salePrice + '</td>' +
             '<td class="text-center">' +
                 '<span id="stock-badge-' + p.id + '" class="badge ' + stockBadgeClass + '" style="font-size:12px; padding:4px 10px; border-radius:6px;">' + qty + ' ' + unit + '</span>' +
             '</td>' +
@@ -1187,7 +1185,8 @@
                         ' data-qty="' + qty + '" data-moq="' + moq + '"' +
                         ' data-status="' + statusStr + '"' +
                         ' data-desc="' + escapeHtml(p.description || '') + '"' +
-                        ' data-image="' + imageUrl + '">' +
+                        ' data-image="' + escapeHtml(p.image || '') + '"' +
+                        ' data-image-url="' + imageUrl + '">' +
                         '<i class="bi bi-pencil"></i>' +
                     '</button>' +
                     '<button class="btn btn-product-action btn-product-toggle" title="Toggle Status"' +
@@ -1276,6 +1275,14 @@
             .replace(/'/g, '&#039;');
     }
 
+    function readButtonData($btn, key, fallback) {
+        var value = $btn.data(key);
+        if (value === undefined || value === null || value === '') {
+            return fallback;
+        }
+        return String(value);
+    }
+
     // =========================================================================
     // Boot
     // =========================================================================
@@ -1297,3 +1304,4 @@
     });
 
 })(window.jQuery);
+

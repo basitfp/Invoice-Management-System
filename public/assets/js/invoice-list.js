@@ -30,15 +30,15 @@ $(document).ready(function () {
             }
         });
 
-        $('#status-pick-error').text('');   
+        $('#status-pick-error').text('');
 
         var form = document.getElementById('invoiceStatusForm');
         var prefix = window.invoiceRoutePrefix || '/admin/invoices/';
         form.action = prefix + invoiceId + '/status';
-        
-        // Add ID input so we can update UI
+
+        // Store invoice ID for UI update after submit
         if ($('#status-invoice-id').length === 0) {
-            $(form).append('<input type="hidden" id="status-invoice-id" value="'+invoiceId+'">');
+            $(form).append('<input type="hidden" id="status-invoice-id" value="' + invoiceId + '">');
         } else {
             $('#status-invoice-id').val(invoiceId);
         }
@@ -51,30 +51,34 @@ $(document).ready(function () {
     // STATUS MODAL - Submit (AJAX)
     // =============================================
     $(document).on('click', '#confirmStatusBtn', function () {
-        var selected = $('input[name="status_pick"]:checked');
-        if (!selected.length) {
+        var selectedStatus = $('input[name="status_pick"]:checked').val();
+
+        if (!selectedStatus) {
             $('#status-pick-error').text('Please select a status.');
             return;
         }
 
-        $('#status-value').val(selected.val());
-        
-        var form = document.getElementById('invoiceStatusForm');
-        var formData = new FormData(form);
-        var $btn = $(this);
+        // FIX: Populate the hidden status field so FormData sends the correct value
+        $('#status-value').val(selectedStatus);
+
+        var form      = document.getElementById('invoiceStatusForm');
+        var invoiceId = $('#status-invoice-id').val();
+        var formData  = new FormData(form);
+        var $btn      = $(this);
 
         $.ajax({
-            url: form.action,
-            type: 'POST',
-            data: formData,
+            url:         form.action,
+            type:        'POST',
+            data:        formData,
             processData: false,
             contentType: false,
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'Accept': 'application/json'
+                'Accept':       'application/json'
             },
             beforeSend: function () {
-                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
+                $btn.prop('disabled', true)
+                    .prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
             },
             success: function (response) {
                 if (response.success) {
@@ -83,36 +87,51 @@ $(document).ready(function () {
 
                     if (typeof toastr !== 'undefined') toastr.success(response.message);
 
-                    var id = $('#status-invoice-id').val();
-                    var statusContainer = $('#status-container-' + id);
-                    if (statusContainer.length) {
-                        var newStatus = response.new_status;
-                        // Map status value to correct CSS class
-                        var statusClassMap = {
-                            'draft':  'invoice-status-draft',
-                            'unpaid': 'invoice-status-sent',
-                            'paid':   'invoice-status-paid',
-                            'due':    'invoice-status-cancelled'
-                        };
-                        var badgeClass = statusClassMap[newStatus] || 'invoice-status-draft';
-                        var badgeText = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
-                        statusContainer.html('<span class="' + badgeClass + '">' + badgeText + '</span>');
+                    var newStatus   = response.new_status || selectedStatus;
+                    var statusLabel = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+
+                    // Build badge HTML
+                    var badgeHtml = '';
+                    if (newStatus === 'paid') {
+                        badgeHtml = '<span class="invoice-status-paid">' + statusLabel + '</span>';
+                    } else if (newStatus === 'unpaid') {
+                        badgeHtml = '<span class="invoice-status-sent">' + statusLabel + '</span>';
+                    } else if (newStatus === 'due') {
+                        badgeHtml = '<span class="invoice-status-cancelled">' + statusLabel + '</span>';
+                    } else {
+                        // draft or unknown
+                        badgeHtml = '<span class="invoice-status-draft">' + statusLabel + '</span>';
                     }
-                    var statusBtn = $('.btn-invoice-status[data-id="'+id+'"]');
-                    if (statusBtn.length) {
-                        statusBtn.attr('data-status', response.new_status);
+
+                    // FIX: target both id-based container (admin) and class-based (agent)
+                    var $row = $('#row-' + invoiceId);
+                    if ($row.length) {
+                        // Try class selector first (agent index), then id selector (admin index)
+                        var $statusCell = $row.find('.status-container');
+                        if (!$statusCell.length) {
+                            $statusCell = $('#status-container-' + invoiceId);
+                        }
+                        $statusCell.html(badgeHtml);
+
+                        // Update data-status attribute so next modal open shows correct current status
+                        $row.find('.btn-invoice-status').attr('data-status', newStatus);
+                    } else {
+                        window.location.reload();
                     }
                 }
             },
-            error: function () {
-                if (typeof toastr !== 'undefined') toastr.error('Something went wrong.');
+            error: function (xhr) {
+                var msg = 'Something went wrong.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                if (typeof toastr !== 'undefined') toastr.error(msg);
             },
             complete: function () {
                 $btn.prop('disabled', false).find('.btn-spinner').remove();
             }
         });
     });
-
 
     // =============================================
     // DELETE MODAL - Open
@@ -121,15 +140,17 @@ $(document).ready(function () {
         var invoiceId     = $(this).attr('data-id');
         var invoiceNumber = $(this).attr('data-number');
 
-        $('#delete-confirm-body').text('Are you sure you want to permanently delete invoice ' + invoiceNumber + '? This action cannot be undone.');
+        $('#delete-confirm-body').text(
+            'Are you sure you want to permanently delete invoice ' + invoiceNumber +
+            '? This action cannot be undone.'
+        );
 
-        var form = document.getElementById('invoiceDeleteForm');
+        var form   = document.getElementById('invoiceDeleteForm');
         var prefix = window.invoiceRoutePrefix || '/admin/invoices/';
         form.action = prefix + invoiceId;
 
-        // Add ID input so we can update UI
         if ($('#delete-invoice-id').length === 0) {
-            $(form).append('<input type="hidden" id="delete-invoice-id" value="'+invoiceId+'">');
+            $(form).append('<input type="hidden" id="delete-invoice-id" value="' + invoiceId + '">');
         } else {
             $('#delete-invoice-id').val(invoiceId);
         }
@@ -143,23 +164,24 @@ $(document).ready(function () {
     // =============================================
     $(document).on('click', '#invoice-confirm-submit', function (e) {
         e.preventDefault();
-        
-        var form = document.getElementById('invoiceDeleteForm');
+
+        var form     = document.getElementById('invoiceDeleteForm');
         var formData = new FormData(form);
-        var $btn = $(this);
+        var $btn     = $(this);
 
         $.ajax({
-            url: form.action,
-            type: 'POST',
-            data: formData,
+            url:         form.action,
+            type:        'POST',
+            data:        formData,
             processData: false,
             contentType: false,
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'Accept': 'application/json'
+                'Accept':       'application/json'
             },
             beforeSend: function () {
-                $btn.prop('disabled', true).prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
+                $btn.prop('disabled', true)
+                    .prepend('<span class="spinner-border spinner-border-sm me-1 btn-spinner"></span>');
             },
             success: function (response) {
                 if (response.success) {
@@ -168,7 +190,7 @@ $(document).ready(function () {
 
                     if (typeof toastr !== 'undefined') toastr.success(response.message);
 
-                    var id = $('#delete-invoice-id').val();
+                    var id  = $('#delete-invoice-id').val();
                     var row = $('#row-' + id);
                     if (row.length) row.remove();
                     else window.location.reload();
