@@ -2,6 +2,34 @@ $(document).ready(function () {
 
     var FV = window.FormValidation;
     var ES = window.EntitySync;
+    var filterStartDate = null;
+    var filterEndDate = null;
+
+    $('#area-filter-date-range').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear',
+            format: 'YYYY-MM-DD'
+        }
+    });
+
+    $('#area-filter-date-range').on('apply.daterangepicker', function (ev, picker) {
+        filterStartDate = picker.startDate.format('YYYY-MM-DD');
+        filterEndDate = picker.endDate.format('YYYY-MM-DD');
+
+        $(this).val(filterStartDate + ' - ' + filterEndDate);
+
+        applyAreaFilters();
+    });
+
+    $('#area-filter-date-range').on('cancel.daterangepicker', function () {
+        $(this).val('');
+
+        filterStartDate = null;
+        filterEndDate = null;
+
+        applyAreaFilters();
+    });
 
     // =============================================
     // VALIDATION HELPER
@@ -29,9 +57,71 @@ $(document).ready(function () {
     });
 
     // =============================================
+    // CLIENT-SIDE FILTER BAR
+    // =============================================
+    function applyAreaFilters() {
+        var search     = $('#area-filter-search').val().trim().toLowerCase();
+        var status     = $('#area-filter-status').val();
+        var visibleCount = 0;
+        var $tbody = $('#areas-table tbody');
+
+        $tbody.find('.filter-empty-row').remove();
+
+        $('#areas-table tbody tr').not('.filter-empty-row').each(function () {
+            var $row       = $(this);
+            var rowName    = $row.attr('data-name') || '';
+            var rowStatus  = String($row.attr('data-status'));
+            var rowCreated = $row.attr('data-created') || '';
+
+            var matchSearch = search === '' || rowName.indexOf(search) !== -1;
+            var matchStatus = status === '' || rowStatus === status;
+            var matchDate = true;
+
+            if (filterStartDate && filterEndDate) {
+                matchDate = rowCreated >= filterStartDate && rowCreated <= filterEndDate;
+            }
+
+            if (matchSearch && matchStatus && matchDate) {
+                $row.show();
+                visibleCount++;
+            } else {
+                $row.hide();
+            }
+        });
+
+        if (visibleCount === 0) {
+            var colCount = $('#areas-table thead th').length;
+            $tbody.append(
+                '<tr class="filter-empty-row">' +
+                    '<td colspan="' + colCount + '" class="text-center py-5">' +
+                        '<div class="filter-empty-state">' +
+                            '<i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>' +
+                            '<span class="text-muted">No areas match the current filters.</span>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>'
+            );
+        }
+    }
+
+    // Bind filter inputs
+    $('#area-filter-search').on('input', applyAreaFilters);
+    $('#area-filter-status').on('change', applyAreaFilters);
+
+    // Reset button
+    $('#area-filter-reset').on('click', function () {
+        $('#area-filter-search').val('');
+        $('#area-filter-status').val('');
+        $('#area-filter-date-range').val('');
+        filterStartDate = null;
+        filterEndDate = null;
+        applyAreaFilters();
+    });
+
+    // =============================================
     // VIEW MODAL FLOW
     // =============================================
-    $(document).on('click', '.btn-category-view', function () {
+    $(document).on('click', '.btn-area-view', function () {
         // Agar buttons par direct class category-action targets hain toh yahan handle karein
         if ($(this).closest('#areas-table').length === 0) return; 
 
@@ -112,7 +202,7 @@ $(document).ready(function () {
     // =============================================
     // EDIT MODAL FLOW
     // =============================================
-    $(document).on('click', '.btn-category-edit', function () {
+    $(document).on('click', '.btn-area-edit', function () {
         if ($(this).closest('#areas-table').length === 0) return;
 
         var id = $(this).attr('data-id');
@@ -121,8 +211,7 @@ $(document).ready(function () {
         $('#edit-area-id').val(id);
         $('#edit-area-name').val(name);
 
-        var route = "{{ route('admin.areas.update', ':id') }}".replace(':id', id);
-        $('#areaEditForm').attr('action', route);
+        $('#areaEditForm').attr('action', $(this).attr('data-action'));
 
         var modal = new bootstrap.Modal(document.getElementById('areaEditModal'));
         modal.show();
@@ -164,10 +253,16 @@ $(document).ready(function () {
 
                     if (typeof toastr !== 'undefined') toastr.success(response.message || 'Area updated successfully.');
 
-                    $('#name-' + id).text(response.data?.name || $field.val().trim());
-                    
-                    var $rowBtn = $('#row-' + id + ' .btn-category-action');
-                    $rowBtn.attr('data-name', response.data?.name || $field.val().trim());
+                    var newName = response.data?.name || $field.val().trim();
+                    $('#name-' + id).text(newName);
+
+                    // Update data-name on the row and all action buttons so filters stay accurate
+                    var $row = $('#row-' + id);
+                    $row.attr('data-name', newName.toLowerCase());
+                    $row.find('.btn-area-action').attr('data-name', newName);
+
+                    // Re-run filters so the updated row respects current filter state
+                    applyAreaFilters();
                 }
             },
             error: function (xhr) {
@@ -192,7 +287,7 @@ $(document).ready(function () {
     // =============================================
     // TOGGLE STATUS CONFIGURATION
     // =============================================
-    $(document).on('click', '.btn-category-toggle', function () {
+    $(document).on('click', '.btn-area-toggle', function () {
         if ($(this).closest('#areas-table').length === 0) return;
 
         var id = $(this).attr('data-id');
@@ -222,7 +317,7 @@ $(document).ready(function () {
     // =============================================
     // DELETE CONFIGURATION
     // =============================================
-    $(document).on('click', '.btn-category-delete', function () {
+    $(document).on('click', '.btn-area-delete', function () {
         if ($(this).closest('#areas-table').length === 0) return;
 
         var id = $(this).attr('data-id');
@@ -277,7 +372,10 @@ $(document).ready(function () {
                 var id = $('#area-confirm-id').val();
 
                 if (method === 'DELETE') {
-                    $('#row-' + id).fadeOut(300, function () { $(this).remove(); });
+                    $('#row-' + id).fadeOut(300, function () {
+                        $(this).remove();
+                        applyAreaFilters();
+                    });
                 } else if (method === 'PATCH') {
                     if (ES && typeof ES.syncAreaStatus === 'function') {
                         ES.syncAreaStatus(id, response.new_status);
@@ -288,8 +386,14 @@ $(document).ready(function () {
                             : '<span class="badge-status-disabled">Disabled</span>';
                         
                         $('#status-container-' + id).html(badgeHtml);
-                        $('#row-' + id + ' .btn-category-toggle').attr('data-status', s);
+
+                        var $row = $('#row-' + id);
+                        $row.attr('data-status', s);
+                        $row.find('.btn-area-toggle').attr('data-status', s);
+
+                        // Re-run filters so status filter is respected immediately
                     }
+                    applyAreaFilters();
                 }
             },
             error: function () {

@@ -11,9 +11,30 @@ class VendorController extends Controller
     // ----------------------------
     // INDEX - Show all vendors
     // ----------------------------
-    public function index()
+    public function index(Request $request)
     {
-        $vendors = Vendor::orderBy('name')->get();
+        $query = Vendor::orderBy('name');
+
+        // Filter: name search
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . trim($request->search) . '%');
+        }
+
+        // Filter: status ('' = all, '1' = active, '0' = inactive)
+        if ($request->filled('status') && in_array($request->status, ['0', '1'])) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter: date range on created_at
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $vendors = $query->get();
 
         return view('admin.vendors.index', compact('vendors'));
     }

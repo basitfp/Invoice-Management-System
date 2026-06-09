@@ -39,9 +39,37 @@ $(document).ready(function () {
         }
     }
 
+    //  IS NAYE CODE KO LAGAYEN:
     function formatCurrency(amount) {
-        return '£' + parseFloat(amount).toFixed(2);
+    let num = parseFloat(amount);
+    if (isNaN(num)) return "0.00";
+    
+    // Yeh automatic commas (100,000,000) bhi lagaye ga aur decimals ko 2 digits tak toFixed bhi rakhay ga
+    return new Intl.NumberFormat('en-GB', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(num);
     }
+
+    function syncInvoiceNumber() {
+        var suffix = String($('#invoice_number_suffix').val() || '')
+            .toUpperCase()
+            .replace(/^INV-/, '')
+            .replace(/[^A-Z0-9-]/g, '');
+
+        $('#invoice_number_suffix').val(suffix);
+        $('#invoice_number').val('INV-' + suffix);
+        return suffix;
+    }
+
+    $(document).on('input blur', '#invoice_number_suffix', function () {
+        var suffix = syncInvoiceNumber();
+        if (!suffix) {
+            FV.setFieldError($('#invoice_number_suffix'), 'Invoice number is required.');
+        } else {
+            FV.clearFieldError($('#invoice_number_suffix'));
+        }
+    });
 
     // =============================================
     // CUSTOMER DROPDOWN
@@ -60,27 +88,11 @@ $(document).ready(function () {
     });
 
     $(document).on('blur change', '#invoice_date', function () {
-        FV.validateField($(this), {
-            label: 'Invoice date',
-            required: true,
-            requiredMessage: 'Invoice date is required.'
-        });
+        validateInvoiceDates(false);
     });
 
     $(document).on('blur change', '#due_date', function () {
-        var $el = $(this);
-        var val = $el.val();
-        if (!val) {
-            FV.setFieldError($el, 'Due date is required.');
-            return;
-        }
-        var today = new Date(); today.setHours(0, 0, 0, 0);
-        var selected = new Date(val); selected.setHours(0, 0, 0, 0);
-        if (selected < today) {
-            FV.setFieldError($el, 'Due date cannot be in the past.');
-        } else {
-            FV.clearFieldError($el);
-        }
+        validateInvoiceDates(false);
     });
 
     $(document).on('blur change', '#customer_id', function () {
@@ -91,10 +103,16 @@ $(document).ready(function () {
     // QUICK CREATE CUSTOMER MODAL
     // =============================================
     function resetInvoiceCustomerModal() {
-        ['nc-name', 'nc-email', 'nc-phone', 'nc-address', 'nc-vat-number'].forEach(function (id) {
+        [
+            'nc-name', 'nc-email', 'nc-phone', 'nc-birthdate', 'nc-address',
+            'nc-shipping-address', 'nc-city', 'nc-pin-code', 'nc-state',
+            'nc-country', 'nc-landmark', 'nc-area-id', 'nc-credit-days',
+            'nc-credit-limit', 'nc-vat-number'
+        ].forEach(function (id) {
             $('#' + id).val('');
         });
-        $('#nc-type').val('regular');
+        $('#nc-type').val('individual');
+        $('#nc-gender').val('');
         $('#nc-vat-registered').prop('checked', false);
         $('#nc-vat-number-wrap').hide();
         $('#customer-modal-error').addClass('d-none');
@@ -180,7 +198,18 @@ $(document).ready(function () {
         var email   = $('#nc-email').val().trim();
         var phone   = $('#nc-phone').val().trim();
         var type    = $('#nc-type').val();
+        var gender  = $('#nc-gender').val();
+        var birthdate = $('#nc-birthdate').val();
         var address = $('#nc-address').val().trim();
+        var shippingAddress = $('#nc-shipping-address').val().trim();
+        var city = $('#nc-city').val().trim();
+        var pinCode = $('#nc-pin-code').val().trim();
+        var state = $('#nc-state').val().trim();
+        var country = $('#nc-country').val().trim();
+        var landmark = $('#nc-landmark').val().trim();
+        var areaId = $('#nc-area-id').val();
+        var creditDays = $('#nc-credit-days').val();
+        var creditLimit = $('#nc-credit-limit').val();
         var vatReg  = $('#nc-vat-registered').is(':checked');
         var vatNum  = $('#nc-vat-number').val().trim();
 
@@ -209,8 +238,19 @@ $(document).ready(function () {
         formData.append('name', name);
         formData.append('email', email);
         formData.append('phone', phone);
-        formData.append('customer_type', type || 'regular');
+        formData.append('customer_type', type || 'individual');
+        formData.append('gender', gender);
+        formData.append('birthdate', birthdate);
         formData.append('address', address);
+        formData.append('shipping_address', shippingAddress);
+        formData.append('city', city);
+        formData.append('pin_code', pinCode);
+        formData.append('state', state);
+        formData.append('country', country);
+        formData.append('landmark', landmark);
+        formData.append('area_id', areaId);
+        formData.append('credit_days', creditDays);
+        formData.append('credit_limit', creditLimit);
         if (vatReg) {
             formData.append('vat_registered', '1');
             formData.append('vat_number', vatNum);
@@ -325,11 +365,10 @@ $(document).ready(function () {
             '</td>' +
             '<td>' +
                 '<div class="input-group-sm" style="position:relative;">' +
-                    '<span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-secondary);font-size:13px;z-index:1;">£</span>' +
                     '<input type="number" name="products[' + idx + '][selling_price]" ' +
                         'class="form-control invoice-input-sm row-price validate-non-negative" ' +
                         'value="' + price + '" min="0.01" step="0.01" data-row="' + idx + '" data-label="Selling price" ' +
-                        'style="padding-left:22px;">' +
+                        '>' +
                 '</div>' +
                 '<span class="field-error text-danger small" id="row-price-error-' + idx + '"></span>' +
             '</td>' +
@@ -346,7 +385,7 @@ $(document).ready(function () {
                 '<span class="field-error text-danger small" id="row-qty-error-' + idx + '"></span>' +
             '</td>' +
             '<td>' +
-                '<span class="row-line-total" id="row-total-' + idx + '">£0.00</span>' +
+                '<span class="row-line-total" id="row-total-' + idx + '">0.00</span>' +
             '</td>' +
             '<td>' +
                 '<button type="button" class="btn btn-remove-row" data-row="' + idx + '" title="Remove row">' +
@@ -545,28 +584,12 @@ $(document).ready(function () {
     function validateInvoiceForm() {
         var valid = true;
 
-        if (!FV.runRules([{
-            field: $('#invoice_date'),
-            label: 'Invoice date',
-            required: true,
-            requiredMessage: 'Invoice date is required.'
-        }], true)) valid = false;
-
-        var $due   = $('#due_date');
-        var dueVal = $due.val();
-        if (!dueVal) {
-            FV.setFieldError($due, 'Due date is required.');
+        if (!syncInvoiceNumber()) {
+            FV.setFieldError($('#invoice_number_suffix'), 'Invoice number is required.');
             valid = false;
-        } else {
-            var today    = new Date(); today.setHours(0, 0, 0, 0);
-            var selected = new Date(dueVal); selected.setHours(0, 0, 0, 0);
-            if (selected < today) {
-                FV.setFieldError($due, 'Due date cannot be in the past.');
-                valid = false;
-            } else {
-                FV.clearFieldError($due);
-            }
         }
+
+        if (!validateInvoiceDates(true)) valid = false;
 
         if (!FV.runRules([FV.rules.select($('#customer_id'), 'Customer')], true)) valid = false;
 
@@ -587,6 +610,55 @@ $(document).ready(function () {
         }
 
         if (!rowsValid) valid = false;
+
+        return valid;
+    }
+
+    function parseDateOnly(value) {
+        if (!value) return null;
+        var parts = value.split('-');
+        if (parts.length !== 3) return null;
+        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+
+    function validateInvoiceDates(showRequired) {
+        var valid = true;
+        var $invoiceDate = $('#invoice_date');
+        var $dueDate = $('#due_date');
+        var invoiceVal = $invoiceDate.val();
+        var dueVal = $dueDate.val();
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (!invoiceVal) {
+            if (showRequired !== false) FV.setFieldError($invoiceDate, 'Invoice date is required.');
+            valid = false;
+        } else {
+            var invoiceDate = parseDateOnly(invoiceVal);
+            if (!invoiceDate || invoiceDate > today) {
+                FV.setFieldError($invoiceDate, 'Invoice date cannot be in the future.');
+                valid = false;
+            } else {
+                FV.clearFieldError($invoiceDate);
+            }
+        }
+
+        if (!dueVal) {
+            if (showRequired !== false) FV.setFieldError($dueDate, 'Due date is required.');
+            valid = false;
+        } else {
+            var dueDate = parseDateOnly(dueVal);
+            var baseDate = parseDateOnly(invoiceVal);
+            if (!dueDate) {
+                FV.setFieldError($dueDate, 'Due date is invalid.');
+                valid = false;
+            } else if (baseDate && dueDate < baseDate) {
+                FV.setFieldError($dueDate, 'Due date cannot be earlier than invoice date.');
+                valid = false;
+            } else {
+                FV.clearFieldError($dueDate);
+            }
+        }
 
         return valid;
     }
@@ -677,6 +749,10 @@ $(document).ready(function () {
                         if (res.errors.due_date)     FV.setFieldError($('#due_date'),     res.errors.due_date[0]);
                         if (res.errors.status)       FV.setFieldError($('#status'),       res.errors.status[0]);
                         if (res.errors.invoice_date) FV.setFieldError($('#invoice_date'), res.errors.invoice_date[0]);
+                        if (res.errors.invoice_number) {
+                            FV.setFieldError($('#invoice_number_suffix'), res.errors.invoice_number[0]);
+                            if (typeof toastr !== 'undefined') toastr.error(res.errors.invoice_number[0]);
+                        }
                         if (res.errors.customer_id)  FV.setFieldError($('#customer_id'),  res.errors.customer_id[0]);
                         if (res.errors.products)     $('#products-error').text(res.errors.products[0]);
                         if (typeof window.showGlobalValidationError === 'function') window.showGlobalValidationError();

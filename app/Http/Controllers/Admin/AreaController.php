@@ -11,9 +11,30 @@ class AreaController extends Controller
     // ----------------------------
     // INDEX - Show all areas
     // ----------------------------
-    public function index()
+    public function index(Request $request)
     {
-        $areas = Area::orderBy('name')->get();
+        $query = Area::orderBy('name');
+
+        // Filter: name search
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . trim($request->search) . '%');
+        }
+
+        // Filter: status ('' = all, '1' = active, '0' = inactive)
+        if ($request->filled('status') && in_array($request->status, ['0', '1'])) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter: date range on created_at
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $areas = $query->get();
 
         return view('admin.areas.index', compact('areas'));
     }

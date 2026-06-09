@@ -123,7 +123,7 @@
         /^92[1-9][0-9]{8,11}$/.test(value)
 
     );
-    };
+    };  
 
     // FV.sanitizePakistaniPhoneInput = function (raw) {
     //     var value = String(raw);

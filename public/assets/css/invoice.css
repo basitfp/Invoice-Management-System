@@ -637,3 +637,22 @@ body {
         size: A4;
     }
 }
+/* Reset button */
+#filter-reset {
+    height: 38px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+    background: #ffffff;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+#filter-reset:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+

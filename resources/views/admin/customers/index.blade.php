@@ -13,17 +13,68 @@
                 </div>
 
                 <div>
-                    <button class="btn btn-primary px-4 py-2 d-flex align-items-center gap-2"
+                    <button class="btn btn-primary d-flex align-items-center gap-2"
                         data-bs-toggle="modal"
                         data-bs-target="#customerCreateModal"
-                        style="border-radius: 10px; font-weight: 600; font-size: 14px;">
+                        style="height: 40px; border-radius: var(--radius-lg); font-weight: 600; font-size: 14px; padding: 0 20px;">
                         <i class="bi bi-plus-lg"></i> Add Customer
                     </button>
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover table-customer">
+            {{-- ===================== FILTER BAR ===================== --}}
+            <div id="customer-filter-bar" class="mb-3">
+                <div class="row g-2 align-items-end">
+
+                    {{-- Name Search --}}
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="customer-filter-label" for="customer-filter-search">Search</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text"
+                                   id="customer-filter-search"
+                                   class="form-control"
+                                   placeholder="Customer name…"
+                                   autocomplete="off">
+                        </div>
+                    </div>
+
+                    {{-- Status --}}
+                    <div class="col-12 col-sm-6 col-lg-2">
+                        <label class="customer-filter-label" for="customer-filter-status">Status</label>
+                        <select id="customer-filter-status" class="form-select">
+                            <option value="">All</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+
+                    {{-- Date Range --}}
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="customer-filter-label" for="customer-filter-date-range">Date Range</label>
+                        <input type="text"
+                               id="customer-filter-date-range"
+                               class="form-control"
+                               placeholder="Select date range"
+                               autocomplete="off">
+                    </div>
+
+                    {{-- Reset Button --}}
+                    <div class="col-12 col-sm-auto col-lg-1">
+                        <button type="button"
+                                id="customer-filter-reset"
+                                class="btn btn-outline-secondary w-100"
+                                title="Clear all filters">
+                            <i class="bi bi-x-circle me-1"></i>Reset
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+            {{-- ==================== END FILTER BAR ==================== --}}
+
+            <div class="customer-table-wrapper">
+                <table class="table table-customer" id="customers-table">
                     <thead>
                         <tr>
                             <th style="width: 50px;">#</th>
@@ -38,7 +89,11 @@
                     </thead>
                     <tbody>
                         @foreach($customers as $customer)
-                        <tr id="row-{{ $customer->id }}">
+                        <tr id="row-{{ $customer->id }}"
+                            data-name="{{ strtolower($customer->name) }}"
+                            data-status="{{ $customer->status ? '1' : '0' }}"
+                            data-created="{{ $customer->created_at ? $customer->created_at->format('Y-m-d') : '' }}">
+
                             <td>{{ $customer->id }}</td>
                             <td id="name-{{ $customer->id }}">{{ $customer->name }}</td>
                             <td id="email-{{ $customer->id }}">{{ $customer->email }}</td>
@@ -147,7 +202,7 @@
                 </table>
 
                 {{-- Pagination --}}
-                <div class="mt-3">
+                <div class="mt-3 px-3 pb-3">
                     {{ $customers->links() }}
                 </div>
 

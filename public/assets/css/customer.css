@@ -1,60 +1,145 @@
-/* Customer Module Styles - Premium SaaS Aesthetic (Strictly CSS Only) */
+/* =============================================================
+   CUSTOMER MODULE — Enterprise SaaS Design System
+   Aligned to Area Module standard. Design tokens redeclared
+   here so this file can be loaded standalone.
+   ============================================================= */
 
 :root {
-    --card-bg: #ffffff;
-    --border-color: #e2e8f0;
-    --primary-color: #2563eb;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --focus-ring: rgba(37, 99, 235, 0.15);
+    /* --- Color Palette --- */
+    --clr-bg-page:          #f1f5f9;
+    --clr-bg-card:          #ffffff;
+    --clr-bg-subtle:        #f8fafc;
+
+    --clr-border:           #e2e8f0;
+    --clr-border-strong:    #cbd5e1;
+
+    --clr-primary:          #2563eb;
+    --clr-primary-hover:    #1d4ed8;
+    --clr-primary-muted:    #eff6ff;
+    --clr-primary-border:   #bfdbfe;
+
+    --clr-text-base:        #0f172a;
+    --clr-text-secondary:   #64748b;
+    --clr-text-muted:       #94a3b8;
+
+    --clr-success-bg:       #dcfce7;
+    --clr-success-text:     #15803d;
+    --clr-success-border:   #bbf7d0;
+
+    --clr-danger-bg:        #fee2e2;
+    --clr-danger-text:      #b91c1c;
+    --clr-danger-border:    #fecaca;
+
+    --clr-warning-bg:       #fffbeb;
+    --clr-warning-text:     #d97706;
+    --clr-warning-border:   #fde68a;
+
+    --clr-leaf-bg:          #f7fee7;
+    --clr-leaf-text:        #65a30d;
+    --clr-leaf-border:      #d9f99d;
+
+    /* --- Typography --- */
+    --font-size-xs:         11px;
+    --font-size-sm:         12px;
+    --font-size-base:       14px;
+    --font-size-md:         16px;
+    --font-size-lg:         20px;
+
+    /* --- Spacing Scale --- */
+    --space-1:  4px;
+    --space-2:  8px;
+    --space-3:  12px;
+    --space-4:  16px;
+    --space-5:  20px;
+    --space-6:  24px;
+    --space-7:  28px;
+    --space-8:  32px;
+
+    /* --- Radius Scale --- */
+    --radius-sm:   6px;
+    --radius-md:   8px;
+    --radius-lg:   10px;
+    --radius-xl:   12px;
+    --radius-2xl:  16px;
+    --radius-pill: 999px;
+
+    /* --- Shadows --- */
+    --shadow-card:     0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+    --shadow-modal:    0 20px 48px -12px rgba(15, 23, 42, 0.14);
+    --shadow-dropdown: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+    /* --- Focus Ring --- */
+    --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.15);
+
+    /* --- Transitions --- */
+    --transition-base: all 0.18s ease;
+
+    /* --- Control Sizes --- */
+    --btn-action-size:  34px;
+    --input-height:     44px;
+    --input-height-sm:  38px;
+    --input-height-btn: 48px;
 }
 
-/* ══ Card Layout Base ═════════════════ */
+
+/* =============================================================
+   CARD WRAPPER
+   ============================================================= */
+
 .customer-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 10px 40px rgba(15,23,42,.04), 0 2px 8px rgba(15,23,42,.02);
-    border-radius: 16px;
-    padding: 32px;
+    background-color: var(--clr-bg-card);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-8);
 }
 
 @media (max-width: 768px) {
     .customer-card {
-        padding: 20px;
+        padding: var(--space-5);
     }
 }
 
-/* ══ Header Row ═══════════════════════ */
+
+/* =============================================================
+   CARD HEADER
+   ============================================================= */
+
 .customer-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 28px;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: var(--space-4);
+    margin-bottom: var(--space-7);
 }
 
 .customer-title {
-    font-size: 20px;
+    font-size: var(--font-size-lg);
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--clr-text-base);
     margin: 0;
+    line-height: 1.3;
 }
 
 .customer-subtitle {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-top: 4px;
+    font-size: var(--font-size-base);
+    color: var(--clr-text-secondary);
+    margin-top: var(--space-1);
     margin-bottom: 0;
 }
 
-/* ══ Table Wrapper & Responsiveness ═══ */
-.table-responsive {
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    background: #fff;
+
+/* =============================================================
+   TABLE
+   ============================================================= */
+
+.customer-table-wrapper {
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-xl);
+    background: var(--clr-bg-card);
     overflow: hidden;
-    margin-top: 10px;
+    margin-top: var(--space-3);
 }
 
 .table-customer {
@@ -63,293 +148,317 @@
 }
 
 .table-customer thead th {
-    background-color: #f8fafc;
-    font-size: 12px;
-    text-transform: uppercase;
+    background-color: var(--clr-bg-subtle);
+    font-size: var(--font-size-sm);
     font-weight: 600;
+    text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-secondary);
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border-color);
+    color: var(--clr-text-secondary);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--clr-border);
     border-top: none;
+    white-space: nowrap;
 }
 
 .table-customer tbody td {
-    padding: 16px 20px;
-    font-size: 14px;
+    padding: var(--space-4) var(--space-5);
+    font-size: var(--font-size-base);
     color: #1e293b;
     border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
 }
 
 .table-customer tbody tr:last-child td {
     border-bottom: none;
 }
 
-/* Typography Enhancements for Row Cells */
-.table-customer tbody td:nth-child(2) {
-    font-weight: 700;
-    color: var(--text-primary);
+.table-customer tbody tr {
+    transition: background-color 0.12s ease;
 }
 
-.table-customer tbody td.text-center {
-    font-weight: 500;
+.table-customer tbody tr:hover {
+    background-color: #fafbfc;
 }
 
-/* ══ Action Row Buttons ═══════════════ */
+
+/* =============================================================
+   ACTION BUTTONS
+   ============================================================= */
+
 .btn-customer-action {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
+    width: var(--btn-action-size);
+    height: var(--btn-action-size);
+    border-radius: var(--radius-md);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--border-color);
-    background: #fff;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
+    border: 1px solid var(--clr-border);
+    background: var(--clr-bg-card);
+    color: var(--clr-text-secondary);
+    transition: var(--transition-base);
     padding: 0;
     font-size: 15px;
+    line-height: 1;
+    flex-shrink: 0;
 }
 
 .btn-customer-action:hover {
-    background-color: #f8fafc;
-    color: var(--text-primary);
-    border-color: #cbd5e1;
+    background-color: var(--clr-bg-subtle);
+    color: var(--clr-text-base);
+    border-color: var(--clr-border-strong);
 }
 
-/* Contextual Actions hover states via class mappings safely */
-.btn-customer-action:has(.bi-eye):hover {
-    color: #2563eb !important;
-    background-color: #eff6ff !important;
-    border-color: #bfdbfe !important;
+.btn-customer-view:hover {
+    color: var(--clr-primary);
+    background-color: var(--clr-primary-muted);
+    border-color: var(--clr-primary-border);
 }
 
-.btn-customer-action:has(.bi-pencil):hover {
-    color: #d97706 !important;
-    background-color: #fffbeb !important;
-    border-color: #fde68a !important;
+.btn-customer-edit:hover {
+    color: var(--clr-warning-text);
+    background-color: var(--clr-warning-bg);
+    border-color: var(--clr-warning-border);
 }
 
-.btn-customer-action:has(.bi-slash-circle):hover {
-    color: #16a34a !important;
-    background-color: #f0fdf4 !important;
-    border-color: #bbf7d0 !important;
+.btn-customer-toggle:hover {
+    color: var(--clr-leaf-text);
+    background-color: var(--clr-leaf-bg);
+    border-color: var(--clr-leaf-border);
 }
 
-.btn-customer-action:has(.bi-trash):hover {
-    color: #dc2626 !important;
-    background-color: #fef2f2 !important;
-    border-color: #fca5a5 !important;
+.btn-customer-delete:hover {
+    color: var(--clr-danger-text);
+    background-color: var(--clr-danger-bg);
+    border-color: var(--clr-danger-border);
 }
 
-/* ══ Badges Styling Overrides ═════════ */
-.badge {
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: 6px;
+
+/* =============================================================
+   STATUS BADGES
+   ============================================================= */
+
+.badge-status-enabled,
+.badge-status-disabled {
     display: inline-flex;
     align-items: center;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-pill);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
 }
 
-/* ══ Modals Premium Layout Fixes ══════ */
+.badge-status-enabled {
+    background-color: var(--clr-success-bg);
+    color: var(--clr-success-text);
+    border: 1px solid var(--clr-success-border);
+}
+
+.badge-status-disabled {
+    background-color: var(--clr-danger-bg);
+    color: var(--clr-danger-text);
+    border: 1px solid var(--clr-danger-border);
+}
+
+
+/* =============================================================
+   FILTER BAR
+   ============================================================= */
+
+#customer-filter-bar {
+    background: var(--clr-bg-subtle);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-4) var(--space-5);
+}
+
+.customer-filter-label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--clr-text-secondary);
+    margin-bottom: var(--space-2);
+}
+
+#customer-filter-bar .form-control,
+#customer-filter-bar .form-select {
+    height: var(--input-height-sm);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--clr-border);
+    font-size: 13px;
+    color: var(--clr-text-base);
+    background-color: var(--clr-bg-card);
+    transition: var(--transition-base);
+}
+
+#customer-filter-bar .form-control:focus,
+#customer-filter-bar .form-select:focus {
+    border-color: var(--clr-primary);
+    box-shadow: var(--focus-ring);
+    outline: 0;
+}
+
+/* Search input group */
+#customer-filter-bar .input-group-text {
+    height: var(--input-height-sm);
+    background-color: var(--clr-bg-card);
+    border: 1px solid var(--clr-border);
+    border-right: none;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    color: var(--clr-text-secondary);
+    font-size: 13px;
+    padding: 0 var(--space-3);
+}
+
+#customer-filter-bar .input-group .form-control {
+    border-left: none;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+#customer-filter-bar .input-group .form-control:focus {
+    border-left: none;
+    box-shadow: none;
+}
+
+#customer-filter-bar .input-group:focus-within .input-group-text {
+    border-color: var(--clr-primary);
+}
+
+#customer-filter-bar .input-group:focus-within .form-control {
+    border-color: var(--clr-primary);
+    box-shadow: var(--focus-ring);
+}
+
+/* Reset button */
+#customer-filter-reset {
+    height: var(--input-height-sm);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--clr-text-secondary);
+    border-color: var(--clr-border);
+    background: var(--clr-bg-card);
+    transition: var(--transition-base);
+    white-space: nowrap;
+}
+
+#customer-filter-reset:hover {
+    background: var(--clr-danger-bg);
+    border-color: var(--clr-danger-border);
+    color: var(--clr-danger-text);
+}
+
+
+/* =============================================================
+   EMPTY STATE — filter-empty-row (injected by customer.js)
+   ============================================================= */
+
+#customers-table .filter-empty-row td {
+    background-color: var(--clr-bg-card) !important;
+    border-bottom: none !important;
+    cursor: default;
+}
+
+#customers-table .filter-empty-row:hover td {
+    background-color: var(--clr-bg-card) !important;
+}
+
+#customers-table .filter-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4) 0;
+}
+
+#customers-table .filter-empty-state i {
+    font-size: 28px;
+    margin-bottom: var(--space-2);
+    color: var(--clr-text-muted);
+    opacity: 0.6;
+}
+
+#customers-table .filter-empty-state span {
+    font-size: var(--font-size-base);
+    color: var(--clr-text-secondary);
+}
+
+
+/* =============================================================
+   MODALS — Shared layer
+   ============================================================= */
+
 .modal-content {
-    border: none !important;
-    border-radius: 16px !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1) !important;
+    border: none;
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-modal);
     overflow: hidden;
 }
 
 .modal-header {
-    border-bottom: 1px solid var(--border-color) !important;
-    padding: 20px 24px !important;
-    background-color: #f8fafc !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--clr-border);
+    padding: var(--space-5) var(--space-6);
+    background-color: var(--clr-bg-subtle);
 }
 
 .modal-header .modal-title {
-    font-size: 16px !important;
-    font-weight: 700 !important;
-    color: var(--text-primary) !important;
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--clr-text-base);
+    margin: 0;
 }
 
 .modal-body {
-    padding: 24px !important;
+    padding: var(--space-6);
 }
 
 .modal-footer {
-    border-top: 1px solid var(--border-color) !important;
-    padding: 16px 24px !important;
-    gap: 10px !important;
-    background-color: #f8fafc !important;
-}
-
-/* View details alignment overrides without structural changes */
-.modal-body .border-bottom {
-    border-bottom: 1px solid #f1f5f9 !important;
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
-}
-
-.modal-body .text-secondary.fw-medium {
-    font-size: 13px;
-    color: var(--text-secondary) !important;
-}
-
-.modal-body .fw-semibold.text-dark {
-    font-size: 14px;
-    color: var(--text-primary) !important;
-}
-
-/* ══ Form Fields Stabilization ════════ */
-.modal .mb-3 {
-    position: relative;
-    margin-bottom: 20px !important;
-}
-
-.modal label {
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    color: var(--text-secondary) !important;
-    margin-bottom: 6px !important;
-    display: inline-block;
-}
-
-.modal .form-control,
-.modal select,
-.modal textarea {
-    height: 44px !important;
-    border-radius: 8px !important;
-    border: 1px solid var(--border-color) !important;
-    font-size: 14px !important;
-    padding: 0 14px !important;
-    transition: all 0.2s ease !important;
-    background-color: #fff !important;
-    color: var(--text-primary) !important;
-}
-
-.modal textarea {
-    height: auto !important;
-    padding: 10px 14px !important;
-    min-height: 80px;
-}
-
-.modal .form-control:focus,
-.modal select:focus,
-.modal textarea:focus {
-    border-color: var(--primary-color) !important;
-    box-shadow: 0 0 0 3px var(--focus-ring) !important;
-    outline: 0 !important;
-}
-
-/* Form Checkbox custom look override */
-.modal .form-check-input {
-    width: 18px !important;
-    height: 18px !important;
-    margin-top: 2px !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: 4px !important;
-}
-
-.modal .form-check-input:checked {
-    background-color: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
-}
-
-.modal .form-check-label {
-    font-size: 14px !important;
-    font-weight: 500 !important;
-    color: var(--text-primary) !important;
-    padding-left: 6px;
-    margin-bottom: 0 !important;
-}
-
-/* ══ Dynamic Validation Spans Setup ══ */
-.field-error {
-    display: block;
-    font-size: 11px !important;
-    font-weight: 500;
-    color: #dc2626;
-    margin-top: 4px;
-    min-height: 16px; /* Layout displacement or element shaking prevent karega jab backend error fetch ho */
-}
-
-/* Standard bootstrap validation error style controls */
-.modal .form-control.is-invalid,
-.modal select.is-invalid {
-    border-color: #ef4444 !important;
-    background-image: none !important;
-}
-
-/* ══ Buttons Global Overrides inside Modals ══ */
-.modal-footer .btn {
-    height: 40px !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    font-size: 14px !important;
-    padding: 0 20px !important;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
-    border: 1px solid transparent;
-}
-
-.modal-footer .btn-secondary {
-    background-color: #fff !important;
-    color: var(--text-secondary) !important;
-    border: 1px solid #cbd5e1 !important;
-}
-
-.modal-footer .btn-secondary:hover {
-    background-color: #f8fafc !important;
-    color: var(--text-primary) !important;
-}
-
-.modal-footer .btn-primary {
-    background-color: #2563eb !important;
-    border-color: #2563eb !important;
-    color: #fff !important;
-}
-
-.modal-footer .btn-primary:hover {
-    background-color: #1d4ed8 !important;
-    border-color: #1d4ed8 !important;
-}
-
-.modal-footer .btn-danger {
-    background-color: #dc2626 !important;
-    border-color: #dc2626 !important;
-    color: #fff !important;
-}
-
-.modal-footer .btn-danger:hover {
-    background-color: #b91c1c !important;
-    border-color: #b91c1c !important;
-}
-
-/* Laravel Pagination Alignment Support */
-.table-responsive + .mt-3, .customer-card .mt-3 {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
+    border-top: 1px solid var(--clr-border);
+    padding: var(--space-4) var(--space-6);
+    gap: var(--space-3);
+    background-color: var(--clr-bg-subtle);
 }
 
-/* Small Confirm Dialog Modal Configuration */
-#customerConfirmModal .modal-dialog {
-    max-width: 400px;
+/* Footer button sizing */
+.modal-footer .btn {
+    height: var(--input-height-btn);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
 }
-/* ══ Modal Section Labels ═════════════ */
+
+
+/* =============================================================
+   MODAL — SECTION LABELS
+   ============================================================= */
+
 .customer-section-label {
-    font-size: 11px;
+    font-size: var(--font-size-xs);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border-color);
+    color: var(--clr-text-secondary);
+    margin-bottom: var(--space-1);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--clr-border);
 }
 
-/* ══ View Modal Field Layout ═══════════ */
+
+/* =============================================================
+   MODAL — VIEW FIELD LAYOUT
+   ============================================================= */
+
 .customer-view-field {
     display: flex;
     flex-direction: column;
@@ -357,35 +466,156 @@
 }
 
 .customer-view-label {
-    font-size: 11px;
+    font-size: var(--font-size-xs);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-secondary);
+    color: var(--clr-text-secondary);
 }
 
 .customer-view-value {
-    font-size: 14px;
+    font-size: var(--font-size-base);
     font-weight: 500;
-    color: var(--text-primary);
+    color: var(--clr-text-base);
     word-break: break-word;
 }
 
-/* ══ Modal Large Size Row Spacing ═════ */
-.modal-lg .modal-body .row {
-    row-gap: 0;
-}
-
+/* Row spacing inside large modals */
 .modal-lg .modal-body .col-md-6,
 .modal-lg .modal-body .col-md-3,
 .modal-lg .modal-body .col-md-4,
 .modal-lg .modal-body .col-md-2,
 .modal-lg .modal-body .col-12 {
-    margin-bottom: 16px;
+    margin-bottom: var(--space-4);
 }
 
-/* Textarea height override for modals */
+
+/* =============================================================
+   MODAL — FORM CONTROLS (Create & Edit)
+   ============================================================= */
+
+.modal .form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--clr-text-secondary);
+    margin-bottom: var(--space-2);
+}
+
+.modal label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--clr-text-secondary);
+    margin-bottom: var(--space-2);
+    display: inline-block;
+}
+
+.modal .form-control,
+.modal select.form-control,
 .modal textarea.form-control {
-    height: auto !important;
-    min-height: 70px !important;
+    height: var(--input-height);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--clr-border);
+    font-size: var(--font-size-base);
+    color: var(--clr-text-base);
+    padding: 0 var(--space-4);
+    transition: var(--transition-base);
+    background-color: var(--clr-bg-card);
+}
+
+.modal textarea.form-control {
+    height: auto;
+    padding: var(--space-3) var(--space-4);
+    min-height: 70px;
+}
+
+.modal .form-control:focus,
+.modal select.form-control:focus,
+.modal textarea.form-control:focus {
+    border-color: var(--clr-primary);
+    box-shadow: var(--focus-ring);
+    outline: 0;
+}
+
+.modal .form-control::placeholder {
+    color: var(--clr-text-muted);
+}
+
+/* Checkbox */
+.modal .form-check-input {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius-sm);
+}
+
+.modal .form-check-input:checked {
+    background-color: var(--clr-primary);
+    border-color: var(--clr-primary);
+}
+
+.modal .form-check-label {
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--clr-text-base);
+    padding-left: var(--space-2);
+    margin-bottom: 0;
+}
+
+/* Validation error */
+.field-error {
+    display: block;
+    font-size: var(--font-size-xs) !important;
+    font-weight: 500;
+    color: #dc2626;
+    margin-top: var(--space-1);
+    min-height: 16px;
+    line-height: 1.4;
+}
+
+/* Invalid state */
+.modal .form-control.is-invalid,
+.modal select.form-control.is-invalid {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    background-image: none;
+}
+
+/* Confirm modal size */
+#customerConfirmModal .modal-dialog {
+    max-width: 420px;
+}
+
+/* Pagination alignment */
+.customer-table-wrapper + .mt-3,
+.customer-card .mt-3 {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#customerCreateModal .modal-dialog,
+#customerEditModal .modal-dialog {
+    max-width: 1100px;
+    width: calc(100% - 2rem);
+    margin: 1rem auto;
+}
+
+#customerCreateModal .modal-content,
+#customerEditModal .modal-content {
+    max-height: 90vh;
+}
+
+#customerCreateModal .modal-body,
+#customerEditModal .modal-body {
+    max-height: calc(90vh - 140px);
+    overflow-y: auto;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    #customerCreateModal .modal-dialog,
+    #customerEditModal .modal-dialog {
+        width: calc(100% - 1rem);
+        margin: 0.5rem auto;
+    }
 }

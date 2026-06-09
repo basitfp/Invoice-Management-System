@@ -4,6 +4,10 @@
 
 @section('content')
 
+{{-- Chart.js for premium agent analytics (CDN only) --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+
+
 {{-- Welcome Header --}}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -90,9 +94,42 @@
 
 </div>
 
+{{-- Analytics Row (Premium Charts) --}}
+<div class="row g-4 mb-4">
+    <div class="col-12 col-xl-8">
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff;">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-bold mb-0" style="color: var(--text-primary);">Revenue Trend</h6>
+                    <p class="text-muted mb-0" style="font-size: 12px; font-weight: 600;">Paid vs pending revenue over the last 6 months</p>
+                </div>
+            </div>
+            <div class="card-body px-4 pb-4" style="padding-top: 10px;">
+                <div class="chart-wrap chart-wrap--tall">
+                    <canvas id="agentRevenueTrend" aria-label="Revenue Trend" role="img"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff;">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                <h6 class="fw-bold mb-0" style="color: var(--text-primary);">Invoice Status</h6>
+                <p class="text-muted mb-0" style="font-size: 12px; font-weight: 600;">Current distribution of your invoices</p>
+            </div>
+            <div class="card-body px-4 pb-4" style="padding-top: 10px;">
+                <div class="chart-wrap">
+                    <canvas id="agentInvoiceStatus" aria-label="Invoice Status" role="img"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Main Content Row --}}
 <div class="row g-4">
-    
+
     {{-- Recent Invoices --}}
     <div class="col-12 col-xl-8">
         <div class="card border-0 shadow-sm" style="border-radius: 16px; background: #fff;">
@@ -205,6 +242,96 @@
             </div>
         </div>
     </div>
+
 </div>
 
+{{-- Chart bootstrapping (agent analytics) --}}
+<script>
+    (function () {
+        const monthLabels = @json($monthLabels ?? []);
+        const paidSeries = @json($paidSeries ?? []);
+        const pendingSeries = @json($pendingSeries ?? []);
+        const statusLabels = @json($statusLabels ?? []);
+        const statusCounts = @json($statusCounts ?? []);
+
+        function safeArray(v) { return Array.isArray(v) ? v : []; }
+
+        const labels = safeArray(monthLabels);
+        const paid = safeArray(paidSeries);
+        const pending = safeArray(pendingSeries);
+
+        const ctxRevenue = document.getElementById('agentRevenueTrend');
+        if (ctxRevenue && labels.length) {
+            new Chart(ctxRevenue, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Paid',
+                            data: paid,
+                            borderColor: '#16a34a',
+                            backgroundColor: 'rgba(22,163,74,0.12)',
+                            tension: 0.35,
+                            pointRadius: 3,
+                            pointHoverRadius: 4,
+                            fill: true
+                        },
+                        {
+                            label: 'Pending/Due',
+                            data: pending,
+                            borderColor: '#d97706',
+                            backgroundColor: 'rgba(217,119,6,0.12)',
+                            tension: 0.35,
+                            pointRadius: 3,
+                            pointHoverRadius: 4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'bottom' }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { callback: function(value){ return '£' + value.toLocaleString(); } }
+                        }
+                    }
+                }
+            });
+        }
+
+        const ctxStatus = document.getElementById('agentInvoiceStatus');
+        if (ctxStatus && statusLabels.length) {
+            new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: safeArray(statusCounts),
+                        backgroundColor: [
+                            '#16a34a', // paid
+                            '#4f7ee8', // unpaid
+                            '#ef4444', // due/cancelled
+                            '#64748b', // draft/sent
+                            '#0891b2',
+                            '#d97706'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'bottom' }
+                    }
+                }
+            });
+        }
+    })();
+</script>
 @endsection

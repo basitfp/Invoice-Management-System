@@ -659,6 +659,144 @@ body {
     border-color: rgba(91,141,239,0.12);
 }
 
+/* =========================
+   Premium Dashboard Add-ons
+   ========================= */
+
+.dashboard-grid-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.dashboard-grid-subtitle {
+    margin: 6px 0 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.dashboard-card-header {
+    padding: 22px 24px 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.dashboard-card-header a {
+    color: var(--primary-color);
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.dashboard-card-body {
+    padding: 0 24px 22px;
+}
+
+.chart-wrap {
+    position: relative;
+    height: 260px;
+    padding: 6px 0 0;
+}
+
+.chart-wrap--tall {
+    height: 310px;
+}
+
+.chart-empty {
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    color: var(--text-secondary);
+}
+
+.chart-empty p {
+    margin: 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.premium-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.premium-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 0;
+    border-top: 1px solid var(--border-color);
+}
+
+.premium-row:first-child {
+    border-top: none;
+}
+
+.premium-row-left {
+    min-width: 0;
+}
+
+.premium-row-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.premium-row-meta {
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.premium-row-value {
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--text-primary);
+    text-align: right;
+}
+
+.kpi-kicker {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+    margin: 8px 0 0;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 900;
+    min-width: 76px;
+}
+
+/* Keep responsive balance */
+@media (max-width: 991.98px) {
+    .chart-wrap,
+    .chart-wrap--tall {
+        height: 240px;
+    }
+}
+
+
 @media (max-width: 991.98px) {
     #wrapper {
         height: auto;

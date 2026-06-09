@@ -87,7 +87,7 @@
                                     data-vat="{{ $customer->vat_number ?? '' }}"
                                     {{ $invoice->customer_id == $customer->id ? 'selected' : '' }}>
                                     {{ $customer->name }}
-                                    @if($customer->customer_type === 'business') (Business) @endif
+                                    @if($customer->customer_type === 'company') (Company) @endif
                                 </option>
                             @endforeach
                         </select>
@@ -145,17 +145,17 @@
                             <tfoot>
                                 <tr>
                                     <td colspan="4" class="text-end invoice-total-label">Total (excl. VAT)</td>
-                                    <td class="invoice-total-value" id="summary-subtotal">£0.00</td>
+                                    <td class="invoice-total-value" id="summary-subtotal">0.00</td>
                                     <td></td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" class="text-end invoice-total-label">Total VAT</td>
-                                    <td class="invoice-total-value" id="summary-vat">£0.00</td>
+                                    <td class="invoice-total-value" id="summary-vat">0.00</td>
                                     <td></td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" class="text-end invoice-grand-total-label">Grand Total</td>
-                                    <td class="invoice-grand-total-value" id="summary-grand">£0.00</td>
+                                    <td class="invoice-grand-total-value" id="summary-grand">0.00</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -219,8 +219,8 @@
                     <div class="col-md-6">
                         <label class="invoice-label">Customer Type</label>
                         <select id="nc-type" class="form-control invoice-input">
-                            <option value="regular">Regular</option>
-                            <option value="business">Business</option>
+                            <option value="individual">Individual</option>
+                            <option value="company">Company</option>
                         </select>
                     </div>
                     <div class="col-12">

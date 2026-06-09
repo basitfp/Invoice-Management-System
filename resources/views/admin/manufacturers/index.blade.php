@@ -4,11 +4,11 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="category-card">
-            <div class="category-header">
+        <div class="manufacturer-card">
+            <div class="manufacturer-header">
                 <div>
-                    <h4 class="category-title">Manufacturer Management</h4>
-                    <p class="category-subtitle">Manage all product manufacturers from here.</p>
+                    <h4 class="manufacturer-title">Manufacturer Management</h4>
+                    <p class="manufacturer-subtitle">Manage all product manufacturers from here.</p>
                 </div>
                 <div>
                     <button class="btn btn-primary px-4 py-2 d-flex align-items-center gap-2"
@@ -20,8 +20,58 @@
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover table-category" id="manufacturers-table">
+            {{-- ===================== FILTER BAR ===================== --}}
+            <div class="mb-3" id="manufacturer-filter-bar">
+                <div class="row g-2 align-items-end">
+
+                    {{-- Name Search --}}
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="form-label manufacturer-filter-label" for="filter-search">Search</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text"
+                                   id="filter-search"
+                                   class="form-control"
+                                   placeholder="Manufacturer name…"
+                                   autocomplete="off">
+                        </div>
+                    </div>
+
+                    {{-- Status --}}
+                    <div class="col-12 col-sm-6 col-lg-2">
+                        <label class="form-label manufacturer-filter-label" for="filter-status">Status</label>
+                        <select id="filter-status" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+
+                    {{-- Date Range --}}
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="form-label manufacturer-filter-label" for="filter-date-range">Date Range</label>
+                        <input type="text"
+                               id="filter-date-range"
+                               class="form-control form-control-sm">
+                    </div>
+
+                    {{-- Reset Button --}}
+                    <div class="col-12 col-sm-auto col-lg-1">
+                        <button type="button"
+                                id="manufacturer-filter-reset"
+                                class="btn btn-outline-secondary btn-sm w-100"
+                                title="Clear all filters">
+                            <i class="bi bi-x-circle me-1"></i>Reset
+                        </button>
+                    </div>
+
+                </div>
+                {{-- Empty state is injected inside <tbody> by manufacturer.js --}}
+            </div>
+            {{-- ==================== END FILTER BAR ==================== --}}
+
+            <div class="manufacturer-table-wrapper">
+                <table class="table table-hover table-manufacturer" id="manufacturers-table">
                     <thead>
                         <tr>
                             <th style="width: 60px;">#</th>
@@ -35,7 +85,11 @@
                     </thead>
                     <tbody>
                         @forelse($manufacturers as $manufacturer)
-                        <tr id="row-{{ $manufacturer->id }}">
+                        <tr id="row-{{ $manufacturer->id }}"
+                            data-name="{{ strtolower($manufacturer->name) }}"
+                            data-status="{{ $manufacturer->status }}"
+                            data-created="{{ $manufacturer->created_at ? $manufacturer->created_at->format('Y-m-d') : '' }}">
+
                             <td>{{ $manufacturer->id }}</td>
                             <td id="name-{{ $manufacturer->id }}">{{ $manufacturer->name }}</td>
                             <td id="phone-{{ $manufacturer->id }}">{{ $manufacturer->phone ?: '-' }}</td>
@@ -52,7 +106,7 @@
                                 <div class="d-flex gap-2 justify-content-end">
 
                                     {{-- View Button --}}
-                                    <button class="btn btn-category-action btn-manufacturer-view"
+                                    <button class="btn btn-manufacturer-action btn-manufacturer-view"
                                         data-id="{{ $manufacturer->id }}"
                                         data-name="{{ $manufacturer->name }}"
                                         data-phone="{{ $manufacturer->phone ?? '' }}"
@@ -65,7 +119,7 @@
                                     </button>
 
                                     {{-- Edit Button --}}
-                                    <button class="btn btn-category-action btn-manufacturer-edit"
+                                    <button class="btn btn-manufacturer-action btn-manufacturer-edit"
                                         data-id="{{ $manufacturer->id }}"
                                         data-name="{{ $manufacturer->name }}"
                                         data-phone="{{ $manufacturer->phone ?? '' }}"
@@ -77,7 +131,7 @@
                                     </button>
 
                                     {{-- Toggle Status Button --}}
-                                    <button class="btn btn-category-action btn-manufacturer-toggle"
+                                    <button class="btn btn-manufacturer-action btn-manufacturer-toggle"
                                         data-id="{{ $manufacturer->id }}"
                                         data-name="{{ $manufacturer->name }}"
                                         data-status="{{ (int) $manufacturer->status }}"
@@ -86,7 +140,7 @@
                                     </button>
 
                                     {{-- Delete Button --}}
-                                    <button class="btn btn-category-action btn-manufacturer-delete"
+                                    <button class="btn btn-manufacturer-action btn-manufacturer-delete"
                                         data-id="{{ $manufacturer->id }}"
                                         data-name="{{ $manufacturer->name }}">
                                         <i class="bi bi-trash"></i>
@@ -97,7 +151,12 @@
                         </tr>
                         @empty
                         <tr id="no-manufacturers-row">
-                            <td colspan="7" class="text-center py-4 text-muted">No manufacturers found.</td>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="filter-empty-state">
+                                    <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
+                                    <span class="text-muted">No manufacturers found.</span>
+                                </div>
+                            </td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -116,7 +175,7 @@
 @endsection
 
 @push('styles')
-    <link href="{{ asset('assets/css/category.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assets/css/manufacturer.css') }}" rel="stylesheet" />
 @endpush
 
 @push('scripts')

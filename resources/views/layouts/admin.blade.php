@@ -18,6 +18,8 @@
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+
     <!-- Custom Styles -->
     <link href="{{ asset('assets/css/dashboard.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/app-ui.css') }}" rel="stylesheet">
@@ -178,7 +180,8 @@
 
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script> 
     <script src="{{ asset('assets/js/dashboard.js') }}"></script>
     <script src="{{ asset('assets/js/form-validation.js') }}"></script>
     <script src="{{ asset('assets/js/entity-sync.js') }}"></script>

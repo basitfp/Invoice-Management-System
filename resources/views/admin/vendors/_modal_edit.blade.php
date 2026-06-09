@@ -48,7 +48,7 @@
 
                         {{-- Email --}}
                         <div class="col-md-6">
-                            <label class="form-label" for="edit-vnd-email">Email<span class="text-danger">*</span></label>
+                            <label class="form-label" for="edit-vnd-email">Email <span class="text-danger">*</span></label>
                             <input type="email" name="email" id="edit-vnd-email"
                                 class="form-control validate-email"
                                 data-label="Email"
@@ -69,7 +69,7 @@
                         {{-- Divider --}}
                         <div class="col-12">
                             <hr class="my-1">
-                            <p class="text-secondary small mb-0" style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;">Address</p>
+                            <p class="vendor-section-label">Address</p>
                         </div>
 
                         {{-- Address Line 1 --}}
@@ -130,12 +130,10 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"
-                        style="height: 48px; border-radius: 10px; font-weight: 600;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         Cancel
                     </button>
-                    <button type="button" id="updateVendorBtn" class="btn btn-primary px-4"
-                        style="height: 48px; border-radius: 10px; font-weight: 600;">
+                    <button type="button" id="updateVendorBtn" class="btn btn-primary">
                         Update
                     </button>
                 </div>

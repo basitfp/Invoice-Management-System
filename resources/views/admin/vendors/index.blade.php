@@ -4,11 +4,11 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="category-card">
-            <div class="category-header">
+        <div class="vendor-card">
+            <div class="vendor-header">
                 <div>
-                    <h4 class="category-title">Vendor Management</h4>
-                    <p class="category-subtitle">Manage all suppliers and vendors from here.</p>
+                    <h4 class="vendor-title">Vendor Management</h4>
+                    <p class="vendor-subtitle">Manage all suppliers and vendors from here.</p>
                 </div>
                 <div>
                     <button class="btn btn-primary px-4 py-2 d-flex align-items-center gap-2"
@@ -20,8 +20,60 @@
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover table-category" id="vendors-table">
+            {{-- ===================== FILTER BAR ===================== --}}
+            <div class="mb-3" id="vendor-filter-bar">
+                <div class="row g-2 align-items-end">
+
+                    {{-- Name Search --}}
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="form-label vendor-filter-label" for="filter-search">Search</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text"
+                                   id="filter-search"
+                                   class="form-control"
+                                   placeholder="Vendor name…"
+                                   autocomplete="off">
+                        </div>
+                    </div>
+
+                    {{-- Status --}}
+                    <div class="col-12 col-sm-6 col-lg-2">
+                        <label class="form-label vendor-filter-label" for="filter-status">Status</label>
+                        <select id="filter-status" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+
+                    {{-- Date Range --}}
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="form-label vendor-filter-label" for="filter-date-range">Date Range</label>
+                        <input type="text"
+                               id="filter-date-range"
+                               class="form-control form-control-sm"
+                               placeholder="Select date range"
+                               autocomplete="off">
+                    </div>
+
+                    {{-- Reset Button --}}
+                    <div class="col-12 col-sm-auto col-lg-1">
+                        <button type="button"
+                                id="vendor-filter-reset"
+                                class="btn btn-outline-secondary btn-sm w-100"
+                                title="Clear all filters">
+                            <i class="bi bi-x-circle me-1"></i>Reset
+                        </button>
+                    </div>
+
+                </div>
+                {{-- Empty state is injected inside <tbody> by vendor.js --}}
+            </div>
+            {{-- ==================== END FILTER BAR ==================== --}}
+
+            <div class="vendor-table-wrapper">
+                <table class="table table-hover table-vendor" id="vendors-table">
                     <thead>
                         <tr>
                             <th style="width: 60px;">#</th>
@@ -37,7 +89,11 @@
                     </thead>
                     <tbody>
                         @forelse($vendors as $vendor)
-                        <tr id="row-{{ $vendor->id }}">
+                        <tr id="row-{{ $vendor->id }}"
+                            data-name="{{ strtolower($vendor->name) }}"
+                            data-status="{{ $vendor->status }}"
+                            data-created="{{ $vendor->created_at ? $vendor->created_at->format('Y-m-d') : '' }}">
+
                             <td>{{ $vendor->id }}</td>
                             <td id="name-{{ $vendor->id }}">{{ $vendor->name }}</td>
                             <td id="company-{{ $vendor->id }}">{{ $vendor->company ?: '-' }}</td>
@@ -56,7 +112,7 @@
                                 <div class="d-flex gap-2 justify-content-end">
 
                                     {{-- View Button --}}
-                                    <button class="btn btn-category-action btn-vendor-view"
+                                    <button class="btn btn-vendor-action btn-vendor-view"
                                         data-id="{{ $vendor->id }}"
                                         data-name="{{ $vendor->name }}"
                                         data-company="{{ $vendor->company ?? '' }}"
@@ -76,7 +132,7 @@
                                     </button>
 
                                     {{-- Edit Button --}}
-                                    <button class="btn btn-category-action btn-vendor-edit"
+                                    <button class="btn btn-vendor-action btn-vendor-edit"
                                         data-id="{{ $vendor->id }}"
                                         data-name="{{ $vendor->name }}"
                                         data-company="{{ $vendor->company ?? '' }}"
@@ -95,7 +151,7 @@
                                     </button>
 
                                     {{-- Toggle Status Button --}}
-                                    <button class="btn btn-category-action btn-vendor-toggle"
+                                    <button class="btn btn-vendor-action btn-vendor-toggle"
                                         data-id="{{ $vendor->id }}"
                                         data-name="{{ $vendor->name }}"
                                         data-status="{{ (int) $vendor->status }}"
@@ -104,7 +160,7 @@
                                     </button>
 
                                     {{-- Delete Button --}}
-                                    <button class="btn btn-category-action btn-vendor-delete"
+                                    <button class="btn btn-vendor-action btn-vendor-delete"
                                         data-id="{{ $vendor->id }}"
                                         data-name="{{ $vendor->name }}">
                                         <i class="bi bi-trash"></i>
@@ -115,7 +171,12 @@
                         </tr>
                         @empty
                         <tr id="no-vendors-row">
-                            <td colspan="9" class="text-center py-4 text-muted">No vendors found.</td>
+                            <td colspan="9" class="text-center py-5">
+                                <div class="filter-empty-state">
+                                    <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
+                                    <span class="text-muted">No vendors found.</span>
+                                </div>
+                            </td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -134,7 +195,7 @@
 @endsection
 
 @push('styles')
-    <link href="{{ asset('assets/css/category.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assets/css/vendor.css') }}" rel="stylesheet" />
 @endpush
 
 @push('scripts')

@@ -3,42 +3,95 @@
 @section('content')
 <div class="row">
     <div class="col-12">
-        <div class="product-card">
+        <div class="area-card"> {{-- Using area-card container class to inherit matching padding & styling --}}
 
-            <div class="product-header">
+            <div class="area-header">
                 <div>
-                    <h4 class="product-title">Product Management</h4>
-                    <p class="product-subtitle">Manage all products from here.</p>
+                    <h4 class="area-title">Product Management</h4>
+                    <p class="area-subtitle">Manage all products from here.</p>
                 </div>
 
                 <div>
-                    <button class="btn btn-primary px-4 py-2 d-flex align-items-center gap-2"
+                    <button class="btn btn-primary d-flex align-items-center gap-2"
                         data-bs-toggle="modal"
-                        data-bs-target="#productCreateModal"
-                        style="border-radius: 10px; font-weight: 600; font-size: 14px;">
+                        data-bs-target="#productCreateModal">
                         <i class="bi bi-plus-lg"></i> Add Product
                     </button>
                 </div>
             </div>
 
+            {{-- ===================== FILTER BAR (Exact structural & selector copy) ===================== --}}
+            <div id="area-filter-bar" class="mb-3">
+                <div class="row g-2 align-items-end">
+                    
+                    {{-- Search Field --}}
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="area-filter-label" for="filter-search">Search</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" 
+                                   id="filter-search" 
+                                   class="form-control" 
+                                   placeholder="Search products..."
+                                   autocomplete="off">
+                        </div>
+                    </div>
+
+                    {{-- Status Filter --}}
+                    <div class="col-12 col-sm-6 col-lg-2">
+                        <label class="area-filter-label" for="filter-status">Status</label>
+                        <select id="filter-status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+
+                    {{-- Date Range --}}
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="area-filter-label" for="filter-date-range">Date Range</label>
+                        <input type="text"
+                               id="filter-date-range"
+                               class="form-control"
+                               placeholder="Select date range"
+                               autocomplete="off">
+                    </div>
+
+                    {{-- Reset Button --}}
+                    <div class="col-12 col-sm-auto col-lg-1">
+                        <button type="button" 
+                                id="filter-reset" 
+                                class="btn btn-outline-secondary w-100" 
+                                title="Clear all filters">
+                            <i class="bi bi-x-circle me-1"></i>Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {{-- ==================== END FILTER BAR ==================== --}}
+
             <div class="table-responsive">
                 <table class="table table-hover table-product" id="productsTable">
                     <thead>
                         <tr>
-                            <th style="width: 60px;">Image</th>
+                            <th style="width: 80px;">Image</th>
                             <th>Item Code</th>
                             <th>Product Name</th>
                             <th>Category</th>
                             <th>Manufacturer</th>
                             <th class="text-end">Sale Price</th>
                             <th class="text-center">Stock</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-end" style="width: 140px;">Actions</th>
+                            <th class="text-center" style="width: 150px;">Status</th>
+                            <th style="width: 280px; text-align: right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($products as $product)
-                        <tr data-id="{{ $product->id }}">
+                       @foreach($products as $product)
+                        <tr id="row-{{ $product->id }}"
+                            data-id="{{ $product->id }}"
+                            data-name="{{ strtolower(trim($product->name)) }}"
+                            data-status="{{ $product->status ? '1' : '0' }}"
+                            data-created="{{ $product->created_at ? $product->created_at->format('Y-m-d') : '' }}">
                             <td>
                                 @if($product->image)
                                     <img src="{{ asset('storage/' . $product->image) }}"
@@ -54,11 +107,13 @@
                             <td id="item-code-{{ $product->id }}" style="font-family: monospace; color: var(--text-secondary);">
                                 {{ $product->item_code ?? 'N/A' }}
                             </td>
-                            <td id="name-{{ $product->id }}" class="fw-semibold">{{ $product->name }}</td>
+                            <td id="name-{{ $product->id }}">
+                                <span class="fw-semibold">{{ $product->name }}</span>
+                            </td>
                             <td id="category-{{ $product->id }}">{{ $product->category->name ?? 'N/A' }}</td>
                             <td id="manufacturer-{{ $product->id }}">{{ $product->manufacturer->name ?? 'N/A' }}</td>
                             <td id="selling-{{ $product->id }}" class="text-end fw-bold" style="color: var(--text-primary);">
-                            £{{ number_format($product->selling_price, 2) }}
+                                {{ number_format($product->selling_price, 2) }}
                             </td>
                             <td id="qty-{{ $product->id }}" class="text-center">
                                 <span class="badge {{ $product->qty <= $product->moq ? 'bg-danger' : 'bg-success' }}"
@@ -73,8 +128,9 @@
                                     <span class="badge-status-disabled">Disabled</span>
                                 @endif
                             </td>
-                            <td class="text-end">
-                                <div class="d-flex justify-content-end gap-1">
+                       
+                            <td>
+                                <div class="d-flex justify-content-end gap-2">
 
                                     {{-- View Button --}}
                                     <button class="btn btn-product-action btn-product-view"
@@ -163,6 +219,12 @@
                 </table>
             </div>
 
+            {{-- Unified Empty Results Fallback Element --}}
+            <div id="filter-no-results" class="text-center text-muted py-5 d-none w-100" style="border-top: 1px dashed var(--border-color); margin-top: 15px;">
+                <i class="bi bi-exclamation-circle d-block mb-2" style="font-size: 24px; color: var(--text-secondary);"></i>
+                <span>No products match your filter criteria.</span>
+            </div>
+
         </div>
     </div>
 </div>
@@ -175,6 +237,8 @@
 @endsection
 
 @push('styles')
+    {{-- Pulling in area.css temporarily here fixes the spacing issues immediately until your final CSS step --}}
+    <link href="{{ asset('assets/css/area.css') }}" rel="stylesheet" />
     <link href="{{ asset('assets/css/product.css') }}" rel="stylesheet" />
 @endpush
 

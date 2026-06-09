@@ -2,6 +2,99 @@ $(document).ready(function () {
 
     var FV = window.FormValidation;
     var ES = window.EntitySync;
+    var filterStartDate = null;
+    var filterEndDate = null;
+
+    $('#filter-date-range').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear',
+            format: 'YYYY-MM-DD'
+        }
+    });
+
+    $('#filter-date-range').on('apply.daterangepicker', function (ev, picker) {
+        filterStartDate = picker.startDate.format('YYYY-MM-DD');
+        filterEndDate = picker.endDate.format('YYYY-MM-DD');
+        $(this).val(filterStartDate + ' - ' + filterEndDate);
+        applyFilters();
+    });
+
+    $('#filter-date-range').on('cancel.daterangepicker', function () {
+        $(this).val('');
+        filterStartDate = null;
+        filterEndDate = null;
+        applyFilters();
+    });
+
+    // =============================================
+    // FILTERS - Live client-side filtering
+    // =============================================
+    function applyFilters() {
+        var search       = $('#filter-search').val().trim().toLowerCase();
+        var status       = $('#filter-status').val();
+        var visibleCount = 0;
+
+        $('#vendors-table tbody tr').each(function () {
+            var $row      = $(this);
+            var rowName   = $row.attr('data-name')    || '';
+            var rowStatus = $row.attr('data-status')  || '';
+            var rowDate   = $row.attr('data-created') || '';
+
+            var matchSearch = search   === '' || rowName.indexOf(search) !== -1;
+            var matchStatus = status   === '' || rowStatus === status;
+            var matchDate   = true;
+
+            if (filterStartDate && filterEndDate) {
+                matchDate = rowDate >= filterStartDate && rowDate <= filterEndDate;
+            }
+
+            if (matchSearch && matchStatus && matchDate) {
+                $row.show();
+                visibleCount++;
+            } else {
+                $row.hide();
+            }
+        });
+
+        var $tbody = $('#vendors-table tbody');
+        $tbody.find('.filter-empty-row').remove();
+
+        if (visibleCount === 0) {
+            var colCount = $('#vendors-table thead th').length;
+            $tbody.append(
+                '<tr class="filter-empty-row">' +
+                    '<td colspan="' + colCount + '" class="text-center py-5">' +
+                        '<div class="filter-empty-state">' +
+                            '<i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>' +
+                            '<span class="text-muted">No vendors match the current filters.</span>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>'
+            );
+        }
+    }
+
+    $('#filter-search').on('input', applyFilters);
+    $('#filter-status').on('change', applyFilters);
+
+    $('#vendor-filter-reset').on('click', function () {
+        $('#filter-search').val('');
+        $('#filter-status').val('');
+        $('#filter-date-range').val('');
+        filterStartDate = null;
+        filterEndDate = null;
+        applyFilters();
+    });
+
+    // =============================================
+    // MODAL CLEANUP — flush errors on close
+    // =============================================
+    $('#vendorCreateModal, #vendorEditModal').on('hidden.bs.modal', function () {
+        $(this).find('.form-control').removeClass('is-invalid');
+        $(this).find('.field-error').text('');
+        $(this).find('form')[0].reset();
+    });
 
     // =============================================
     // VALIDATION HELPERS
@@ -10,7 +103,7 @@ $(document).ready(function () {
         var valid = true;
 
         // Name — required
-        var $name = $('#' + prefix + '-vnd-name');
+        var $name  = $('#' + prefix + '-vnd-name');
         var nameOk = FV.runRules([FV.rules.name($name, 'Contact name')], true);
         if (nameOk && $name.val().trim().length < 2) {
             FV.setFieldError($name, 'Contact name must be at least 2 characters.');
@@ -29,12 +122,9 @@ $(document).ready(function () {
             if (!phoneOk) valid = false;
         }
 
-       // Email — required
-       var $email = $('#' + prefix + '-vnd-email');
-        var emailOk = FV.runRules([
-        FV.rules.email($email, 'Email')
-        ], true);
-
+        // Email — required
+        var $email  = $('#' + prefix + '-vnd-email');
+        var emailOk = FV.runRules([FV.rules.email($email, 'Email')], true);
         if (!emailOk) valid = false;
 
         return valid;
@@ -48,17 +138,17 @@ $(document).ready(function () {
         var status = $btn.attr('data-status');
 
         $('#view-vnd-id').text($btn.attr('data-id'));
-        $('#view-vnd-name').text($btn.attr('data-name')           || '-');
-        $('#view-vnd-company').text($btn.attr('data-company')     || '-');
-        $('#view-vnd-phone').text($btn.attr('data-phone')         || '-');
-        $('#view-vnd-email').text($btn.attr('data-email')         || '-');
-        $('#view-vnd-tax-reg').text($btn.attr('data-tax-reg-number') || '-');
-        $('#view-vnd-addr1').text($btn.attr('data-address-line-1') || '-');
-        $('#view-vnd-addr2').text($btn.attr('data-address-line-2') || '-');
-        $('#view-vnd-city').text($btn.attr('data-city')           || '-');
-        $('#view-vnd-pin').text($btn.attr('data-pin-code')        || '-');
-        $('#view-vnd-state').text($btn.attr('data-state')         || '-');
-        $('#view-vnd-country').text($btn.attr('data-country')     || '-');
+        $('#view-vnd-name').text($btn.attr('data-name')                || '-');
+        $('#view-vnd-company').text($btn.attr('data-company')          || '-');
+        $('#view-vnd-phone').text($btn.attr('data-phone')              || '-');
+        $('#view-vnd-email').text($btn.attr('data-email')              || '-');
+        $('#view-vnd-tax-reg').text($btn.attr('data-tax-reg-number')   || '-');
+        $('#view-vnd-addr1').text($btn.attr('data-address-line-1')     || '-');
+        $('#view-vnd-addr2').text($btn.attr('data-address-line-2')     || '-');
+        $('#view-vnd-city').text($btn.attr('data-city')                || '-');
+        $('#view-vnd-pin').text($btn.attr('data-pin-code')             || '-');
+        $('#view-vnd-state').text($btn.attr('data-state')              || '-');
+        $('#view-vnd-country').text($btn.attr('data-country')          || '-');
         $('#view-vnd-created-at').text($btn.attr('data-created-at'));
         $('#view-vnd-updated-at').text($btn.attr('data-updated-at'));
 
@@ -69,14 +159,6 @@ $(document).ready(function () {
         );
 
         new bootstrap.Modal(document.getElementById('vendorViewModal')).show();
-    });
-
-    // =============================================
-    // CREATE MODAL - Clear form on open
-    // =============================================
-    $('#vendorCreateModal').on('show.bs.modal', function () {
-        FV.clearFormById('vendorCreateForm');
-        $('#vendorCreateForm')[0].reset();
     });
 
     // =============================================
@@ -119,11 +201,14 @@ $(document).ready(function () {
                 var d = response.data;
                 var s = ES.normalizeStatus(d.status);
 
-                // Remove empty-state row if present
+                // Remove static empty-state row if present
                 $('#no-vendors-row').remove();
 
                 var newRow =
-                    '<tr id="row-' + d.id + '">' +
+                    '<tr id="row-' + d.id + '"' +
+                        ' data-name="'    + ES.escapeHtml(d.name.toLowerCase()) + '"' +
+                        ' data-status="'  + s                                   + '"' +
+                        ' data-created="' + (d.created_at ? d.created_at.substring(0, 10) : '') + '">' +
                         '<td>' + d.id + '</td>' +
                         '<td id="name-'    + d.id + '">' + ES.escapeHtml(d.name             || '')  + '</td>' +
                         '<td id="company-' + d.id + '">' + ES.escapeHtml(d.company          || '-') + '</td>' +
@@ -137,49 +222,49 @@ $(document).ready(function () {
                         '<td>' +
                             '<div class="d-flex gap-2 justify-content-end">' +
 
-                                '<button class="btn btn-category-action btn-vendor-view"' +
-                                    ' data-id="'             + d.id                                        + '"' +
-                                    ' data-name="'           + ES.escapeHtml(d.name             || '')     + '"' +
-                                    ' data-company="'        + ES.escapeHtml(d.company          || '')     + '"' +
-                                    ' data-phone="'          + ES.escapeHtml(d.phone            || '')     + '"' +
-                                    ' data-email="'          + ES.escapeHtml(d.email            || '')     + '"' +
-                                    ' data-tax-reg-number="' + ES.escapeHtml(d.tax_reg_number   || '')     + '"' +
-                                    ' data-address-line-1="' + ES.escapeHtml(d.address_line_1   || '')     + '"' +
-                                    ' data-address-line-2="' + ES.escapeHtml(d.address_line_2   || '')     + '"' +
-                                    ' data-city="'           + ES.escapeHtml(d.city             || '')     + '"' +
-                                    ' data-pin-code="'       + ES.escapeHtml(d.pin_code         || '')     + '"' +
-                                    ' data-state="'          + ES.escapeHtml(d.state            || '')     + '"' +
-                                    ' data-country="'        + ES.escapeHtml(d.country          || '')     + '"' +
-                                    ' data-status="'         + s                                            + '"' +
+                                '<button class="btn btn-vendor-action btn-vendor-view"' +
+                                    ' data-id="'             + d.id                                      + '"' +
+                                    ' data-name="'           + ES.escapeHtml(d.name           || '')     + '"' +
+                                    ' data-company="'        + ES.escapeHtml(d.company        || '')     + '"' +
+                                    ' data-phone="'          + ES.escapeHtml(d.phone          || '')     + '"' +
+                                    ' data-email="'          + ES.escapeHtml(d.email          || '')     + '"' +
+                                    ' data-tax-reg-number="' + ES.escapeHtml(d.tax_reg_number || '')     + '"' +
+                                    ' data-address-line-1="' + ES.escapeHtml(d.address_line_1 || '')     + '"' +
+                                    ' data-address-line-2="' + ES.escapeHtml(d.address_line_2 || '')     + '"' +
+                                    ' data-city="'           + ES.escapeHtml(d.city           || '')     + '"' +
+                                    ' data-pin-code="'       + ES.escapeHtml(d.pin_code       || '')     + '"' +
+                                    ' data-state="'          + ES.escapeHtml(d.state          || '')     + '"' +
+                                    ' data-country="'        + ES.escapeHtml(d.country        || '')     + '"' +
+                                    ' data-status="'         + s                                          + '"' +
                                     ' data-created-at="Just now"' +
                                     ' data-updated-at="Just now">' +
                                     '<i class="bi bi-eye"></i></button>' +
 
-                                '<button class="btn btn-category-action btn-vendor-edit"' +
-                                    ' data-id="'             + d.id                                        + '"' +
-                                    ' data-name="'           + ES.escapeHtml(d.name             || '')     + '"' +
-                                    ' data-company="'        + ES.escapeHtml(d.company          || '')     + '"' +
-                                    ' data-phone="'          + ES.escapeHtml(d.phone            || '')     + '"' +
-                                    ' data-email="'          + ES.escapeHtml(d.email            || '')     + '"' +
-                                    ' data-tax-reg-number="' + ES.escapeHtml(d.tax_reg_number   || '')     + '"' +
-                                    ' data-address-line-1="' + ES.escapeHtml(d.address_line_1   || '')     + '"' +
-                                    ' data-address-line-2="' + ES.escapeHtml(d.address_line_2   || '')     + '"' +
-                                    ' data-city="'           + ES.escapeHtml(d.city             || '')     + '"' +
-                                    ' data-pin-code="'       + ES.escapeHtml(d.pin_code         || '')     + '"' +
-                                    ' data-state="'          + ES.escapeHtml(d.state            || '')     + '"' +
-                                    ' data-country="'        + ES.escapeHtml(d.country          || '')     + '"' +
-                                    ' data-status="'         + s                                            + '"' +
+                                '<button class="btn btn-vendor-action btn-vendor-edit"' +
+                                    ' data-id="'             + d.id                                      + '"' +
+                                    ' data-name="'           + ES.escapeHtml(d.name           || '')     + '"' +
+                                    ' data-company="'        + ES.escapeHtml(d.company        || '')     + '"' +
+                                    ' data-phone="'          + ES.escapeHtml(d.phone          || '')     + '"' +
+                                    ' data-email="'          + ES.escapeHtml(d.email          || '')     + '"' +
+                                    ' data-tax-reg-number="' + ES.escapeHtml(d.tax_reg_number || '')     + '"' +
+                                    ' data-address-line-1="' + ES.escapeHtml(d.address_line_1 || '')     + '"' +
+                                    ' data-address-line-2="' + ES.escapeHtml(d.address_line_2 || '')     + '"' +
+                                    ' data-city="'           + ES.escapeHtml(d.city           || '')     + '"' +
+                                    ' data-pin-code="'       + ES.escapeHtml(d.pin_code       || '')     + '"' +
+                                    ' data-state="'          + ES.escapeHtml(d.state          || '')     + '"' +
+                                    ' data-country="'        + ES.escapeHtml(d.country        || '')     + '"' +
+                                    ' data-status="'         + s                                          + '"' +
                                     ' data-action="/admin/vendors/' + d.id + '">' +
                                     '<i class="bi bi-pencil"></i></button>' +
 
-                                '<button class="btn btn-category-action btn-vendor-toggle"' +
-                                    ' data-id="'     + d.id                    + '"' +
-                                    ' data-name="'   + ES.escapeHtml(d.name)   + '"' +
-                                    ' data-status="' + s                        + '"' +
+                                '<button class="btn btn-vendor-action btn-vendor-toggle"' +
+                                    ' data-id="'     + d.id                  + '"' +
+                                    ' data-name="'   + ES.escapeHtml(d.name) + '"' +
+                                    ' data-status="' + s                     + '"' +
                                     ' data-action="/admin/vendors/' + d.id + '/toggle-status">' +
                                     '<i class="bi bi-slash-circle"></i></button>' +
 
-                                '<button class="btn btn-category-action btn-vendor-delete"' +
+                                '<button class="btn btn-vendor-action btn-vendor-delete"' +
                                     ' data-id="'   + d.id                  + '"' +
                                     ' data-name="' + ES.escapeHtml(d.name) + '">' +
                                     '<i class="bi bi-trash"></i></button>' +
@@ -189,6 +274,7 @@ $(document).ready(function () {
                     '</tr>';
 
                 $('#vendors-table tbody').prepend(newRow);
+                applyFilters();
             },
             error: function (xhr) {
                 if (xhr.status === 422) {
@@ -223,17 +309,17 @@ $(document).ready(function () {
         $('#vendorEditForm').attr('action', $btn.attr('data-action'));
         $('#edit-vnd-id').val($btn.attr('data-id'));
 
-        $('#edit-vnd-name').val($btn.attr('data-name')             || '');
-        $('#edit-vnd-company').val($btn.attr('data-company')       || '');
-        $('#edit-vnd-phone').val($btn.attr('data-phone')           || '');
-        $('#edit-vnd-email').val($btn.attr('data-email')           || '');
-        $('#edit-vnd-tax-reg').val($btn.attr('data-tax-reg-number') || '');
-        $('#edit-vnd-addr1').val($btn.attr('data-address-line-1')  || '');
-        $('#edit-vnd-addr2').val($btn.attr('data-address-line-2')  || '');
-        $('#edit-vnd-city').val($btn.attr('data-city')             || '');
-        $('#edit-vnd-pin').val($btn.attr('data-pin-code')          || '');
-        $('#edit-vnd-state').val($btn.attr('data-state')           || '');
-        $('#edit-vnd-country').val($btn.attr('data-country')       || '');
+        $('#edit-vnd-name').val($btn.attr('data-name')               || '');
+        $('#edit-vnd-company').val($btn.attr('data-company')         || '');
+        $('#edit-vnd-phone').val($btn.attr('data-phone')             || '');
+        $('#edit-vnd-email').val($btn.attr('data-email')             || '');
+        $('#edit-vnd-tax-reg').val($btn.attr('data-tax-reg-number')  || '');
+        $('#edit-vnd-addr1').val($btn.attr('data-address-line-1')    || '');
+        $('#edit-vnd-addr2').val($btn.attr('data-address-line-2')    || '');
+        $('#edit-vnd-city').val($btn.attr('data-city')               || '');
+        $('#edit-vnd-pin').val($btn.attr('data-pin-code')            || '');
+        $('#edit-vnd-state').val($btn.attr('data-state')             || '');
+        $('#edit-vnd-country').val($btn.attr('data-country')         || '');
 
         new bootstrap.Modal(document.getElementById('vendorEditModal')).show();
     });
@@ -255,7 +341,7 @@ $(document).ready(function () {
 
         $.ajax({
             url: form.action,
-            type: 'POST',           // _method=PUT handled inside form
+            type: 'POST',
             data: formData,
             processData: false,
             contentType: false,
@@ -277,7 +363,13 @@ $(document).ready(function () {
 
                 if (ES && response.data) {
                     ES.syncVendorRow(response.data);
+
+                    $('#row-' + response.data.id)
+                        .attr('data-name',   response.data.name.toLowerCase())
+                        .attr('data-status', String(response.data.status));
                 }
+
+                applyFilters();
             },
             error: function (xhr) {
                 if (xhr.status === 422) {
@@ -363,7 +455,7 @@ $(document).ready(function () {
 
         var form     = document.getElementById('vendorConfirmForm');
         var formData = new FormData(form);
-        var method   = formData.get('_method');   // 'PATCH' or 'DELETE'
+        var method   = formData.get('_method');
         var $btn     = $(this);
 
         $.ajax({
@@ -391,12 +483,17 @@ $(document).ready(function () {
                 var id = $('#vendor-confirm-id').val();
 
                 if (method === 'DELETE') {
-                    $('#row-' + id).fadeOut(300, function () { $(this).remove(); });
+                    $('#row-' + id).fadeOut(300, function () {
+                        $(this).remove();
+                        applyFilters();
+                    });
 
                 } else if (method === 'PATCH') {
                     if (ES) {
                         ES.syncVendorStatus(id, response.new_status);
+                        $('#row-' + id).attr('data-status', String(response.new_status));
                     }
+                    applyFilters();
                 }
             },
             error: function () {

@@ -31,7 +31,8 @@
                             <label class="invoice-label">Invoice Date <span class="text-danger">*</span></label>
                             <input type="date" name="invoice_date" id="invoice_date"
                                 class="form-control invoice-input"
-                                value="{{ date('Y-m-d') }}">
+                                value="{{ date('Y-m-d') }}"
+                                max="{{ date('Y-m-d') }}">
                             <span class="field-error text-danger small" id="invoice_date-error"></span>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -52,10 +53,16 @@
                             <span class="field-error text-danger small" id="status-error"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="invoice-label">Invoice Number</label>
-                            <input type="text" class="form-control invoice-input"
-                                value="Auto-generated on save" disabled
-                                style="background: #f8fafc; color: #94a3b8;">
+                            <label class="invoice-label">Invoice Number <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">INV-</span>
+                                <input type="text" id="invoice_number_suffix"
+                                    class="form-control invoice-input"
+                                    placeholder="0001"
+                                    autocomplete="off">
+                            </div>
+                            <input type="hidden" name="invoice_number" id="invoice_number" value="INV-">
+                            <span class="field-error text-danger small" id="invoice_number_suffix-error"></span>
                         </div>
                     </div>
                 </div>
@@ -84,7 +91,7 @@
                                     data-vat="{{ $customer->vat_number ?? '' }}"
                                     {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
                                     {{ $customer->name }}
-                                    @if($customer->customer_type === 'business') (Business) @endif
+                                    @if($customer->customer_type === 'company') (Company) @endif
                                 </option>
                             @endforeach
                         </select>
@@ -142,17 +149,17 @@
                             <tfoot>
                                 <tr>
                                     <td colspan="4" class="text-end invoice-total-label">Total (excl. VAT)</td>
-                                    <td class="invoice-total-value" id="summary-subtotal">£0.00</td>
+                                    <td class="invoice-total-value" id="summary-subtotal">0.00</td>
                                     <td></td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" class="text-end invoice-total-label">Total VAT</td>
-                                    <td class="invoice-total-value" id="summary-vat">£0.00</td>
+                                    <td class="invoice-total-value" id="summary-vat">0.00</td>
                                     <td></td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" class="text-end invoice-grand-total-label">Grand Total</td>
-                                    <td class="invoice-grand-total-value" id="summary-grand">£0.00</td>
+                                    <td class="invoice-grand-total-value" id="summary-grand">0.00</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -182,7 +189,7 @@
      QUICK-CREATE CUSTOMER MODAL
 ══════════════════════════════════════════ --}}
 <div class="modal fade" id="createCustomerModal" tabindex="-1" aria-labelledby="createCustomerModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
         <div class="modal-content" style="border-radius:16px; border:1px solid var(--border-color); overflow:hidden;">
 
             <div class="modal-header" style="background:#fafbfc; border-bottom:1px solid var(--border-color); padding:20px 24px;">
@@ -217,15 +224,71 @@
                     <div class="col-md-6">
                         <label class="invoice-label">Customer Type</label>
                         <select id="nc-type" class="form-control invoice-input">
-                            <option value="regular">Regular</option>
-                            <option value="business">Business</option>
+                            <option value="individual">Individual</option>
+                            <option value="company">Company</option>
                         </select>
                     </div>
+                    <div class="col-md-3">
+                        <label class="invoice-label">Gender</label>
+                        <select id="nc-gender" class="form-control invoice-input">
+                            <option value="">-- Select --</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="invoice-label">Date of Birth</label>
+                        <input type="date" id="nc-birthdate" class="form-control invoice-input">
+                    </div>
                     <div class="col-12">
-                        <label class="invoice-label">Address</label>
+                        <label class="invoice-label">Billing Address</label>
                         <textarea id="nc-address" rows="2"
                             class="form-control invoice-input" style="height:auto; padding:10px 14px;"
                             placeholder="123 Business St, London"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="invoice-label">Shipping Address</label>
+                        <textarea id="nc-shipping-address" rows="2"
+                            class="form-control invoice-input" style="height:auto; padding:10px 14px;"
+                            placeholder="Leave blank if same as billing"></textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="invoice-label">City</label>
+                        <input type="text" id="nc-city" class="form-control invoice-input">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="invoice-label">PIN / ZIP Code</label>
+                        <input type="text" id="nc-pin-code" class="form-control invoice-input">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="invoice-label">State / Province</label>
+                        <input type="text" id="nc-state" class="form-control invoice-input">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="invoice-label">Country</label>
+                        <input type="text" id="nc-country" class="form-control invoice-input">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="invoice-label">Landmark</label>
+                        <input type="text" id="nc-landmark" class="form-control invoice-input">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="invoice-label">Area</label>
+                        <select id="nc-area-id" class="form-control invoice-input">
+                            <option value="">-- Select Area --</option>
+                            @foreach($areas as $area)
+                                <option value="{{ $area->id }}">{{ $area->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="invoice-label">Credit Days</label>
+                        <input type="number" id="nc-credit-days" class="form-control invoice-input" min="0" max="65535">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="invoice-label">Credit Limit</label>
+                        <input type="number" id="nc-credit-limit" class="form-control invoice-input" min="0" step="0.01">
                     </div>
                     <div class="col-md-6">
                         <div class="d-flex align-items-center gap-2 mt-2">

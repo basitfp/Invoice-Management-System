@@ -21,6 +21,65 @@
                 </div>
             </div>
 
+            {{-- ===================== FILTER BAR ===================== --}}
+            <div class="category-filters mb-3" id="category-filter-bar">
+                <div class="row g-2 align-items-end">
+
+                    {{-- Name Search --}}
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="form-label filter-label" for="filter-search">Search</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text"
+                                   id="filter-search"
+                                   class="form-control"
+                                   placeholder="Category name…"
+                                   autocomplete="off">
+                        </div>
+                    </div>
+
+                    {{-- Status --}}
+                    <div class="col-12 col-sm-6 col-lg-2">
+                        <label class="form-label filter-label" for="filter-status">Status</label>
+                        <select id="filter-status" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="form-label filter-label">
+                            Date Range
+                        </label>
+
+                        <input
+                            type="text"
+                            id="filter-date-range"
+                            class="form-control form-control-sm"
+                            placeholder="Select date range"
+                            autocomplete="off">
+                    </div>
+
+                    {{-- Reset Button --}}
+                    <div class="col-12 col-sm-auto col-lg-1">
+                        <button type="button"
+                                id="filter-reset"
+                                class="btn btn-outline-secondary btn-sm w-100"
+                                title="Clear all filters">
+                            <i class="bi bi-x-circle me-1"></i>Reset
+                        </button>
+                    </div>
+
+                </div>
+
+                {{-- No-results message (hidden by default) --}}
+                <div id="filter-no-results" class="text-center text-muted py-2 mt-2" style="display:none !important;">
+                    <i class="bi bi-inbox me-1"></i> No categories match the current filters.
+                </div>
+            </div>
+            {{-- ==================== END FILTER BAR ==================== --}}
+
             <div class="table-responsive">
                 <table class="table table-hover table-category" id="categories-table">
                     <thead>
@@ -34,7 +93,11 @@
                     </thead>
                     <tbody>
                         @foreach($categories as $category)
-                        <tr id="row-{{ $category->id }}">
+                        <tr id="row-{{ $category->id }}"
+                            data-name="{{ strtolower($category->name) }}"
+                            data-status="{{ $category->status }}"
+                            data-created="{{ $category->created_at ? $category->created_at->format('Y-m-d') : '' }}">
+
                             <td>{{ $category->id }}</td>
                             <td id="name-{{ $category->id }}">{{ $category->name }}</td>
                             <td class="text-center" id="status-container-{{ $category->id }}">

@@ -2,6 +2,103 @@ $(document).ready(function () {
 
     var FV = window.FormValidation;
     var ES = window.EntitySync;
+    var filterStartDate = null;
+    var filterEndDate = null;
+
+    $('#filter-date-range').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear',
+            format: 'YYYY-MM-DD'
+        }
+    });
+
+    $('#filter-date-range').on('apply.daterangepicker', function (ev, picker) {
+        filterStartDate = picker.startDate.format('YYYY-MM-DD');
+        filterEndDate = picker.endDate.format('YYYY-MM-DD');
+        $(this).val(filterStartDate + ' - ' + filterEndDate);
+        applyFilters();
+    });
+
+    $('#filter-date-range').on('cancel.daterangepicker', function () {
+        $(this).val('');
+        filterStartDate = null;
+        filterEndDate = null;
+        applyFilters();
+    });
+
+    // =============================================
+    // FILTERS - Live client-side filtering
+    // =============================================
+    function applyFilters() {
+        var search    = $('#filter-search').val().trim().toLowerCase();
+        var status    = $('#filter-status').val();          // '' | '0' | '1'
+        var visibleCount = 0;
+        var $tbody = $('#manufacturers-table tbody');
+
+        $tbody.find('.filter-empty-row').remove();
+        var rowCount = $('#manufacturers-table tbody tr').not('.filter-empty-row, #no-manufacturers-row').length;
+
+        $('#manufacturers-table tbody tr').not('.filter-empty-row, #no-manufacturers-row').each(function () {
+            var $row       = $(this);
+            var rowName    = $row.attr('data-name')    || '';   // already lowercase
+            var rowStatus  = $row.attr('data-status')  || '';   // '0' or '1'
+            var rowDate    = $row.attr('data-created') || '';   // 'YYYY-MM-DD'
+
+            var matchSearch = search    === '' || rowName.indexOf(search) !== -1;
+            var matchStatus = status    === '' || rowStatus === status;
+            var matchDate = true;
+
+            if (filterStartDate && filterEndDate) {
+                matchDate = rowDate >= filterStartDate && rowDate <= filterEndDate;
+            }
+
+            if (matchSearch && matchStatus && matchDate) {
+                $row.show();
+                visibleCount++;
+            } else {
+                $row.hide();
+            }
+        });
+
+        if (rowCount > 0 && visibleCount === 0) {
+            var colCount = $('#manufacturers-table thead th').length;
+            $tbody.append(
+                '<tr class="filter-empty-row">' +
+                    '<td colspan="' + colCount + '" class="text-center py-5">' +
+                        '<div class="filter-empty-state">' +
+                            '<i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>' +
+                            '<span class="text-muted">No manufacturers match the current filters.</span>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>'
+            );
+        }
+    }
+
+    // Bind filter inputs — live on every keystroke / change
+    $('#filter-search').on('input', applyFilters);
+    $('#filter-status').on('change', applyFilters);
+
+    // Reset button — clear all inputs and re-run (shows all rows)
+    $('#manufacturer-filter-reset').on('click', function () {
+        $('#filter-search').val('');
+        $('#filter-status').val('');
+        $('#filter-date-range').val('');
+        filterStartDate = null;
+        filterEndDate = null;
+        applyFilters();
+    });
+
+    // =============================================
+    // HELPER — after a new row is prepended or a row
+    // is updated via ES.syncManufacturerRow, re-run the
+    // current filters so the new/edited row respects
+    // whatever the user has active.
+    // =============================================
+    function refilterAfterDomChange() {
+        applyFilters();
+    }
 
     // =============================================
     // VALIDATION HELPERS
@@ -147,10 +244,11 @@ $(document).ready(function () {
                 var s = ES.normalizeStatus(d.status);
 
                 // Remove empty-state row if present
-                $('#no-manufacturers-row').remove();
+                $('#no-manufacturers-row, #manufacturers-table tbody .filter-empty-row').remove();
+                var createdDate = d.created_at ? d.created_at.substring(0, 10) : '';
 
                 var newRow =
-                    '<tr id="row-' + d.id + '">' +
+                    '<tr id="row-' + d.id + '" data-name="' + ES.escapeHtml(String(d.name).toLowerCase()) + '" data-status="' + s + '" data-created="' + createdDate + '">' +
                         '<td>' + d.id + '</td>' +
                         '<td id="name-'    + d.id + '">' + ES.escapeHtml(d.name)             + '</td>' +
                         '<td id="phone-'   + d.id + '">' + ES.escapeHtml(d.phone   || '-')   + '</td>' +
@@ -158,7 +256,7 @@ $(document).ready(function () {
                         '<td class="text-center" id="status-container-' + d.id + '">' +
                             ES.statusBadge(s, { on: 'Enabled', off: 'Disabled' }) +
                         '</td>' +
-                        '<td class="text-center">Just now</td>' +
+                        '<td class="text-center">' + (createdDate || 'Just now') + '</td>' +
                         '<td>' +
                             '<div class="d-flex gap-2 justify-content-end">' +
 
@@ -200,6 +298,7 @@ $(document).ready(function () {
                     '</tr>';
 
                 $('#manufacturers-table tbody').prepend(newRow);
+                refilterAfterDomChange();
             },
             error: function (xhr) {
                 if (xhr.status === 422) {
@@ -281,6 +380,7 @@ $(document).ready(function () {
                 if (ES && response.data) {
                     ES.syncManufacturerRow(response.data);
                 }
+                refilterAfterDomChange();
             },
             error: function (xhr) {
                 if (xhr.status === 422) {
@@ -394,12 +494,16 @@ $(document).ready(function () {
                 var id = $('#manufacturer-confirm-id').val();
 
                 if (method === 'DELETE') {
-                    $('#row-' + id).fadeOut(300, function () { $(this).remove(); });
+                    $('#row-' + id).fadeOut(300, function () {
+                        $(this).remove();
+                        refilterAfterDomChange();
+                    });
 
                 } else if (method === 'PATCH') {
                     if (ES) {
                         ES.syncManufacturerStatus(id, response.new_status);
                     }
+                    refilterAfterDomChange();
                 }
             },
             error: function () {

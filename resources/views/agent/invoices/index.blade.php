@@ -6,7 +6,57 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="invoice-card">
+        <div class="area-card">
+            {{-- ===================== FILTER BAR ===================== --}}
+            <div id="area-filter-bar" class="mb-3">
+                <div class="row g-2 align-items-end">
+
+                    {{-- Search Field --}}
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="area-filter-label" for="filter-search">Search</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" 
+                                   id="filter-search" 
+                                   class="form-control" 
+                                   placeholder="Search invoices..."
+                                   autocomplete="off">
+                        </div>
+                    </div>
+
+                    {{-- Status Filter --}}
+                    <div class="col-12 col-sm-6 col-lg-2">
+                        <label class="area-filter-label" for="filter-status">Status</label>
+                        <select id="filter-status" class="form-select">
+                            <option value="">All Statuses</option>
+                            <option value="draft">Draft</option>
+                            <option value="unpaid">Unpaid</option>
+                            <option value="paid">Paid</option>
+                            <option value="due">Due</option> 
+                        </select>
+                    </div>
+
+                    {{-- Date Range --}}
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <label class="area-filter-label" for="filter-date-range">Date Range</label>
+                        <input type="text"
+                               id="filter-date-range"
+                               class="form-control"
+                               placeholder="Select date range"
+                               autocomplete="off">
+                    </div>
+
+                    {{-- Reset Button --}}
+                    <div class="col-12 col-sm-auto col-lg-1">
+                        <button type="button" 
+                                id="filter-reset" 
+                                class="btn btn-outline-secondary w-100" 
+                                title="Clear all filters">
+                            <i class="bi bi-x-circle me-1"></i>Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <div class="invoice-list-header">
                 <div>
@@ -23,7 +73,7 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table table-hover table-invoice">
+                <table class="table table-hover table-invoice" id="invoicesTable">
                     <thead>
                         <tr>
                             <th style="width: 120px;">Invoice #</th>
@@ -37,18 +87,25 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($invoices as $invoice)
-                        {{-- FIX: id="row-{id}" required by invoice-list.js for AJAX DOM updates --}}
-                        <tr id="row-{{ $invoice->id }}">
+                       @forelse($invoices as $invoice)
+                            @php 
+                                $cleanStatus = strtolower(trim($invoice->status)); 
+                            @endphp
+                            <tr id="row-{{ $invoice->id }}"
+                                data-invoice-number="{{ strtolower(trim($invoice->invoice_number)) }}"
+                                data-customer="{{ strtolower(trim($invoice->customer->name ?? 'walk-in customer')) }}"
+                                data-status="{{ $cleanStatus }}"
+                                data-date="{{ $invoice->invoice_date ? \Carbon\Carbon::parse($invoice->invoice_date)->format('Y-m-d') : '' }}"
+                                data-amount="{{ $invoice->total_amount + $invoice->total_vat }}">
                             <td class="fw-bold text-primary">{{ $invoice->invoice_number }}</td>
                             <td>
                                 <div class="customer-name">{{ $invoice->customer->name }}</div>
                                 <div class="customer-email text-muted small">{{ $invoice->customer->email }}</div>
                             </td>
                             <td class="text-center">{{ date('d M Y', strtotime($invoice->invoice_date)) }}</td>
-                            <td class="text-end fw-semibold">£{{ number_format($invoice->total_amount, 2) }}</td>
-                            <td class="text-end text-muted">£{{ number_format($invoice->total_vat, 2) }}</td>
-                            <td class="text-end text-dark fw-bold">£{{ number_format($invoice->total_amount + $invoice->total_vat, 2) }}</td>
+                            <td class="text-end fw-semibold">{{ number_format($invoice->total_amount, 2) }}</td>
+                            <td class="text-end text-muted">{{ number_format($invoice->total_vat, 2) }}</td>
+                            <td class="text-end text-dark fw-bold">{{ number_format($invoice->total_amount + $invoice->total_vat, 2) }}</td>
                             {{-- FIX: class="status-container" is what invoice-list.js targets for live update --}}
                             <td class="text-center status-container">
                                 @php
@@ -97,6 +154,11 @@
                     </tbody>
                 </table>
             </div>
+            {{-- Fallback Element for Client-Side JS Filtering --}}
+            <div id="filter-no-results" class="text-center text-muted py-5 d-none w-100" style="border-top: 1px dashed var(--clr-border); margin-top: 15px;">
+                <i class="bi bi-exclamation-circle d-block mb-2" style="font-size: 24px; color: var(--clr-text-secondary);"></i>
+                <span>No invoices match your filter criteria.</span>
+            </div>
 
         </div>
     </div>
@@ -109,6 +171,7 @@
 
 @push('styles')
     <link href="{{ asset('assets/css/invoice.css') }}" rel="stylesheet" />
+    <link href="{{ asset('assets/css/area.css') }}" rel="stylesheet" />
 @endpush
 
 @push('scripts')

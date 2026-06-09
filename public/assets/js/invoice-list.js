@@ -1,4 +1,110 @@
 $(document).ready(function () {
+    var filterStartDate = null;
+    var filterEndDate = null;
+
+    $('#filter-date-range').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear',
+            format: 'YYYY-MM-DD'
+        }
+    });
+
+    $('#filter-date-range').on('apply.daterangepicker', function (ev, picker) {
+        filterStartDate = picker.startDate.format('YYYY-MM-DD');
+        filterEndDate = picker.endDate.format('YYYY-MM-DD');
+        $(this).val(filterStartDate + ' - ' + filterEndDate);
+        applyFilters();
+    });
+
+    $('#filter-date-range').on('cancel.daterangepicker', function () {
+        $(this).val('');
+        filterStartDate = null;
+        filterEndDate = null;
+        applyFilters();
+    });
+
+  // =============================================
+    // FILTERS - Area Module Standard (Enhanced Search)
+    // =============================================
+    function applyFilters() {
+        var search     = $('#filter-search').val().trim().toLowerCase();
+        var status     = $('#filter-status').val();
+        var visibleCount = 0;
+
+        $('#invoicesTable tbody tr').each(function () {
+            var $row = $(this);
+            if ($row.hasClass('filter-empty-row')) return;
+
+            var rowInvoice = ($row.attr('data-invoice-number') || '').toLowerCase();
+            var rowCustomer = ($row.attr('data-customer') || '').toLowerCase();
+            var rowStatus   = String($row.attr('data-status') || '');
+            var rowDate     = $row.attr('data-date') || '';
+            var rowAmount   = parseFloat($row.attr('data-amount') || 0);
+
+            var matchSearch = search === '' || 
+                             rowInvoice.indexOf(search) !== -1 || 
+                             rowCustomer.indexOf(search) !== -1 ||
+                             String(rowAmount).indexOf(search) !== -1;
+
+            var matchStatus = status === '' || rowStatus === status;
+            var matchDate   = true;
+
+            if (filterStartDate && filterEndDate) {
+                matchDate = rowDate >= filterStartDate && rowDate <= filterEndDate;
+            }
+
+            if (matchSearch && matchStatus && matchDate) {
+                $row.show();
+                visibleCount++;
+            } else {
+                $row.hide();
+            }
+        });
+
+        var $tbody = $('#invoicesTable tbody');
+        $tbody.find('.filter-empty-row').remove();
+
+        if (visibleCount === 0) {
+            var colCount = $('#invoicesTable thead th').length;
+            $tbody.append(
+                '<tr class="filter-empty-row">' +
+                    '<td colspan="' + colCount + '" class="text-center py-5">' +
+                        '<div class="filter-empty-state">' +
+                            '<i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>' +
+                            '<span class="text-muted">No invoices match the current filters.</span>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>'
+            );
+        }
+    }
+
+    // Reset
+    $('#filter-reset').on('click', function () {
+        $('#filter-search').val('');
+        $('#filter-status').val('');
+        $('#filter-date-range').val('');
+        filterStartDate = null;
+        filterEndDate = null;
+        applyFilters();
+    });
+
+    // Bind filters
+    $('#filter-search').on('input', applyFilters);
+    $('#filter-status').on('change', applyFilters);
+
+    function refilterAfterDomChange() {
+        var hasActive =
+            $('#filter-search').val().trim() !== '' ||
+            $('#filter-status').val() !== '' ||
+            filterStartDate !== null ||
+            filterEndDate !== null;
+
+        if (hasActive) {
+            applyFilters();
+        }
+    }
 
     // =============================================
     // STATUS OPTION LABELS - Toggle active class on click
@@ -58,7 +164,7 @@ $(document).ready(function () {
             return;
         }
 
-        // FIX: Populate the hidden status field so FormData sends the correct value
+        // Populate the hidden status field so FormData sends the correct value
         $('#status-value').val(selectedStatus);
 
         var form      = document.getElementById('invoiceStatusForm');
@@ -99,22 +205,25 @@ $(document).ready(function () {
                     } else if (newStatus === 'due') {
                         badgeHtml = '<span class="invoice-status-cancelled">' + statusLabel + '</span>';
                     } else {
-                        // draft or unknown
                         badgeHtml = '<span class="invoice-status-draft">' + statusLabel + '</span>';
                     }
 
-                    // FIX: target both id-based container (admin) and class-based (agent)
                     var $row = $('#row-' + invoiceId);
                     if ($row.length) {
-                        // Try class selector first (agent index), then id selector (admin index)
                         var $statusCell = $row.find('.status-container');
                         if (!$statusCell.length) {
                             $statusCell = $('#status-container-' + invoiceId);
                         }
                         $statusCell.html(badgeHtml);
 
-                        // Update data-status attribute so next modal open shows correct current status
+                        // Update action button dynamic status metadata
                         $row.find('.btn-invoice-status').attr('data-status', newStatus);
+
+                        // FIXED: Synchronize altered values on container row attributes to maintain correct filtering logic
+                        $row.attr('data-status', newStatus);
+                        
+                        // FIXED: Re-run filtration process in case mutated row no longer matches filtering requirements
+                        refilterAfterDomChange();
                     } else {
                         window.location.reload();
                     }
@@ -192,8 +301,15 @@ $(document).ready(function () {
 
                     var id  = $('#delete-invoice-id').val();
                     var row = $('#row-' + id);
-                    if (row.length) row.remove();
-                    else window.location.reload();
+                    if (row.length) {
+                        row.fadeOut(300, function() {
+                            $(this).remove();
+                            // Re-evaluate current listing count to display 'no results' notice if required
+                            applyFilters();
+                        });
+                    } else {
+                        window.location.reload();
+                    }
                 }
             },
             error: function () {

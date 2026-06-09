@@ -8,6 +8,69 @@
 
     var FV = window.FormValidation;
     var ES = window.EntitySync;
+    var filterStartDate = null;
+    var filterEndDate = null;
+
+   // =============================================
+    // FILTERS - Live client-side filtering engine (Area Module Standard)
+    // =============================================
+    function applyFilters() {
+        var search     = $('#filter-search').val().trim().toLowerCase();
+        var status     = $('#filter-status').val();
+        var visibleCount = 0;
+
+        $('#productsTable tbody tr').each(function () {
+            var $row       = $(this);
+            var rowName    = $row.attr('data-name') || '';
+            var rowStatus  = String($row.attr('data-status') || '');
+            var rowCreated = $row.attr('data-created') || '';
+
+            var matchSearch = search === '' || rowName.indexOf(search) !== -1;
+            var matchStatus = status === '' || rowStatus === status;
+            var matchDate   = true;
+
+            if (filterStartDate && filterEndDate) {
+                matchDate = rowCreated >= filterStartDate && rowCreated <= filterEndDate;
+            }
+
+            if (matchSearch && matchStatus && matchDate) {
+                $row.show();
+                visibleCount++;
+            } else {
+                $row.hide();
+            }
+        });
+
+        var $tbody = $('#productsTable tbody');
+        $tbody.find('.filter-empty-row').remove();
+
+        if (visibleCount === 0) {
+            var colCount = $('#productsTable thead th').length;
+            $tbody.append(
+                '<tr class="filter-empty-row">' +
+                    '<td colspan="' + colCount + '" class="text-center py-5">' +
+                        '<div class="filter-empty-state">' +
+                            '<i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>' +
+                            '<span class="text-muted">No products match the current filters.</span>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>'
+            );
+        }
+    }
+
+    // Reset + Refilter helpers
+    function refilterAfterDomChange() {
+        var hasActive =
+            $('#filter-search').val().trim() !== '' ||
+            $('#filter-status').val()        !== '' ||
+            filterStartDate !== null ||
+            filterEndDate !== null;
+
+        if (hasActive) {
+            applyFilters();
+        }
+    }
 
     // =========================================================================
     // Dropzone instances
@@ -776,6 +839,8 @@
                     resetCreateModal();
                     if (response.product) {
                         appendProductRow(response.product);
+                        // FIX: Run filtration rules over the newly appended DOM element
+                        refilterAfterDomChange(); 
                     } else {
                         location.reload();
                     }
@@ -823,6 +888,18 @@
                     bootstrap.Modal.getInstance(document.getElementById('productEditModal')).hide();
                     if (response.product && ES) {
                         ES.syncProductRow(response.product);
+
+                        // FIX: Synchronize updated filter attributes onto the row DOM node 
+                        var $row = $('tr[data-id="' + id + '"]');
+                        if ($row.length) {
+                            $row.attr('data-name', response.product.name);
+                            $row.attr('data-status', String(response.product.status));
+                            if (response.product.created_at) {
+                                $row.attr('data-created', response.product.created_at.substring(0, 10));
+                            }
+                        }
+                        // FIX: Re-run filter engine in case its status or name no longer qualifies for active view criteria
+                        refilterAfterDomChange();
                     } else {
                         location.reload();
                     }
@@ -1005,7 +1082,9 @@
             $('#confirm-body').html('Are you sure you want to <strong>enable</strong> <em>' + escapeHtml(name) + '</em>?');
         }
 
-        $('#confirm-submit-btn').removeClass('btn-danger btn-warning').addClass('btn-primary');
+        $('#confirm-submit-btn')
+            .removeClass('btn-danger btn-warning btn-primary btn-success')
+            .addClass(status === '1' ? 'btn-warning' : 'btn-success');
         $('#confirm-btn-text').text('Confirm');
 
         var modal = new bootstrap.Modal(document.getElementById('productConfirmModal'));
@@ -1026,7 +1105,7 @@
         $('#confirm-title').text('Delete Product');
         $('#confirm-body').html('Are you sure you want to permanently delete <em>' + escapeHtml(name) + '</em>? This action cannot be undone.');
 
-        $('#confirm-submit-btn').removeClass('btn-primary btn-warning').addClass('btn-danger');
+        $('#confirm-submit-btn').removeClass('btn-primary btn-warning btn-success').addClass('btn-danger');
         $('#confirm-btn-text').text('Delete');
 
         var modal = new bootstrap.Modal(document.getElementById('productConfirmModal'));
@@ -1064,6 +1143,13 @@
                         } else {
                             location.reload();
                         }
+                        
+                        // FIX: Sync updated row status into DOM and filter view updates live
+                        var $row = $('tr[data-id="' + id + '"]');
+                        if ($row.length) {
+                            $row.attr('data-status', String(response.status));
+                        }
+                        refilterAfterDomChange();
                     } else {
                         toastr.error(response.message || 'Action failed.');
                     }
@@ -1123,8 +1209,12 @@
 
         var imageUrl  = p.image ? window.location.origin + '/storage/' + p.image : '';
         var statusStr = ES ? ES.normalizeStatus(p.status) : (p.status ? '1' : '0');
+        
+        // FIX: Extract date substring (YYYY-MM-DD) safely for data-created matching engine
+        var createdDate = p.created_at ? p.created_at.substring(0, 10) : '';
 
-        var row = '<tr data-id="' + p.id + '">' +
+        // FIX: Added data-name, data-status, and data-created parameters to <tr>
+        var row = '<tr data-id="' + p.id + '" data-name="' + escapeHtml(p.name) + '" data-status="' + statusStr + '" data-created="' + createdDate + '">' +
             '<td>' + imageCell + '</td>' +
             '<td id="item-code-' + p.id + '" style="font-family:monospace;color:var(--text-secondary);">' + escapeHtml(p.item_code || 'N/A') + '</td>' +
             '<td id="name-' + p.id + '" class="fw-semibold">' + escapeHtml(p.name) + '</td>' +
@@ -1301,7 +1391,42 @@
         // Bind live validations
         bindCreateLive();
         bindEditLive();
+        $('#filter-date-range').daterangepicker({
+            autoUpdateInput: false,
+            locale: {
+                cancelLabel: 'Clear',
+                format: 'YYYY-MM-DD'
+            }
+        });
+
+        $('#filter-date-range').on('apply.daterangepicker', function (ev, picker) {
+            filterStartDate = picker.startDate.format('YYYY-MM-DD');
+            filterEndDate = picker.endDate.format('YYYY-MM-DD');
+            $(this).val(filterStartDate + ' - ' + filterEndDate);
+            applyFilters();
+        });
+
+        $('#filter-date-range').on('cancel.daterangepicker', function () {
+            $(this).val('');
+            filterStartDate = null;
+            filterEndDate = null;
+            applyFilters();
+        });
+
+        // Bind filter event listeners (Area Module pattern)
+        $('#filter-search').on('input', applyFilters);
+        $('#filter-status').on('change', applyFilters);
+
+        // Reset button
+        $('#filter-reset').on('click', function () {
+            $('#filter-search').val('');
+            $('#filter-status').val('');
+            $('#filter-date-range').val('');
+            filterStartDate = null;
+            filterEndDate = null;
+            applyFilters();
+        });
+    
     });
 
 })(window.jQuery);
-

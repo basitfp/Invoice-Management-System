@@ -15,18 +15,17 @@
                         <label class="form-label" for="create-area-name">Area Name</label>
                         <input type="text" name="name" id="create-area-name"
                             class="form-control"
-                            placeholder="e.g. Downtown Sector">
-                        <span class="field-error text-danger small" id="create-area-name-error"></span>
+                            placeholder="e.g. Downtown Sector"
+                            autocomplete="off">
+                        <span class="field-error" id="create-area-name-error"></span>
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"
-                        style="height: 48px; border-radius: 10px; font-weight: 600;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         Cancel
                     </button>
-                    <button type="button" id="createAreaBtn" class="btn btn-primary px-4"
-                        style="height: 48px; border-radius: 10px; font-weight: 600;">
+                    <button type="button" id="createAreaBtn" class="btn btn-primary">
                         Save
                     </button>
                 </div>

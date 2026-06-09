@@ -2,6 +2,106 @@ $(document).ready(function () {
 
     var FV = window.FormValidation;
     var ES = window.EntitySync;
+    var filterStartDate = null;
+    var filterEndDate = null;
+
+    $('#customer-filter-date-range').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear',
+            format: 'YYYY-MM-DD'
+        }
+    });
+
+    $('#customer-filter-date-range').on('apply.daterangepicker', function (ev, picker) {
+        filterStartDate = picker.startDate.format('YYYY-MM-DD');
+        filterEndDate = picker.endDate.format('YYYY-MM-DD');
+        $(this).val(filterStartDate + ' - ' + filterEndDate);
+        applyFilters();
+    });
+
+    $('#customer-filter-date-range').on('cancel.daterangepicker', function () {
+        $(this).val('');
+        filterStartDate = null;
+        filterEndDate = null;
+        applyFilters();
+    });
+
+    // =============================================
+    // FILTERS - Live client-side filtering
+    // =============================================
+    function applyFilters() {
+        var search    = $('#customer-filter-search').val().trim().toLowerCase();
+        var status    = $('#customer-filter-status').val();          // '' | '0' | '1'
+        var visibleCount = 0;
+
+        $('#customers-table tbody tr').not('.filter-empty-row').each(function () {
+            var $row       = $(this);
+            var rowName    = $row.attr('data-name')    || '';
+            var rowStatus  = $row.attr('data-status')  || '';
+            var rowDate    = $row.attr('data-created') || '';
+
+            var matchSearch = search    === '' || rowName.indexOf(search) !== -1;
+            var matchStatus = status    === '' || rowStatus === status;
+            var matchDate   = true;
+
+            if (filterStartDate && filterEndDate) {
+                matchDate = rowDate >= filterStartDate && rowDate <= filterEndDate;
+            }
+
+            if (matchSearch && matchStatus && matchDate) {
+                $row.show();
+                visibleCount++;
+            } else {
+                $row.hide();
+            }
+        });
+
+        // Remove any existing empty-state row, then re-inject if needed
+        var $tbody = $('#customers-table tbody');
+        $tbody.find('.filter-empty-row').remove();
+
+        if (visibleCount === 0) {
+            var colCount = $('#customers-table thead th').length;
+            $tbody.append(
+                '<tr class="filter-empty-row">' +
+                    '<td colspan="' + colCount + '" class="text-center py-5">' +
+                        '<div class="filter-empty-state">' +
+                            '<i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>' +
+                            '<span class="text-muted">No customers match the current filters.</span>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>'
+            );
+        }
+    }
+
+    // Bind filter inputs — live on every keystroke / change
+    $('#customer-filter-search').on('input', applyFilters);
+    $('#customer-filter-status').on('change', applyFilters);
+
+    // Reset button — clear all inputs and re-run (shows all rows)
+    $('#customer-filter-reset').on('click', function () {
+        $('#customer-filter-search').val('');
+        $('#customer-filter-status').val('');
+        $('#customer-filter-date-range').val('');
+        filterStartDate = null;
+        filterEndDate = null;
+        applyFilters();
+    });
+
+    // Re-run filters only if any are currently active
+    function refilterAfterDomChange() {
+        var hasActive =
+            $('#customer-filter-search').val().trim()  !== '' ||
+            $('#customer-filter-status').val()         !== '' ||
+            filterStartDate !== null ||
+            filterEndDate !== null;
+
+        if (hasActive) {
+            applyFilters();
+        }
+    }
 
     // =============================================
     // HELPERS
@@ -135,7 +235,10 @@ $(document).ready(function () {
         var creditLimit     = c.credit_limit || '';
 
         return `
-        <tr id="row-${c.id}">
+        <tr id="row-${c.id}"
+            data-name="${ES.escapeHtml(c.name).toLowerCase()}"
+            data-status="${s}"
+            data-created="${c.created_at ? c.created_at.substring(0, 10) : ''}">
             <td>${c.id}</td>
             <td id="name-${c.id}">${ES.escapeHtml(c.name)}</td>
             <td id="email-${c.id}">${ES.escapeHtml(c.email)}</td>
@@ -258,9 +361,9 @@ $(document).ready(function () {
             return;
         }
 
-        var form    = document.getElementById('customerCreateForm');
+        var form     = document.getElementById('customerCreateForm');
         var formData = new FormData(form);
-        var $btn    = $(this);
+        var $btn     = $(this);
 
         $.ajax({
             url:         form.action,
@@ -287,6 +390,7 @@ $(document).ready(function () {
                     }
 
                     $('table.table-customer tbody').prepend(buildCustomerRow(response.data));
+                    refilterAfterDomChange();
                 }
             },
             error: function (xhr) {
@@ -311,7 +415,7 @@ $(document).ready(function () {
 
         FV.clearFormById('customerEditForm');
 
-        var id           = $btn.data('id');
+        var id            = $btn.data('id');
         var vatRegistered = ES
             ? ES.normalizeStatus($btn.attr('data-vat-registered'))
             : ($btn.attr('data-vat-registered') === '1' ? '1' : '0');
@@ -396,6 +500,8 @@ $(document).ready(function () {
                     if (ES && response.data) {
                         ES.syncCustomerRow(response.data);
                     }
+
+                    refilterAfterDomChange();
                 }
             },
             error: function (xhr) {
@@ -478,8 +584,8 @@ $(document).ready(function () {
         var actionLabel = status === '1' ? 'Deactivate' : 'Activate';
 
         $('#customer-confirm-title').text(actionLabel + ' Customer');
-        $('#customer-confirm-body').text(
-            'Are you sure you want to ' + actionLabel.toLowerCase() + ' "' + name + '"?'
+        $('#customer-confirm-body').html(
+            'Are you sure you want to <strong>' + actionLabel.toLowerCase() + '</strong> the customer "<strong>' + name + '</strong>"?'
         );
 
         document.getElementById('customerConfirmForm').action = '/admin/customers/' + id + '/toggle';
@@ -504,8 +610,8 @@ $(document).ready(function () {
         var name = $btn.attr('data-name');
 
         $('#customer-confirm-title').text('Delete Customer');
-        $('#customer-confirm-body').text(
-            'Are you sure you want to permanently delete "' + name + '"? This action cannot be undone.'
+        $('#customer-confirm-body').html(
+            'Are you sure you want to permanently delete "<strong>' + name + '</strong>"? This action cannot be undone.'
         );
 
         document.getElementById('customerConfirmForm').action = '/admin/customers/' + id;
@@ -559,11 +665,27 @@ $(document).ready(function () {
                     var id = $('#confirm-id').val();
 
                     if (method === 'DELETE') {
-                        $('#row-' + id).fadeOut(300, function () { $(this).remove(); });
+                        $('#row-' + id).fadeOut(300, function () {
+                            $(this).remove();
+                            applyFilters();
+                        });
                     } else if (method === 'PATCH') {
                         if (ES) {
                             ES.syncCustomerStatus(id, response.new_status);
+                        } else {
+                            var s = String(response.new_status);
+                            var badgeHtml = (s === '1' || s === 'true')
+                                ? '<span class="badge-status-enabled">Active</span>'
+                                : '<span class="badge-status-disabled">Inactive</span>';
+
+                            $('#status-container-' + id).html(badgeHtml);
+
+                            var $row = $('#row-' + id);
+                            $row.attr('data-status', s);
+                            $row.find('.btn-customer-toggle').attr('data-status', s);
                         }
+                        // Re-run filters so status filter is respected immediately
+                        applyFilters();
                     }
                 }
             },

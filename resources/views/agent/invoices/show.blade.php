@@ -128,11 +128,11 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $item->product->name ?? '-' }}</td>
-                            <td>£{{ number_format($item->selling_price, 2) }}</td>
+                            <td>{{ number_format($item->selling_price, 2) }}</td>
                             <td>{{ $item->vat }}%</td>
                             <td>{{ $item->qty }}</td>
                             <td style="text-align:right; font-weight:600;">
-                                £{{ number_format($item->line_total, 2) }}
+                                {{ number_format($item->line_total, 2) }}
                             </td>
                         </tr>
                         @endforeach
@@ -146,16 +146,16 @@
                 <div class="inv-totals-box">
                     <div class="inv-total-row">
                         <span class="inv-total-label">Subtotal (excl. VAT)</span>
-                        <span class="inv-total-value">£{{ number_format($invoice->total_amount, 2) }}</span>
+                        <span class="inv-total-value">{{ number_format($invoice->total_amount, 2) }}</span>
                     </div>
                     <div class="inv-total-row">
                         <span class="inv-total-label">Total VAT</span>
-                        <span class="inv-total-value">£{{ number_format($invoice->total_vat, 2) }}</span>
+                        <span class="inv-total-value">{{ number_format($invoice->total_vat, 2) }}</span>
                     </div>
                     <div class="inv-total-row inv-grand-total-row">
                         <span class="inv-grand-label">Grand Total</span>
                         <span class="inv-grand-value">
-                            £{{ number_format($invoice->total_amount + $invoice->total_vat, 2) }}
+                            {{ number_format($invoice->total_amount + $invoice->total_vat, 2) }}
                         </span>
                     </div>
                 </div>

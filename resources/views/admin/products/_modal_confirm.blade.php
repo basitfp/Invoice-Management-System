@@ -6,7 +6,7 @@
 --}}
 
 <div class="modal fade" id="productConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
 
             <div id="confirm-method-field"></div>
@@ -19,12 +19,14 @@
             </div>
 
             <div class="modal-body">
-                <p id="confirm-body" class="mb-0" style="color: var(--text-secondary); font-size: 14px; line-height: 1.6;"></p>
+                <p id="confirm-body" class="mb-0"></p>
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" id="confirm-submit-btn" class="btn btn-danger">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <button type="button" id="confirm-submit-btn" class="btn px-4">
                     <span id="confirm-btn-text">Confirm</span>
                     <span id="confirm-btn-spinner" class="spinner-border spinner-border-sm ms-1" role="status" style="display: none;"></span>
                 </button>

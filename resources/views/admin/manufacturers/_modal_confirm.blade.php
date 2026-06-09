@@ -25,12 +25,10 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"
-                        style="height: 48px; border-radius: 10px; font-weight: 600;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         Cancel
                     </button>
-                    <button type="button" id="manufacturer-confirm-submit" class="btn px-4"
-                        style="height: 48px; border-radius: 10px; font-weight: 600;">
+                    <button type="button" id="manufacturer-confirm-submit" class="btn px-4">
                         Confirm
                     </button>
                 </div>

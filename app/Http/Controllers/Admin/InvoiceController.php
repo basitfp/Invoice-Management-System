@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Area;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class InvoiceController extends Controller
 {
@@ -29,6 +31,7 @@ class InvoiceController extends Controller
     public function create()
     {
         $customers = Customer::where('status', 1)->orderBy('name')->get();
+        $areas     = Area::where('status', 1)->orderBy('name')->get();
         $products  = Product::where('status', 1)->orderBy('name')->get();
 
         $productsData = $products->map(function ($p) {
@@ -43,7 +46,7 @@ class InvoiceController extends Controller
             ];
         });
 
-        return view('admin.invoices.create', compact('customers', 'products', 'productsData'));
+        return view('admin.invoices.create', compact('customers', 'areas', 'products', 'productsData'));
     }
 
     // ----------------------------
@@ -52,15 +55,28 @@ class InvoiceController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'invoice_number'           => [
+                'required',
+                'string',
+                'max:100',
+                'regex:/^INV-[A-Za-z0-9\-]+$/',
+                Rule::unique('invoices', 'invoice_number'),
+            ],
             'customer_id'              => 'required|exists:customers,id',
-            'invoice_date'             => 'required|date',
-            'due_date'                 => 'required|date|after_or_equal:today',
+            'invoice_date'             => 'required|date|before_or_equal:today',
+            'due_date'                 => 'required|date|after_or_equal:invoice_date',
             'status'                   => 'required|in:draft,paid,unpaid,due',
             'products'                 => 'required|array|min:1',
             'products.*.product_id'    => 'required|exists:products,id',
             'products.*.selling_price' => 'required|numeric|min:0',
             'products.*.vat'           => 'required|in:0,20',
             'products.*.qty'           => 'required|integer|min:1',
+        ], [
+            'invoice_number.required' => 'Invoice number is required.',
+            'invoice_number.regex' => 'Invoice number must start with INV- and use only letters, numbers, or hyphens.',
+            'invoice_number.unique' => 'This invoice number already exists.',
+            'invoice_date.before_or_equal' => 'Invoice date cannot be in the future.',
+            'due_date.after_or_equal' => 'Due date cannot be earlier than invoice date.',
         ]);
 
         // ── Stock / MOQ validation ──────────────────────────────────────────
@@ -89,10 +105,7 @@ class InvoiceController extends Controller
         try {
             DB::beginTransaction();
 
-            // Auto-generate invoice number (sequential, admin style)
-            $lastInvoice   = Invoice::latest('id')->first();
-            $nextNumber    = $lastInvoice ? ($lastInvoice->id + 1) : 1;
-            $invoiceNumber = 'INV-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            $invoiceNumber = strtoupper(trim($request->invoice_number));
 
             // Calculate totals
             $totalVat    = 0;

@@ -3,6 +3,129 @@ $(document).ready(function () {
     var FV = window.FormValidation;
     var ES = window.EntitySync;
 
+
+    var filterStartDate = null;
+    var filterEndDate = null;
+
+    $('#filter-date-range').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear',
+            format: 'YYYY-MM-DD'
+        }
+    });
+
+    $('#filter-date-range').on('apply.daterangepicker', function (ev, picker) {
+
+        filterStartDate = picker.startDate.format('YYYY-MM-DD');
+        filterEndDate = picker.endDate.format('YYYY-MM-DD');
+
+        $(this).val(
+            filterStartDate + ' - ' + filterEndDate
+        );
+
+        applyFilters();
+    });
+
+    $('#filter-date-range').on('cancel.daterangepicker', function () {
+
+        $(this).val('');
+
+        filterStartDate = null;
+        filterEndDate = null;
+
+        applyFilters();
+    });
+
+    function applyFilters() {
+
+    var search = $('#filter-search').val().trim().toLowerCase();
+    var status = $('#filter-status').val();
+    var visibleCount = 0;
+
+    var $tbody = $('#categories-table tbody');
+
+    $tbody.find('.filter-empty-row').remove();
+
+    $('#categories-table tbody tr').not('.filter-empty-row').each(function () {
+
+        var $row = $(this);
+
+        var rowName = String($row.attr('data-name') || '').toLowerCase();
+        var rowStatus = String($row.attr('data-status') || '');
+        var rowDate = String($row.attr('data-created') || '');
+
+        var matchSearch =
+            search === '' ||
+            rowName.includes(search);
+
+        var matchStatus =
+            status === '' ||
+            rowStatus === status;
+
+        var matchDate = true;
+
+        if (filterStartDate && filterEndDate) {
+            matchDate =
+                rowDate >= filterStartDate &&
+                rowDate <= filterEndDate;
+        }
+
+        if (matchSearch && matchStatus && matchDate) {
+            $row.show();
+            visibleCount++;
+        } else {
+            $row.hide();
+        }
+    });
+
+    if (visibleCount === 0) {
+
+        var colCount = $('#categories-table thead th').length;
+
+        $tbody.append(`
+            <tr class="filter-empty-row">
+                <td colspan="${colCount}" class="text-center py-5">
+                    <div class="filter-empty-state">
+                        <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
+                        <span class="text-muted">
+                            No categories match the current filters.
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        `);
+    }
+}
+    // Bind filter inputs — live on every keystroke / change
+    $('#filter-search').on('input', applyFilters);
+    $('#filter-status').on('change', applyFilters);
+
+    // Reset button — clear all inputs and re-run (shows all rows)
+    $('#filter-reset').on('click', function () {
+
+        $('#filter-search').val('');
+        $('#filter-status').val('');
+
+        $('#filter-date-range').val('');
+
+        filterStartDate = null;
+        filterEndDate = null;
+
+        applyFilters();
+    });
+
+    // =============================================
+    // HELPER — after a new row is prepended or a row
+    // is updated via ES.syncCategoryRow, re-run the
+    // current filters so the new/edited row respects
+    // whatever the user has active.
+    // =============================================
+ function refilterAfterDomChange() {
+
+    applyFilters();
+}
+
     function validateCategoryName($field) {
         var valid = FV.runRules([
             FV.rules.name($field, 'Category name')
@@ -92,23 +215,31 @@ $(document).ready(function () {
 
                     var s = ES ? ES.normalizeStatus(response.data.status) : '1';
 
+                    // Build created date string for filter data attribute
+                    var createdDate = response.data.created_at
+                        ? response.data.created_at.substring(0, 10)   // 'YYYY-MM-DD'
+                        : '';
+
                     // Add new row to table
                     var newRow = `
-                    <tr id="row-${response.data.id}">
+                    <tr id="row-${response.data.id}"
+                        data-name="${response.data.name.toLowerCase()}"
+                        data-status="${s}"
+                        data-created="${createdDate}">
                         <td>${response.data.id}</td>
                         <td id="name-${response.data.id}">${response.data.name}</td>
                         <td class="text-center" id="status-container-${response.data.id}">
                             ${s === '1' ? '<span class="badge-status-enabled">Enabled</span>' : '<span class="badge-status-disabled">Disabled</span>'}
                         </td>
-                        <td class="text-center">Just now</td>
+                        <td class="text-center">${createdDate || 'Just now'}</td>
                         <td>
                             <div class="d-flex gap-2 justify-content-end">
                                 <button type="button" class="btn btn-category-action btn-category-view"
                                     data-id="${response.data.id}"
                                     data-name="${response.data.name}"
                                     data-status="${s}"
-                                    data-created-at="Just now"
-                                    data-updated-at="Just now"
+                                    data-created-at="${createdDate || 'Just now'}"
+                                    data-updated-at="${createdDate || 'Just now'}"
                                     title="View">
                                     <i class="bi bi-eye"></i>
                                 </button>
@@ -140,11 +271,16 @@ $(document).ready(function () {
                             </div>
                         </td>
                     </tr>`;
-                    
-                    var tbody = $('table tbody');
-                    if(tbody.length) {
+
+                    $('#categories-table tbody .filter-empty-row').remove();
+
+                    var tbody = $('#categories-table tbody');
+                    if (tbody.length) {
                         tbody.prepend(newRow);
                     }
+
+                    // Re-apply active filters so the new row is evaluated
+                    refilterAfterDomChange();
                 }
             },
             error: function (xhr) {
@@ -176,7 +312,7 @@ $(document).ready(function () {
         form.action = $(this).attr('data-action');
 
         $('#edit-name').val($(this).attr('data-name'));
-        $('#edit-id').val($(this).attr('data-id')); 
+        $('#edit-id').val($(this).attr('data-id'));
 
         var modal = new bootstrap.Modal(document.getElementById('categoryEditModal'));
         modal.show();
@@ -219,7 +355,15 @@ $(document).ready(function () {
 
                     if (ES && response.data) {
                         ES.syncCategoryRow(response.data);
+                    } else if (response.data) {
+                        $('#name-' + response.data.id).text(response.data.name);
+                        $('#row-' + response.data.id).attr('data-name', response.data.name.toLowerCase());
+                        $('.btn-category-view[data-id="' + response.data.id + '"], .btn-category-edit[data-id="' + response.data.id + '"], .btn-category-toggle[data-id="' + response.data.id + '"], .btn-category-delete[data-id="' + response.data.id + '"]')
+                            .attr('data-name', response.data.name);
                     }
+
+                    // Re-apply active filters after row content changes
+                    refilterAfterDomChange();
                 }
             },
             error: function (xhr) {
@@ -245,10 +389,10 @@ $(document).ready(function () {
     // TOGGLE STATUS - Confirm Modal
     // =============================================
     $(document).on('click', '.btn-category-toggle', function () {
-        var categoryName   = $(this).attr('data-name');
+        var categoryName = $(this).attr('data-name');
         var categoryAction = $(this).attr('data-action');
-        var status         = $(this).attr('data-status');
-        var id             = $(this).attr('data-id');
+        var status = $(this).attr('data-status');
+        var id = $(this).attr('data-id');
 
         var actionLabel = (ES ? ES.normalizeStatus(status) : status) === '1' ? 'Disable' : 'Enable';
 
@@ -257,7 +401,7 @@ $(document).ready(function () {
 
         var confirmForm = document.getElementById('categoryConfirmForm');
         confirmForm.action = categoryAction;
-        
+
         $('#confirm-id').val(id);
         $('#category-method-field').html('<input type="hidden" name="_method" value="PATCH">');
 
@@ -278,7 +422,7 @@ $(document).ready(function () {
     // DELETE - Open confirm modal
     // =============================================
     $(document).on('click', '.btn-category-delete', function () {
-        var categoryId   = $(this).attr('data-id');
+        var categoryId = $(this).attr('data-id');
         var categoryName = $(this).attr('data-name');
 
         $('#category-confirm-title').text('Delete Category');
@@ -303,7 +447,7 @@ $(document).ready(function () {
     // =============================================
     $(document).on('click', '#category-confirm-submit', function (e) {
         e.preventDefault(); // Just in case it's still type="submit"
-        
+
         var form = document.getElementById('categoryConfirmForm');
         var formData = new FormData(form);
         var method = formData.get('_method');
@@ -334,12 +478,23 @@ $(document).ready(function () {
                     if (method === 'DELETE') {
                         var row = $('#row-' + id);
                         if (row.length) {
-                            row.fadeOut(300, function () { $(this).remove(); });
+                            row.fadeOut(300, function () {
+                                $(this).remove();
+                                refilterAfterDomChange();
+                            });
                         }
                     } else if (method === 'PATCH') {
                         if (ES) {
                             ES.syncCategoryStatus(id, response.new_status);
+                        } else {
+                            var s = String(response.new_status);
+                            $('#row-' + id).attr('data-status', s);
+                            $('.btn-category-view[data-id="' + id + '"], .btn-category-edit[data-id="' + id + '"], .btn-category-toggle[data-id="' + id + '"]')
+                                .attr('data-status', s);
                         }
+
+                        // Re-apply active filters after status change
+                        refilterAfterDomChange();
                     }
                 }
             },
